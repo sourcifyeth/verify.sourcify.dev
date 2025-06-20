@@ -2,6 +2,7 @@ import type { Route } from "./+types/jobs.$jobId";
 import { useParams } from "react-router";
 import { useChains } from "../contexts/ChainsContext";
 import { getChainName } from "../utils/chains";
+import PageLayout from "../components/PageLayout";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
@@ -59,15 +60,14 @@ contract SimpleStorage {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
+    <div className="pb-12 bg-cerulean-blue-50 pt-1">
+      <PageLayout maxWidth="max-w-6xl">
+        <div className="mb-6 px-6 pt-6">
           <a href="/verify" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
             ← Back to Verification
           </a>
         </div>
-
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="overflow-hidden">
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex justify-between items-center">
@@ -152,7 +152,7 @@ contract SimpleStorage {
             </div>
           </div>
         </div>
-      </div>
+      </PageLayout>
     </div>
   );
 }
