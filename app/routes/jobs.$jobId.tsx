@@ -1,5 +1,7 @@
 import type { Route } from "./+types/jobs.$jobId";
 import { useParams } from "react-router";
+import { useChains } from "../contexts/ChainsContext";
+import { getChainName } from "../utils/chains";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
@@ -7,12 +9,12 @@ export function meta({}: Route.MetaArgs) {
 
 export default function JobDetails() {
   const { jobId } = useParams<{ jobId: string }>();
+  const { chains } = useChains();
 
   // Dummy job data
   const dummyJob = {
     id: jobId || "job-123",
     contractAddress: "0x1234567890123456789012345678901234567890",
-    network: "Ethereum Mainnet",
     chainId: 1,
     status: "completed",
     createdAt: "2024-01-15T10:30:00Z",
@@ -91,7 +93,7 @@ contract SimpleStorage {
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-sm font-medium text-gray-500">Network</dt>
-                    <dd className="text-sm text-gray-900">{dummyJob.network}</dd>
+                    <dd className="text-sm text-gray-900">{getChainName(chains, dummyJob.chainId)}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-sm font-medium text-gray-500">Chain ID</dt>
