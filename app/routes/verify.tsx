@@ -24,7 +24,7 @@ export default function Verify() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white shadow-lg rounded-lg p-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cerulean-blue-500 mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading supported networks...</p>
             </div>
           </div>
@@ -39,7 +39,7 @@ export default function Verify() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white shadow-lg rounded-lg p-8">
             <div className="text-center">
-              <div className="text-red-600 mb-4">
+              <div className="text-light-coral-500 mb-4">
                 <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
@@ -53,7 +53,7 @@ export default function Verify() {
               <p className="text-gray-600 mb-4">{error}</p>
               <button
                 onClick={refetch}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="bg-cerulean-blue-500 text-white px-4 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
               >
                 Try Again
               </button>
@@ -83,7 +83,7 @@ export default function Verify() {
                 id="contractAddress"
                 name="contractAddress"
                 placeholder="0x..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
               />
             </div>
 
@@ -108,14 +108,14 @@ export default function Verify() {
                 name="sourceCode"
                 rows={6}
                 placeholder="Paste your contract source code here..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
               />
             </div>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="bg-cerulean-blue-500 text-white px-6 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
               >
                 Verify Contract
               </button>

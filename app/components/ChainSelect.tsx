@@ -57,7 +57,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
   return (
     <div ref={dropdownRef} className="relative">
       <div
-        className={`${className} flex items-center justify-between cursor-pointer border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+        className={`${className} flex items-center justify-between cursor-pointer border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate text-gray-900">
@@ -80,7 +80,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
             <input
               ref={searchInputRef}
               type="text"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
               placeholder="Search chains..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -92,8 +92,8 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
               filteredOptions.map((chain) => (
                 <div
                   key={chain.chainId}
-                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${
-                    value === chain.chainId.toString() ? "bg-blue-100" : ""
+                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-cerulean-blue-100 ${
+                    value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""
                   }`}
                   onClick={() => {
                     handleChainIdChange(chain.chainId.toString());

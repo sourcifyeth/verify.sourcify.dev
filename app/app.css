@@ -6,6 +6,30 @@
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   --font-vt323: "VT323", monospace;
+
+  /* Cerulean Blue */
+  --color-cerulean-blue-100: #e8efff;
+  --color-cerulean-blue-200: #a9bdee;
+  --color-cerulean-blue-300: #7693da;
+  --color-cerulean-blue-400: #4c6fc4;
+  --color-cerulean-blue-500: #2b50aa;
+  --color-cerulean-blue: #2b50aa;
+  --color-cerulean-blue-600: #1c3e8e;
+  --color-cerulean-blue-700: #142d6b;
+  --color-cerulean-blue-800: #0e204e;
+  --color-cerulean-blue-900: #08132f;
+
+  /* Light Coral */
+  --color-light-coral-100: #ffccd0;
+  --color-light-coral-200: #ffbabf;
+  --color-light-coral-300: #ffa9af;
+  --color-light-coral-400: #ff9aa1;
+  --color-light-coral-500: #ff858d;
+  --color-light-coral: #ff858d;
+  --color-light-coral-600: #d65861;
+  --color-light-coral-700: #ae373f;
+  --color-light-coral-800: #851f26;
+  --color-light-coral-900: #5d0e13;
 }
 
 html,
