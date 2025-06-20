@@ -34,5 +34,5 @@
 
 html,
 body {
-  @apply bg-gray-50;
+  @apply bg-gray-100;
 }

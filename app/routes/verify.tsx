@@ -65,7 +65,7 @@ export default function Verify() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white shadow-lg rounded-lg p-8">
           <div className="text-center mb-8">
@@ -122,7 +122,7 @@ export default function Verify() {
             </div>
           </form>
 
-          <div className="mt-8 p-4 bg-gray-50 rounded-md">
+          <div className="mt-8 p-4 rounded-md">
             <h3 className="text-lg font-medium text-gray-900 mb-2">Recent Verifications</h3>
             <div className="space-y-2">
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
