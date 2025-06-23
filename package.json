@@ -9,6 +9,7 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@ethersproject/address": "^5.8.0",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "fuse.js": "^7.1.0",
