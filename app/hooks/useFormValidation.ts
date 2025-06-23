@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface FormValidationState {
   isAddressValid: boolean;
@@ -64,23 +64,23 @@ export function useFormValidation() {
     setErrors(newErrors);
   }, [validationState, isFrameworkMethod]);
 
-  const updateAddressValidation = (isValid: boolean) => {
+  const updateAddressValidation = useCallback((isValid: boolean) => {
     setValidationState((prev) => ({ ...prev, isAddressValid: isValid }));
-  };
+  }, []);
 
-  const updateChainId = (chainId: string) => {
+  const updateChainId = useCallback((chainId: string) => {
     setValidationState((prev) => ({ ...prev, selectedChainId: chainId }));
-  };
+  }, []);
 
-  const updateLanguage = (language: string) => {
+  const updateLanguage = useCallback((language: string) => {
     setValidationState((prev) => ({ ...prev, selectedLanguage: language }));
-  };
+  }, []);
 
-  const updateMethod = (method: string) => {
+  const updateMethod = useCallback((method: string) => {
     setValidationState((prev) => ({ ...prev, selectedMethod: method }));
-  };
+  }, []);
 
-  const getSubmissionErrors = (): string[] => {
+  const getSubmissionErrors = useCallback((): string[] => {
     const submissionErrors: string[] = [];
 
     if (!validationState.isAddressValid) {
@@ -100,7 +100,7 @@ export function useFormValidation() {
     }
 
     return submissionErrors;
-  };
+  }, [validationState, isFrameworkMethod]);
 
   return {
     isFormValid,
