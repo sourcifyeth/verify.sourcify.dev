@@ -159,17 +159,18 @@ export default function ChainAndAddress({
                   </p>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <p className="mt-1 text-sm text-gray-500">
+                {shortenAddress(contractAddress)} not verified yet on {currentChainName} ({selectedChainId})
+              </p>
+            )}
           </div>
         )}
 
         {/* Show loading state for all chains */}
-        {isLoadingAllChains && (
+        {isLoadingAllChains ? (
           <p className="mt-1 text-sm text-gray-500">Checking verification status on other chains...</p>
-        )}
-
-        {/* Show verification status on other chains */}
-        {verifiedContracts.length > 0 && !isLoadingAllChains && (
+        ) : verifiedContracts.length > 0 ? (
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <div className="flex items-center gap-2">
               <IoCheckmarkCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
@@ -188,6 +189,12 @@ export default function ChainAndAddress({
               </p>
             </div>
           </div>
+        ) : (
+          contractAddress && (
+            <p className="mt-1 text-sm text-gray-500">
+              {shortenAddress(contractAddress)} not verified yet on any other chain
+            </p>
+          )
         )}
       </div>
 
