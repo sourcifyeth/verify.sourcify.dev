@@ -1,6 +1,7 @@
 import { Tooltip as ReactTooltip } from "react-tooltip";
-import { verificationMethods } from "../../data/verificationMethods";
+import { verificationMethods, frameworkMethods, frameworkMessages } from "../../data/verificationMethods";
 import type { Language } from "../../types/verification";
+import VerificationWarning from "./VerificationWarning";
 
 interface VerificationMethodSelectorProps {
   selectedLanguage: Language | "";
@@ -16,6 +17,16 @@ export default function VerificationMethodSelector({
   if (!selectedLanguage) return null;
 
   const methods = verificationMethods[selectedLanguage as keyof typeof verificationMethods];
+
+  // Get the warning for the selected method
+  const selectedMethodWarning =
+    selectedMethod && selectedLanguage
+      ? verificationMethods[selectedLanguage as keyof typeof verificationMethods]?.find((m) => m.id === selectedMethod)
+          ?.warning
+      : null;
+
+  // Get the framework message for the selected framework
+  const selectedFrameworkMessage = selectedMethod && frameworkMessages[selectedMethod];
 
   return (
     <div>
@@ -65,6 +76,44 @@ export default function VerificationMethodSelector({
           </button>
         ))}
       </div>
+
+      {/* Framework Methods */}
+      <div className="flex gap-4 mt-4">
+        {frameworkMethods.map((method) => (
+          <button
+            key={method.id}
+            type="button"
+            onClick={() => onMethodSelect(method.id)}
+            className={`relative flex items-center justify-center gap-2 p-3 border-2 rounded-lg text-center transition-all duration-200 cursor-pointer w-36 ${
+              selectedMethod === method.id
+                ? "border-cerulean-blue-500 bg-cerulean-blue-50"
+                : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"
+            }`}
+          >
+            <img src={method.icon} alt={method.title} className="w-6 h-6" />
+            <h3
+              className={`text-base font-medium ${
+                selectedMethod === method.id ? "text-cerulean-blue-600" : "text-gray-700"
+              }`}
+            >
+              {method.title}
+            </h3>
+          </button>
+        ))}
+      </div>
+
+      {/* Verification Warnings */}
+      {selectedMethodWarning && (
+        <div className="mt-4">
+          <VerificationWarning type="warning">{selectedMethodWarning}</VerificationWarning>
+        </div>
+      )}
+
+      {selectedFrameworkMessage && (
+        <div className="mt-4">
+          <VerificationWarning type="info">{selectedFrameworkMessage}</VerificationWarning>
+        </div>
+      )}
     </div>
   );
 }

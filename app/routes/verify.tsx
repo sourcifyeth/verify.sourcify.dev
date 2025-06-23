@@ -2,12 +2,9 @@ import type { Route } from "./+types/verify";
 import { useChains } from "../contexts/ChainsContext";
 import PageLayout from "../components/PageLayout";
 import { useVerificationState } from "../hooks/useVerificationState";
-import { verificationMethods, frameworkMessages } from "../data/verificationMethods";
 import LanguageSelector from "../components/verification/LanguageSelector";
 import VerificationMethodSelector from "../components/verification/VerificationMethodSelector";
-import FrameworkSelector from "../components/verification/FrameworkSelector";
 import VerificationForm from "../components/verification/VerificationForm";
-import VerificationWarning from "../components/verification/VerificationWarning";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,16 +24,6 @@ export default function Verify() {
     handleMethodSelect,
   } = useVerificationState();
 
-  // Get the warning for the selected method
-  const selectedMethodWarning =
-    selectedMethod && selectedLanguage
-      ? verificationMethods[selectedLanguage as keyof typeof verificationMethods]?.find((m) => m.id === selectedMethod)
-          ?.warning
-      : null;
-
-  // Get the framework message for the selected framework
-  const selectedFrameworkMessage = selectedMethod && frameworkMessages[selectedMethod];
-
   return (
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
@@ -51,20 +38,12 @@ export default function Verify() {
 
               <LanguageSelector selectedLanguage={selectedLanguage} onLanguageSelect={handleLanguageSelect} />
 
-              <VerificationMethodSelector
-                selectedLanguage={selectedLanguage}
-                selectedMethod={selectedMethod}
-                onMethodSelect={handleMethodSelect}
-              />
-
-              <FrameworkSelector selectedMethod={selectedMethod} onMethodSelect={handleMethodSelect} />
-
-              {selectedMethodWarning && (
-                <VerificationWarning type="warning">{selectedMethodWarning}</VerificationWarning>
-              )}
-
-              {selectedFrameworkMessage && (
-                <VerificationWarning type="info">{selectedFrameworkMessage}</VerificationWarning>
+              {selectedLanguage && (
+                <VerificationMethodSelector
+                  selectedLanguage={selectedLanguage}
+                  selectedMethod={selectedMethod}
+                  onMethodSelect={handleMethodSelect}
+                />
               )}
 
               <div>
