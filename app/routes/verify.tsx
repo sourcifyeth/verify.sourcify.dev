@@ -4,7 +4,7 @@ import PageLayout from "../components/PageLayout";
 import { useVerificationState } from "../hooks/useVerificationState";
 import LanguageSelector from "../components/verification/LanguageSelector";
 import VerificationMethodSelector from "../components/verification/VerificationMethodSelector";
-import VerificationForm from "../components/verification/VerificationForm";
+import ChainAndAddress from "../components/verification/ChainAndAddress";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -30,7 +30,7 @@ export default function Verify() {
         <>
           <div className="p-8">
             <form className="space-y-6">
-              <VerificationForm
+              <ChainAndAddress
                 selectedChainId={selectedChainId}
                 onChainIdChange={handleChainIdChange}
                 chains={chains}

@@ -1,13 +1,13 @@
 import ChainSelect from "../ChainSelect";
 import type { Chain } from "../../types/chains";
 
-interface VerificationFormProps {
+interface ChainAndAddressProps {
   selectedChainId: string;
   onChainIdChange: (value: string) => void;
   chains: Chain[];
 }
 
-export default function VerificationForm({ selectedChainId, onChainIdChange, chains }: VerificationFormProps) {
+export default function ChainAndAddress({ selectedChainId, onChainIdChange, chains }: ChainAndAddressProps) {
   return (
     <>
       <div>
