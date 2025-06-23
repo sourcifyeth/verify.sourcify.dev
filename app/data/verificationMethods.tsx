@@ -71,6 +71,67 @@ export const frameworkMethods: FrameworkMethod[] = [
 ];
 
 export const frameworkMessages: FrameworkMessages = {
-  hardhat: "Use the Hardhat plugin for Sourcify verification. Run: npm install --save-dev @sourcify/hardhat-plugin",
-  foundry: "Use the Foundry plugin for Sourcify verification. Add to foundry.toml: sourcify = true",
+  hardhat: (
+    <div>
+      <p className="mb-3 text-sm">
+        <a
+          href="https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cerulean-blue-600 hover:text-cerulean-blue-700 underline"
+        >
+          Hardhat Documentation →
+        </a>
+      </p>
+      <p className="mb-3">Enable Sourcify in your hardhat.config.js:</p>
+      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg mb-3 overflow-x-auto">
+        <pre className="text-sm">
+          {`module.exports = {
+  sourcify: {
+    // Doesn't need an API key
+    enabled: true
+  }
+};`}
+        </pre>
+      </div>
+      <p className="mb-2">Then verify a contract:</p>
+      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+        <pre className="text-sm">
+          {`npx hardhat verify --network mainnet 0x1F98431c8aD98523631AE4a59f267346ea31F984`}
+        </pre>
+      </div>
+    </div>
+  ),
+  foundry: (
+    <div>
+      <p className="mb-3 text-sm">
+        <a
+          href="https://book.getfoundry.sh/reference/forge/forge-verify-contract"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cerulean-blue-600 hover:text-cerulean-blue-700 underline"
+        >
+          Foundry Documentation →
+        </a>
+      </p>
+      <p className="mb-2">Deploy and verify with Foundry:</p>
+      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg mb-3 overflow-x-auto">
+        <pre className="text-sm">
+          {`forge create --rpc-url <rpc-url> --private-key <private-key> src/MyContract.sol:MyContract --verify --verifier sourcify`}
+        </pre>
+      </div>
+      <p className="mb-2">Or verify an already deployed contract:</p>
+      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg mb-3 overflow-x-auto">
+        <pre className="text-sm">
+          {`forge verify-contract --verifier sourcify --chain <chain-id> 0xB4239c86440d6C39d518D6457038cB404451529b MyContract`}
+        </pre>
+      </div>
+      <p className="mb-2">Check if a contract is verified:</p>
+      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+        <pre className="text-sm">
+          {`forge verify-check 0x1F98431c8aD98523631AE4a59f267346ea31F984 --verifier sourcify`}
+        </pre>
+      </div>
+    </div>
+  ),
 };

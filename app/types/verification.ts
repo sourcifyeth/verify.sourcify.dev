@@ -20,5 +20,5 @@ export interface VerificationMethods {
 }
 
 export interface FrameworkMessages {
-  [key: string]: string;
+  [key: string]: React.ReactNode;
 }
