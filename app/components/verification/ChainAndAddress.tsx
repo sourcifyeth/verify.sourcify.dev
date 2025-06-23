@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { isAddress } from "@ethersproject/address";
 import ChainSelect from "../ChainSelect";
 import VerifiedAllChainsModal from "./VerifiedAllChainsModal";
-import { fetchVerifiedAllChains, fetchVerifiedContract, shortenAddress } from "../../utils/verification";
+import { fetchVerifiedAllChains, fetchVerifiedContract, getRepoLink, shortenAddress } from "../../utils/verification";
 import type { Chain } from "../../types/chains";
 import type { VerifiedContractMinimal } from "../../types/verification";
 import { getChainName } from "~/utils/chains";
-import { IoCheckmarkCircle } from "react-icons/io5";
+import { IoCheckmarkCircle, IoCheckmarkDoneCircle, IoOpenOutline } from "react-icons/io5";
 
 interface ChainAndAddressProps {
   selectedChainId: string;
@@ -133,26 +133,33 @@ export default function ChainAndAddress({
         {!isLoadingCurrentChain && contractAddress && isAddress(contractAddress) && selectedChainId && (
           <div className="mt-2">
             {currentChainContract ? (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <div className="p-2 bg-green-50 border border-green-200 rounded-md">
                 <div className="flex items-center gap-2">
-                  <IoCheckmarkCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium border bg-green-100 text-green-800 border-green-200">
+                    {currentChainContract.match === "exact_match" ? (
+                      <IoCheckmarkDoneCircle className="w-4 h-4" />
+                    ) : (
+                      <IoCheckmarkCircle className="w-4 h-4" />
+                    )}
+                    {currentChainContract.match === "exact_match" ? "Exact Match" : "Match"}
+                  </span>
                   <p className="text-sm text-green-800">
                     <span className="font-medium">{shortenAddress(contractAddress)}</span> is already verified on{" "}
-                    <span className="font-medium">{currentChainName}</span>
+                    <span className="font-medium">{currentChainName}</span>{" "}
+                    <span>({currentChainContract.chainId})</span>
+                    <a
+                      href={getRepoLink(currentChainContract.chainId, currentChainContract.address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-sm text-green-600 hover:text-green-800 font-medium underline hover:cursor-pointer"
+                    >
+                      <IoOpenOutline className="w-4 h-4 inline mr-0.5 mb-0.5" />
+                      View Contract
+                    </a>
                   </p>
                 </div>
               </div>
-            ) : (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 text-yellow-600 flex-shrink-0">⚠️</div>
-                  <p className="text-sm text-yellow-800">
-                    <span className="font-medium">{shortenAddress(contractAddress)}</span> is not verified on{" "}
-                    <span className="font-medium">{currentChainName}</span>
-                  </p>
-                </div>
-              </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -167,7 +174,7 @@ export default function ChainAndAddress({
             <div className="flex items-center gap-2">
               <IoCheckmarkCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
               <p className="text-sm text-blue-800">
-                <span className="font-medium">{shortenAddress(contractAddress)}</span> is verified on{" "}
+                <span className="font-medium">All chains: {shortenAddress(contractAddress)}</span> is verified on{" "}
                 <span className="font-medium">{verifiedContracts.length}</span> chain
                 {verifiedContracts.length > 1 ? "s" : ""}: <span className="">{getChainNames(verifiedContracts)}</span>
                 {verifiedContracts.length > 3 && " and more..."}{" "}
@@ -176,7 +183,7 @@ export default function ChainAndAddress({
                   onClick={() => setIsModalOpen(true)}
                   className="text-sm text-blue-600 hover:text-blue-800 font-medium underline hover:cursor-pointer"
                 >
-                  See more details
+                  See all
                 </button>
               </p>
             </div>
