@@ -10,7 +10,7 @@ import React from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Sourcify Verification" },
+    { title: "verify.sourcify.dev" },
     { name: "description", content: "Verify your smart contracts with Sourcify" },
   ];
 }
