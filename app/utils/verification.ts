@@ -23,6 +23,26 @@ export async function fetchVerifiedAllChains(address: string): Promise<VerifiedC
   }
 }
 
+export async function fetchVerifiedContract(chainId: string, address: string): Promise<VerifiedContractMinimal | null> {
+  try {
+    const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/contract/${chainId}/${address}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Contract not verified on this chain - this is expected, return null
+        return null;
+      }
+      throw new Error(`Failed to fetch verified contract: ${response.status} ${response.statusText}`);
+    }
+
+    const data: VerifiedContractMinimal = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching verified contract:", error);
+    throw error;
+  }
+}
+
 export function getRepoLink(chainId: string, address: string): string {
   return `${SOURCIFY_REPO_URL}/${chainId}/${address}`;
 }

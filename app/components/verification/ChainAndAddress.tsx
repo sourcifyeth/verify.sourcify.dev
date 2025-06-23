@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { isAddress } from "@ethersproject/address";
 import ChainSelect from "../ChainSelect";
 import VerifiedAllChainsModal from "./VerifiedAllChainsModal";
-import { fetchVerifiedAllChains, shortenAddress } from "../../utils/verification";
+import { fetchVerifiedAllChains, fetchVerifiedContract, shortenAddress } from "../../utils/verification";
 import type { Chain } from "../../types/chains";
 import type { VerifiedContractMinimal } from "../../types/verification";
 import { getChainName } from "~/utils/chains";
@@ -24,26 +24,50 @@ export default function ChainAndAddress({
   const [contractAddress, setContractAddress] = useState("");
   const [addressError, setAddressError] = useState("");
   const [verifiedContracts, setVerifiedContracts] = useState<VerifiedContractMinimal[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentChainContract, setCurrentChainContract] = useState<VerifiedContractMinimal | null>(null);
+  const [isLoadingAllChains, setIsLoadingAllChains] = useState(false);
+  const [isLoadingCurrentChain, setIsLoadingCurrentChain] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleFetchVerifiedAllChains = async (address: string) => {
-    setIsLoading(true);
+  const handleFetchAllChains = async (address: string) => {
+    setIsLoadingAllChains(true);
     try {
       const contracts = await fetchVerifiedAllChains(address);
       setVerifiedContracts(contracts);
     } catch (error) {
-      console.error("Error fetching verified contracts:", error);
+      console.error("Error fetching all chains verification data:", error);
       setVerifiedContracts([]);
     } finally {
-      setIsLoading(false);
+      setIsLoadingAllChains(false);
     }
+  };
+
+  const handleFetchCurrentChain = async (address: string, chainId: string) => {
+    if (!chainId) return;
+
+    setIsLoadingCurrentChain(true);
+    try {
+      const contract = await fetchVerifiedContract(chainId, address);
+      setCurrentChainContract(contract);
+    } catch (error) {
+      console.error("Error fetching current chain verification data:", error);
+      setCurrentChainContract(null);
+    } finally {
+      setIsLoadingCurrentChain(false);
+    }
+  };
+
+  const handleFetchVerificationData = async (address: string, chainId: string) => {
+    // Start both requests independently
+    handleFetchAllChains(address);
+    handleFetchCurrentChain(address, chainId);
   };
 
   useEffect(() => {
     if (!contractAddress) {
       setAddressError("");
       setVerifiedContracts([]);
+      setCurrentChainContract(null);
       onValidationChange?.(false);
       return;
     }
@@ -51,14 +75,15 @@ export default function ChainAndAddress({
     if (isAddress(contractAddress)) {
       setAddressError("");
       onValidationChange?.(true);
-      // Fetch verified contracts for this address
-      handleFetchVerifiedAllChains(contractAddress);
+      // Fetch verification data for this address
+      handleFetchVerificationData(contractAddress, selectedChainId);
     } else {
       setAddressError("Please enter a valid Ethereum address");
       setVerifiedContracts([]);
+      setCurrentChainContract(null);
       onValidationChange?.(false);
     }
-  }, [contractAddress, onValidationChange]);
+  }, [contractAddress, selectedChainId, onValidationChange]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setContractAddress(e.target.value);
@@ -71,8 +96,17 @@ export default function ChainAndAddress({
       .join(", ");
   };
 
+  const currentChainName = getChainName(chains, parseInt(selectedChainId));
+
   return (
     <>
+      <div>
+        <label htmlFor="chain" className="block text-base font-semibold text-gray-900 mb-2">
+          Chain
+        </label>
+        <ChainSelect value={selectedChainId} handleChainIdChange={onChainIdChange} chains={chains} className="w-full" />
+      </div>
+
       <div>
         <label htmlFor="contractAddress" className="block text-base font-semibold text-gray-900 mb-2">
           Contract Address
@@ -90,14 +124,50 @@ export default function ChainAndAddress({
         />
         {addressError && <p className="mt-1 text-sm text-red-600">{addressError}</p>}
 
-        {isLoading && <p className="mt-1 text-sm text-gray-500">Checking for existing verifications...</p>}
+        {/* Show loading state for current chain */}
+        {isLoadingCurrentChain && (
+          <p className="mt-1 text-sm text-gray-500">Checking verification status on {currentChainName}...</p>
+        )}
 
-        {verifiedContracts.length > 0 && !isLoading && (
+        {/* Show current chain verification status */}
+        {!isLoadingCurrentChain && contractAddress && isAddress(contractAddress) && selectedChainId && (
+          <div className="mt-2">
+            {currentChainContract ? (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <IoCheckmarkCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-800">
+                    <span className="font-medium">{shortenAddress(contractAddress)}</span> is already verified on{" "}
+                    <span className="font-medium">{currentChainName}</span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 text-yellow-600 flex-shrink-0">⚠️</div>
+                  <p className="text-sm text-yellow-800">
+                    <span className="font-medium">{shortenAddress(contractAddress)}</span> is not verified on{" "}
+                    <span className="font-medium">{currentChainName}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Show loading state for all chains */}
+        {isLoadingAllChains && (
+          <p className="mt-1 text-sm text-gray-500">Checking verification status on other chains...</p>
+        )}
+
+        {/* Show verification status on other chains */}
+        {verifiedContracts.length > 0 && !isLoadingAllChains && (
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <div className="flex items-center gap-2">
-              <IoCheckmarkCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <IoCheckmarkCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
               <p className="text-sm text-blue-800">
-                <span className="font-medium">{shortenAddress(contractAddress)}</span> is already verified on{" "}
+                <span className="font-medium">{shortenAddress(contractAddress)}</span> is verified on{" "}
                 <span className="font-medium">{verifiedContracts.length}</span> chain
                 {verifiedContracts.length > 1 ? "s" : ""}: <span className="">{getChainNames(verifiedContracts)}</span>
                 {verifiedContracts.length > 3 && " and more..."}{" "}
@@ -112,13 +182,6 @@ export default function ChainAndAddress({
             </div>
           </div>
         )}
-      </div>
-
-      <div>
-        <label htmlFor="chain" className="block text-base font-semibold text-gray-900 mb-2">
-          Chain
-        </label>
-        <ChainSelect value={selectedChainId} handleChainIdChange={onChainIdChange} chains={chains} className="w-full" />
       </div>
 
       <VerifiedAllChainsModal
