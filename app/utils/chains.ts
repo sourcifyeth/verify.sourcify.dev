@@ -13,7 +13,7 @@ export async function fetchChains(): Promise<Chain[]> {
     const chains: Chain[] = await response.json();
 
     // Filter to only show supported chains
-    return chains.filter((chain) => chain.supported);
+    return chains;
   } catch (error) {
     console.error("Error fetching chains:", error);
     throw error;
