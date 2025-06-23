@@ -1,3 +1,5 @@
+export type Language = "solidity" | "vyper";
+
 export interface VerificationMethod {
   id: string;
   title: string;
@@ -8,11 +10,8 @@ export interface VerificationMethod {
 export interface FrameworkMethod {
   id: string;
   title: string;
-  description: string;
   icon: string;
 }
-
-export type Language = "solidity" | "vyper";
 
 export interface VerificationMethods {
   solidity: VerificationMethod[];
@@ -21,4 +20,18 @@ export interface VerificationMethods {
 
 export interface FrameworkMessages {
   [key: string]: React.ReactNode;
+}
+
+export interface VerifiedContractMinimal {
+  match: string;
+  creationMatch: string;
+  runtimeMatch: string;
+  chainId: string;
+  address: string;
+  verifiedAt: string;
+  matchId: string;
+}
+
+export interface AllChainsResponse {
+  results: VerifiedContractMinimal[];
 }
