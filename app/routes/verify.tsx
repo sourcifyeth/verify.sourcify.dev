@@ -6,6 +6,8 @@ import { useFormValidation } from "../hooks/useFormValidation";
 import LanguageSelector from "../components/verification/LanguageSelector";
 import VerificationMethodSelector from "../components/verification/VerificationMethodSelector";
 import ChainAndAddress from "../components/verification/ChainAndAddress";
+import CompilerSelector from "../components/verification/CompilerSelector";
+import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import React from "react";
 
 export function meta({}: Route.MetaArgs) {
@@ -21,9 +23,11 @@ export default function Verify() {
     selectedChainId,
     selectedLanguage,
     selectedMethod,
+    selectedCompilerVersion,
     handleChainIdChange,
     handleLanguageSelect,
     handleMethodSelect,
+    handleCompilerVersionSelect,
   } = useVerificationState();
 
   const {
@@ -33,8 +37,10 @@ export default function Verify() {
     updateChainId,
     updateLanguage,
     updateMethod,
+    updateCompilerVersion,
     getSubmissionErrors,
     isFrameworkMethod,
+    isCompilerVersionRequired,
   } = useFormValidation();
 
   // Sync verification state with validation hook
@@ -49,6 +55,10 @@ export default function Verify() {
   React.useEffect(() => {
     updateMethod(selectedMethod);
   }, [selectedMethod, updateMethod]);
+
+  React.useEffect(() => {
+    updateCompilerVersion(selectedCompilerVersion);
+  }, [selectedCompilerVersion, updateCompilerVersion]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +84,19 @@ export default function Verify() {
     return "Submit verification";
   };
 
+  // Helper function to get the method object from the selected method ID
+  const getSelectedMethodObject = () => {
+    if (!selectedMethod || !selectedLanguage) return null;
+
+    // Check verification methods first
+    const verificationMethod = verificationMethods[selectedLanguage]?.find((m) => m.id === selectedMethod);
+    if (verificationMethod) return verificationMethod;
+
+    // Check framework methods
+    const frameworkMethod = frameworkMethods.find((m) => m.id === selectedMethod);
+    return frameworkMethod || null;
+  };
+
   return (
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
@@ -96,6 +119,13 @@ export default function Verify() {
                   onMethodSelect={handleMethodSelect}
                 />
               )}
+
+              <CompilerSelector
+                language={selectedLanguage}
+                verificationMethod={getSelectedMethodObject()}
+                selectedVersion={selectedCompilerVersion}
+                onVersionSelect={handleCompilerVersionSelect}
+              />
 
               {!isFrameworkMethod && (
                 <div>

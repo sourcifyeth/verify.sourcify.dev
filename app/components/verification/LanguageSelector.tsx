@@ -1,7 +1,7 @@
 import type { Language } from "../../types/verification";
 
 interface LanguageSelectorProps {
-  selectedLanguage: Language | "";
+  selectedLanguage: Language | null;
   onLanguageSelect: (language: Language) => void;
 }
 

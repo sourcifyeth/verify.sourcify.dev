@@ -5,6 +5,7 @@ interface FormValidationState {
   selectedChainId: string;
   selectedLanguage: string;
   selectedMethod: string;
+  selectedCompilerVersion: string;
 }
 
 interface ValidationErrors {
@@ -12,6 +13,7 @@ interface ValidationErrors {
   chain?: string;
   language?: string;
   method?: string;
+  compilerVersion?: string;
 }
 
 const FRAMEWORK_METHODS = ["hardhat", "foundry"];
@@ -22,6 +24,7 @@ export function useFormValidation() {
     selectedChainId: "",
     selectedLanguage: "",
     selectedMethod: "",
+    selectedCompilerVersion: "",
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -29,13 +32,20 @@ export function useFormValidation() {
   // Check if selected method is a framework method (not a verification method)
   const isFrameworkMethod = FRAMEWORK_METHODS.includes(validationState.selectedMethod);
 
+  // Check if compiler version is required (not for metadata, hardhat, or foundry methods)
+  const isCompilerVersionRequired =
+    validationState.selectedLanguage &&
+    validationState.selectedMethod &&
+    !["metadata-json", "hardhat", "foundry"].includes(validationState.selectedMethod);
+
   // Calculate overall form validity
   const isFormValid =
     validationState.isAddressValid &&
     validationState.selectedChainId &&
     validationState.selectedLanguage &&
     validationState.selectedMethod &&
-    !isFrameworkMethod; // Don't allow submission for framework methods
+    !isFrameworkMethod && // Don't allow submission for framework methods
+    (!isCompilerVersionRequired || validationState.selectedCompilerVersion); // Require compiler version when needed
 
   // Update validation errors based on current state
   useEffect(() => {
@@ -61,8 +71,12 @@ export function useFormValidation() {
       newErrors.method = "Please select a verification method (not a framework helper)";
     }
 
+    if (isCompilerVersionRequired && !validationState.selectedCompilerVersion) {
+      newErrors.compilerVersion = "Please select a compiler version";
+    }
+
     setErrors(newErrors);
-  }, [validationState, isFrameworkMethod]);
+  }, [validationState, isFrameworkMethod, isCompilerVersionRequired]);
 
   const updateAddressValidation = useCallback((isValid: boolean) => {
     setValidationState((prev) => ({ ...prev, isAddressValid: isValid }));
@@ -72,12 +86,16 @@ export function useFormValidation() {
     setValidationState((prev) => ({ ...prev, selectedChainId: chainId }));
   }, []);
 
-  const updateLanguage = useCallback((language: string) => {
-    setValidationState((prev) => ({ ...prev, selectedLanguage: language }));
+  const updateLanguage = useCallback((language: string | null) => {
+    setValidationState((prev) => ({ ...prev, selectedLanguage: language || "" }));
   }, []);
 
   const updateMethod = useCallback((method: string) => {
     setValidationState((prev) => ({ ...prev, selectedMethod: method }));
+  }, []);
+
+  const updateCompilerVersion = useCallback((version: string) => {
+    setValidationState((prev) => ({ ...prev, selectedCompilerVersion: version }));
   }, []);
 
   const getSubmissionErrors = useCallback((): string[] => {
@@ -98,9 +116,12 @@ export function useFormValidation() {
     if (isFrameworkMethod) {
       submissionErrors.push("Framework helpers cannot be used for verification - please select a verification method");
     }
+    if (isCompilerVersionRequired && !validationState.selectedCompilerVersion) {
+      submissionErrors.push("Compiler version selection is required");
+    }
 
     return submissionErrors;
-  }, [validationState, isFrameworkMethod]);
+  }, [validationState, isFrameworkMethod, isCompilerVersionRequired]);
 
   return {
     isFormValid,
@@ -110,7 +131,9 @@ export function useFormValidation() {
     updateChainId,
     updateLanguage,
     updateMethod,
+    updateCompilerVersion,
     getSubmissionErrors,
     isFrameworkMethod,
+    isCompilerVersionRequired,
   };
 }

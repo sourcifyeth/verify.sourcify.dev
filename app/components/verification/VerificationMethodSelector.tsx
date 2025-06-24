@@ -4,7 +4,7 @@ import type { Language } from "../../types/verification";
 import VerificationWarning from "./VerificationWarning";
 
 interface VerificationMethodSelectorProps {
-  selectedLanguage: Language | "";
+  selectedLanguage: Language | null;
   selectedMethod: string;
   onMethodSelect: (method: string) => void;
 }

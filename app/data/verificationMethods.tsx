@@ -1,7 +1,7 @@
 import React from "react";
 import type {
-  VerificationMethod,
-  FrameworkMethod,
+  VerificationMethodObject,
+  FrameworkMethodObject,
   VerificationMethods,
   FrameworkMessages,
 } from "../types/verification";
@@ -22,7 +22,7 @@ export const flatteningWarning = (
   </span>
 );
 
-export const baseVerificationMethods: VerificationMethod[] = [
+export const baseVerificationMethods: VerificationMethodObject[] = [
   {
     id: "single-file",
     title: "Single File",
@@ -42,7 +42,7 @@ export const baseVerificationMethods: VerificationMethod[] = [
   },
 ];
 
-export const solidityMetadataMethod: VerificationMethod = {
+export const solidityMetadataMethod: VerificationMethodObject = {
   id: "metadata-json",
   title: "Metadata.json",
   description: "Use Solidity's metadata.json output file",
@@ -55,7 +55,7 @@ export const verificationMethods: VerificationMethods = {
   vyper: baseVerificationMethods,
 };
 
-export const frameworkMethods: FrameworkMethod[] = [
+export const frameworkMethods: FrameworkMethodObject[] = [
   {
     id: "hardhat",
     title: "Hardhat",

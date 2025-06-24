@@ -1,21 +1,29 @@
 export type Language = "solidity" | "vyper";
 
-export interface VerificationMethod {
-  id: string;
+// Verification method IDs
+export type VerificationMethod = "single-file" | "multiple-files" | "std-json" | "metadata-json";
+
+// Framework method IDs
+export type FrameworkVerificationMethod = "hardhat" | "foundry";
+
+// Method objects with full details
+export interface VerificationMethodObject {
+  id: VerificationMethod;
   title: string;
   description: string;
   warning?: React.ReactNode;
 }
 
-export interface FrameworkMethod {
-  id: string;
+export interface FrameworkMethodObject {
+  id: FrameworkVerificationMethod;
   title: string;
+  description: string;
   icon: string;
 }
 
 export interface VerificationMethods {
-  solidity: VerificationMethod[];
-  vyper: VerificationMethod[];
+  solidity: VerificationMethodObject[];
+  vyper: VerificationMethodObject[];
 }
 
 export interface FrameworkMessages {
