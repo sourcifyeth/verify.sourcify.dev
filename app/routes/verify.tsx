@@ -7,6 +7,7 @@ import LanguageSelector from "../components/verification/LanguageSelector";
 import VerificationMethodSelector from "../components/verification/VerificationMethodSelector";
 import ChainAndAddress from "../components/verification/ChainAndAddress";
 import CompilerSelector from "../components/verification/CompilerSelector";
+import LicenseInfo from "../components/verification/LicenseInfo";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import React from "react";
 
@@ -102,7 +103,7 @@ export default function Verify() {
       <PageLayout title="Verify Smart Contracts">
         <>
           <div className="p-8">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-12" onSubmit={handleSubmit}>
               <ChainAndAddress
                 selectedChainId={selectedChainId}
                 onChainIdChange={handleChainIdChange}
@@ -126,6 +127,8 @@ export default function Verify() {
                 selectedVersion={selectedCompilerVersion}
                 onVersionSelect={handleCompilerVersionSelect}
               />
+
+              {!isFrameworkMethod && !!selectedMethod && <LicenseInfo />}
 
               {!isFrameworkMethod && (
                 <div>
