@@ -125,6 +125,8 @@ export default function Verify() {
                 onValidationChange={updateAddressValidation}
               />
 
+              <LicenseInfo />
+
               <LanguageSelector selectedLanguage={selectedLanguage} onLanguageSelect={handleLanguageSelect} />
 
               {selectedLanguage && (
@@ -134,8 +136,6 @@ export default function Verify() {
                   onMethodSelect={handleMethodSelect}
                 />
               )}
-
-              {!isFrameworkMethod && !!selectedMethod && <LicenseInfo />}
 
               <CompilerSelector
                 language={selectedLanguage}

@@ -1,4 +1,4 @@
-import type { Language, VerificationMethod } from "../../types/verification";
+import type { Language } from "../../types/verification";
 import EvmVersionSelector from "./EvmVersionSelector";
 import OptimizerSettings from "./OptimizerSettings";
 
