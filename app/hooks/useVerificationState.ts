@@ -7,6 +7,10 @@ export function useVerificationState() {
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [evmVersion, setEvmVersion] = useState<string>("default");
+  const [optimizerEnabled, setOptimizerEnabled] = useState<boolean>(false);
+  const [optimizerRuns, setOptimizerRuns] = useState<number>(200);
+  const [contractIdentifier, setContractIdentifier] = useState<string>("");
 
   const handleChainIdChange = (value: string) => {
     setSelectedChainId(value);
@@ -17,6 +21,10 @@ export function useVerificationState() {
     setSelectedMethod(""); // Reset method when language changes
     setSelectedCompilerVersion(""); // Reset compiler version when language changes
     setUploadedFiles([]); // Reset files when language changes
+    setEvmVersion("default"); // Reset EVM version when language changes
+    setOptimizerEnabled(false); // Reset optimizer when language changes
+    setOptimizerRuns(200); // Reset optimizer runs when language changes
+    setContractIdentifier(""); // Reset contract identifier when language changes
   };
 
   const handleMethodSelect = (method: string) => {
@@ -33,16 +41,40 @@ export function useVerificationState() {
     setUploadedFiles(files);
   };
 
+  const handleEvmVersionChange = (version: string) => {
+    setEvmVersion(version);
+  };
+
+  const handleOptimizerEnabledChange = (enabled: boolean) => {
+    setOptimizerEnabled(enabled);
+  };
+
+  const handleOptimizerRunsChange = (runs: number) => {
+    setOptimizerRuns(runs);
+  };
+
+  const handleContractIdentifierChange = (identifier: string) => {
+    setContractIdentifier(identifier);
+  };
+
   return {
     selectedChainId,
     selectedLanguage,
     selectedMethod,
     selectedCompilerVersion,
     uploadedFiles,
+    evmVersion,
+    optimizerEnabled,
+    optimizerRuns,
+    contractIdentifier,
     handleChainIdChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
     handleFilesChange,
+    handleEvmVersionChange,
+    handleOptimizerEnabledChange,
+    handleOptimizerRunsChange,
+    handleContractIdentifierChange,
   };
 }

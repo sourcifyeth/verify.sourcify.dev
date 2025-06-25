@@ -9,6 +9,8 @@ import ChainAndAddress from "../components/verification/ChainAndAddress";
 import CompilerSelector from "../components/verification/CompilerSelector";
 import LicenseInfo from "../components/verification/LicenseInfo";
 import FileUpload from "../components/verification/FileUpload";
+import CompilerSettings from "../components/verification/CompilerSettings";
+import ContractIdentifier from "../components/verification/ContractIdentifier";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
 import React from "react";
@@ -28,11 +30,19 @@ export default function Verify() {
     selectedMethod,
     selectedCompilerVersion,
     uploadedFiles,
+    evmVersion,
+    optimizerEnabled,
+    optimizerRuns,
+    contractIdentifier,
     handleChainIdChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
     handleFilesChange,
+    handleEvmVersionChange,
+    handleOptimizerEnabledChange,
+    handleOptimizerRunsChange,
+    handleContractIdentifierChange,
   } = useVerificationState();
 
   const {
@@ -125,6 +135,8 @@ export default function Verify() {
                 />
               )}
 
+              {!isFrameworkMethod && !!selectedMethod && <LicenseInfo />}
+
               <CompilerSelector
                 language={selectedLanguage}
                 verificationMethod={getSelectedMethodObject()}
@@ -132,7 +144,25 @@ export default function Verify() {
                 onVersionSelect={handleCompilerVersionSelect}
               />
 
-              {!isFrameworkMethod && !!selectedMethod && <LicenseInfo />}
+              <CompilerSettings
+                selectedLanguage={selectedLanguage}
+                selectedMethod={selectedMethod}
+                isFrameworkMethod={isFrameworkMethod}
+                evmVersion={evmVersion}
+                optimizerEnabled={optimizerEnabled}
+                optimizerRuns={optimizerRuns}
+                onEvmVersionChange={handleEvmVersionChange}
+                onOptimizerEnabledChange={handleOptimizerEnabledChange}
+                onOptimizerRunsChange={handleOptimizerRunsChange}
+              />
+
+              <ContractIdentifier
+                selectedLanguage={selectedLanguage}
+                selectedMethod={selectedMethod}
+                contractIdentifier={contractIdentifier}
+                onContractIdentifierChange={handleContractIdentifierChange}
+                uploadedFiles={uploadedFiles}
+              />
 
               {!isFrameworkMethod && !!selectedMethod && (
                 <FileUpload
