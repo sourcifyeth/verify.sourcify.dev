@@ -6,6 +6,7 @@ export function useVerificationState() {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const handleChainIdChange = (value: string) => {
     setSelectedChainId(value);
@@ -15,15 +16,21 @@ export function useVerificationState() {
     setSelectedLanguage(language);
     setSelectedMethod(""); // Reset method when language changes
     setSelectedCompilerVersion(""); // Reset compiler version when language changes
+    setUploadedFiles([]); // Reset files when language changes
   };
 
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     setSelectedCompilerVersion(""); // Reset compiler version when method changes
+    setUploadedFiles([]); // Reset files when method changes
   };
 
   const handleCompilerVersionSelect = (version: string) => {
     setSelectedCompilerVersion(version);
+  };
+
+  const handleFilesChange = (files: File[]) => {
+    setUploadedFiles(files);
   };
 
   return {
@@ -31,9 +38,11 @@ export function useVerificationState() {
     selectedLanguage,
     selectedMethod,
     selectedCompilerVersion,
+    uploadedFiles,
     handleChainIdChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
+    handleFilesChange,
   };
 }

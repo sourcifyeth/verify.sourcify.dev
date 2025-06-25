@@ -8,7 +8,9 @@ import VerificationMethodSelector from "../components/verification/VerificationM
 import ChainAndAddress from "../components/verification/ChainAndAddress";
 import CompilerSelector from "../components/verification/CompilerSelector";
 import LicenseInfo from "../components/verification/LicenseInfo";
+import FileUpload from "../components/verification/FileUpload";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
+import type { VerificationMethod } from "../types/verification";
 import React from "react";
 
 export function meta({}: Route.MetaArgs) {
@@ -25,10 +27,12 @@ export default function Verify() {
     selectedLanguage,
     selectedMethod,
     selectedCompilerVersion,
+    uploadedFiles,
     handleChainIdChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
+    handleFilesChange,
   } = useVerificationState();
 
   const {
@@ -129,6 +133,15 @@ export default function Verify() {
               />
 
               {!isFrameworkMethod && !!selectedMethod && <LicenseInfo />}
+
+              {!isFrameworkMethod && !!selectedMethod && (
+                <FileUpload
+                  selectedMethod={selectedMethod as VerificationMethod}
+                  selectedLanguage={selectedLanguage}
+                  onFilesChange={handleFilesChange}
+                  uploadedFiles={uploadedFiles}
+                />
+              )}
 
               {!isFrameworkMethod && (
                 <div>
