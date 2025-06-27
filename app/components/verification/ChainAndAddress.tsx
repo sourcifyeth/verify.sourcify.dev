@@ -10,18 +10,21 @@ import { IoCheckmarkCircle, IoCheckmarkDoneCircle, IoOpenOutline } from "react-i
 
 interface ChainAndAddressProps {
   selectedChainId: string;
+  contractAddress: string;
   onChainIdChange: (value: string) => void;
+  onContractAddressChange: (value: string) => void;
   chains: Chain[];
   onValidationChange?: (isValid: boolean) => void;
 }
 
 export default function ChainAndAddress({
   selectedChainId,
+  contractAddress,
   onChainIdChange,
+  onContractAddressChange,
   chains,
   onValidationChange,
 }: ChainAndAddressProps) {
-  const [contractAddress, setContractAddress] = useState("");
   const [addressError, setAddressError] = useState("");
   const [verifiedContracts, setVerifiedContracts] = useState<VerifiedContractMinimal[]>([]);
   const [currentChainContract, setCurrentChainContract] = useState<VerifiedContractMinimal | null>(null);
@@ -86,7 +89,7 @@ export default function ChainAndAddress({
   }, [contractAddress, selectedChainId, onValidationChange]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setContractAddress(e.target.value);
+    onContractAddressChange(e.target.value);
   };
 
   const getChainNames = (contracts: VerifiedContractMinimal[]) => {

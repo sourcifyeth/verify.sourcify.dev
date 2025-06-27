@@ -3,6 +3,7 @@ import type { Language } from "../types/verification";
 
 export function useVerificationState() {
   const [selectedChainId, setSelectedChainId] = useState<string>("");
+  const [contractAddress, setContractAddress] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
@@ -13,8 +14,20 @@ export function useVerificationState() {
   const [optimizerRuns, setOptimizerRuns] = useState<number>(200);
   const [contractIdentifier, setContractIdentifier] = useState<string>("");
 
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{
+    success: boolean;
+    verificationId?: string;
+    error?: string;
+  } | null>(null);
+
   const handleChainIdChange = (value: string) => {
     setSelectedChainId(value);
+  };
+
+  const handleContractAddressChange = (value: string) => {
+    setContractAddress(value);
   };
 
   const handleLanguageSelect = (language: Language) => {
@@ -70,6 +83,7 @@ export function useVerificationState() {
 
   return {
     selectedChainId,
+    contractAddress,
     selectedLanguage,
     selectedMethod,
     selectedCompilerVersion,
@@ -80,6 +94,7 @@ export function useVerificationState() {
     optimizerRuns,
     contractIdentifier,
     handleChainIdChange,
+    handleContractAddressChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
@@ -89,5 +104,9 @@ export function useVerificationState() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    isSubmitting,
+    setIsSubmitting,
+    submissionResult,
+    setSubmissionResult,
   };
 }

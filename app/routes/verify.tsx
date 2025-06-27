@@ -13,6 +13,7 @@ import CompilerSettings from "../components/verification/CompilerSettings";
 import ContractIdentifier from "../components/verification/ContractIdentifier";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
+import { assembleAndSubmitStandardJson, submitStdJsonFile } from "../utils/sourcifyApi";
 import React from "react";
 
 export function meta({}: Route.MetaArgs) {
@@ -26,6 +27,7 @@ export default function Verify() {
   const { chains } = useChains();
   const {
     selectedChainId,
+    contractAddress,
     selectedLanguage,
     selectedMethod,
     selectedCompilerVersion,
@@ -36,6 +38,7 @@ export default function Verify() {
     optimizerRuns,
     contractIdentifier,
     handleChainIdChange,
+    handleContractAddressChange,
     handleLanguageSelect,
     handleMethodSelect,
     handleCompilerVersionSelect,
@@ -45,6 +48,10 @@ export default function Verify() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    isSubmitting,
+    setIsSubmitting,
+    submissionResult,
+    setSubmissionResult,
   } = useVerificationState();
 
   const {
@@ -77,7 +84,7 @@ export default function Verify() {
     updateCompilerVersion(selectedCompilerVersion);
   }, [selectedCompilerVersion, updateCompilerVersion]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isFormValid) {
@@ -87,8 +94,64 @@ export default function Verify() {
       return;
     }
 
-    // Handle form submission here
-    console.log("Form submitted successfully with all required fields");
+    // Skip metadata-json for now (TBD)
+    if (selectedMethod === "metadata-json") {
+      alert("Metadata-json verification is TBD");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionResult(null);
+
+    try {
+      let result;
+
+      if (selectedMethod === "std-json") {
+        // For std-json method, use the uploaded file directly
+        if (uploadedFiles.length === 0) {
+          throw new Error("No standard JSON file uploaded");
+        }
+
+        result = await submitStdJsonFile(
+          selectedChainId,
+          contractAddress,
+          uploadedFiles[0],
+          selectedCompilerVersion,
+          contractIdentifier
+        );
+      } else {
+        // For single-file and multiple-files methods, assemble standard JSON
+        if (uploadedFiles.length === 0) {
+          throw new Error("No files uploaded");
+        }
+
+        result = await assembleAndSubmitStandardJson(
+          selectedChainId,
+          contractAddress,
+          uploadedFiles,
+          selectedLanguage!,
+          selectedCompilerVersion,
+          contractIdentifier,
+          {
+            evmVersion,
+            optimizerEnabled,
+            optimizerRuns,
+          }
+        );
+      }
+
+      setSubmissionResult({
+        success: true,
+        verificationId: result.verificationId,
+      });
+    } catch (error) {
+      setSubmissionResult({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getSubmitButtonTooltip = () => {
@@ -120,9 +183,17 @@ export default function Verify() {
         <>
           <div className="p-8">
             <form className="space-y-12" onSubmit={handleSubmit}>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sourcify Server</h3>
+                <div className="text-sm text-gray-600">
+                  <p>Server URL: {import.meta.env.VITE_SOURCIFY_SERVER_URL || "https://sourcify.dev/server"}</p>
+                </div>
+              </div>
               <ChainAndAddress
                 selectedChainId={selectedChainId}
+                contractAddress={contractAddress}
                 onChainIdChange={handleChainIdChange}
+                onContractAddressChange={handleContractAddressChange}
                 chains={chains}
                 onValidationChange={updateAddressValidation}
               />
@@ -189,20 +260,45 @@ export default function Verify() {
                 </>
               )}
 
+              {/* Submission Result Feedback */}
+              {submissionResult && (
+                <div
+                  className={`p-4 rounded-md ${
+                    submissionResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+                  }`}
+                >
+                  {submissionResult.success ? (
+                    <div className="text-green-800">
+                      <h4 className="font-medium">Verification submitted successfully!</h4>
+                      <p className="text-sm mt-1">
+                        Job ID:{" "}
+                        <code className="bg-green-100 px-2 py-1 rounded text-xs">
+                          {submissionResult.verificationId}
+                        </code>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-red-800">
+                      <h4 className="font-medium">Verification failed</h4>
+                      <p className="text-sm mt-1">{submissionResult.error}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {!isFrameworkMethod && (
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || isSubmitting}
                     className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors ${
-                      isFormValid
+                      isFormValid && !isSubmitting
                         ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                     title={getSubmitButtonTooltip()}
                   >
-                    Verify Contract
+                    {isSubmitting ? "Submitting..." : "Verify Contract"}
                   </button>
                 </div>
               )}
