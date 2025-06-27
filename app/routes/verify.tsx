@@ -30,6 +30,7 @@ export default function Verify() {
     selectedMethod,
     selectedCompilerVersion,
     uploadedFiles,
+    metadataFile,
     evmVersion,
     optimizerEnabled,
     optimizerRuns,
@@ -39,6 +40,7 @@ export default function Verify() {
     handleMethodSelect,
     handleCompilerVersionSelect,
     handleFilesChange,
+    handleMetadataFileChange,
     handleEvmVersionChange,
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
@@ -165,12 +167,26 @@ export default function Verify() {
               />
 
               {!isFrameworkMethod && !!selectedMethod && (
-                <FileUpload
-                  selectedMethod={selectedMethod as VerificationMethod}
-                  selectedLanguage={selectedLanguage}
-                  onFilesChange={handleFilesChange}
-                  uploadedFiles={uploadedFiles}
-                />
+                <>
+                  <FileUpload
+                    selectedMethod={selectedMethod as VerificationMethod}
+                    selectedLanguage={selectedLanguage}
+                    onFilesChange={selectedMethod === "metadata-json" ? handleMetadataFileChange : handleFilesChange}
+                    uploadedFiles={
+                      selectedMethod === "metadata-json" ? (metadataFile ? [metadataFile] : []) : uploadedFiles
+                    }
+                  />
+
+                  {selectedMethod === "metadata-json" && (
+                    // Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case.
+                    <FileUpload
+                      selectedMethod={"multiple-files" as VerificationMethod}
+                      selectedLanguage={selectedLanguage}
+                      onFilesChange={handleFilesChange}
+                      uploadedFiles={uploadedFiles}
+                    />
+                  )}
+                </>
               )}
 
               {!isFrameworkMethod && (

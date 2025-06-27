@@ -52,9 +52,9 @@ const getFileRequirements = (method: VerificationMethod, language: Language | nu
       };
     case "metadata-json":
       return {
-        allowedExtensions: [".json", ...sourceExtensions],
-        maxFiles: Infinity,
-        description: `Metadata JSON file and ${languageName} source files`,
+        allowedExtensions: [".json"],
+        maxFiles: 1,
+        description: `Solidity Metadata JSON file`,
       };
     default:
       return {
@@ -76,6 +76,7 @@ export default function FileUpload({
   const [overrideExtensions, setOverrideExtensions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Special handling for metadata.json file upload when selectedMethod is "metadata-json"
   const requirements = getFileRequirements(selectedMethod, selectedLanguage);
 
   const validateFiles = useCallback(
@@ -242,7 +243,9 @@ export default function FileUpload({
 
   return (
     <div>
-      <label className="block text-base font-semibold text-gray-900 mb-2">File Upload</label>
+      <label className="block text-base font-semibold text-gray-900 mb-2">
+        {selectedMethod === "metadata-json" ? "Metadata File Upload" : "File Upload"}
+      </label>
 
       <div className="mb-3">
         <p className="text-sm text-gray-600">{requirements.description}</p>
