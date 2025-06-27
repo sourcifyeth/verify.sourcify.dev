@@ -121,23 +121,27 @@ export default function FileUpload({
       // Check if we have items (which can include folders) or just files
       if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
         try {
-          const files = await processDroppedItems(e.dataTransfer.items);
-          validateFiles(files);
-          onFilesChange(files);
+          const newFiles = await processDroppedItems(e.dataTransfer.items);
+          // For single file methods, replace instead of append
+          const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+          validateFiles(allFiles);
+          onFilesChange(allFiles);
         } catch (error) {
           console.error("Error processing dropped items:", error);
           // Fallback to regular file handling
-          const files = Array.from(e.dataTransfer.files);
-          validateFiles(files);
-          onFilesChange(files);
+          const newFiles = Array.from(e.dataTransfer.files);
+          const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+          validateFiles(allFiles);
+          onFilesChange(allFiles);
         }
       } else {
-        const files = Array.from(e.dataTransfer.files);
-        validateFiles(files);
-        onFilesChange(files);
+        const newFiles = Array.from(e.dataTransfer.files);
+        const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+        validateFiles(allFiles);
+        onFilesChange(allFiles);
       }
     },
-    [onFilesChange, validateFiles]
+    [onFilesChange, validateFiles, uploadedFiles, requirements.maxFiles]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -152,11 +156,13 @@ export default function FileUpload({
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files || []);
-      validateFiles(files);
-      onFilesChange(files);
+      const newFiles = Array.from(e.target.files || []);
+      // For single file methods, replace instead of append
+      const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+      validateFiles(allFiles);
+      onFilesChange(allFiles);
     },
-    [onFilesChange, validateFiles]
+    [onFilesChange, validateFiles, uploadedFiles, requirements.maxFiles]
   );
 
   const handleBrowseClick = () => {
