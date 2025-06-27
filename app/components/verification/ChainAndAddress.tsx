@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { isAddress } from "@ethersproject/address";
+import { isAddress } from "ethers";
 import ChainSelect from "../ChainSelect";
 import VerifiedAllChainsModal from "./VerifiedAllChainsModal";
 import { fetchVerifiedAllChains, fetchVerifiedContract, getRepoLink, shortenAddress } from "../../utils/verification";
