@@ -74,6 +74,8 @@ export default function FileUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [overrideExtensions, setOverrideExtensions] = useState(false);
+  const [showPasteMode, setShowPasteMode] = useState(false);
+  const [pastedContent, setPastedContent] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Special handling for metadata.json file upload when selectedMethod is "metadata-json"
@@ -248,28 +250,66 @@ export default function FileUpload({
       </label>
 
       <div className="mb-3">
-        <p className="text-sm text-gray-600">{requirements.description}</p>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-xs text-gray-500">
-            Accepted file types: {overrideExtensions ? "Any file type" : requirements.allowedExtensions.join(", ")}
-            {requirements.maxFiles !== Infinity &&
-              ` • Maximum ${requirements.maxFiles} file${requirements.maxFiles > 1 ? "s" : ""}`}
-          </p>
-          <label className="flex items-center space-x-2 text-xs text-gray-600">
-            <input
-              type="checkbox"
-              checked={overrideExtensions}
-              onChange={(e) => {
-                const newOverride = e.target.checked;
-                setOverrideExtensions(newOverride);
-                // Re-validate current files with new override setting
-                validateFiles(uploadedFiles, newOverride);
-              }}
-              className="rounded border-gray-300 text-cerulean-blue-600 focus:ring-cerulean-blue-500"
-            />
-            <span>Override file type restrictions</span>
-          </label>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-gray-600">{requirements.description}</p>
+          {requirements.maxFiles === 1 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">Upload File</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showPasteMode}
+                  onChange={(e) => {
+                    setShowPasteMode(e.target.checked);
+                    if (!e.target.checked) {
+                      setPastedContent("");
+                      // Clear any file created from pasted content
+                      if (uploadedFiles.length > 0 && uploadedFiles[0].name.startsWith("pasted-content")) {
+                        onFilesChange([]);
+                      }
+                    }
+                  }}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-11 h-6 rounded-full relative transition-colors ${
+                    showPasteMode ? "bg-cerulean-blue-600" : "bg-gray-200"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform ${
+                      showPasteMode ? "translate-x-full" : ""
+                    }`}
+                  ></div>
+                </div>
+              </label>
+              <span className="text-sm text-gray-700">Paste File</span>
+            </div>
+          )}
         </div>
+        {!showPasteMode && (
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-gray-500">
+              Accepted file types: {overrideExtensions ? "Any file type" : requirements.allowedExtensions.join(", ")}
+              {requirements.maxFiles !== Infinity &&
+                ` • Maximum ${requirements.maxFiles} file${requirements.maxFiles > 1 ? "s" : ""}`}
+            </p>
+            <label className="flex items-center space-x-2 text-xs text-gray-600">
+              <input
+                type="checkbox"
+                checked={overrideExtensions}
+                onChange={(e) => {
+                  const newOverride = e.target.checked;
+                  setOverrideExtensions(newOverride);
+                  // Re-validate current files with new override setting
+                  validateFiles(uploadedFiles, newOverride);
+                }}
+                className="rounded border-gray-300 text-cerulean-blue-600 focus:ring-cerulean-blue-500"
+              />
+              <span>Override file type restrictions</span>
+            </label>
+          </div>
+        )}
       </div>
 
       {warnings.length > 0 && (
@@ -292,97 +332,124 @@ export default function FileUpload({
         </div>
       )}
 
-      <div
-        className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group ${
-          isDragOver
-            ? "border-cerulean-blue-500 bg-cerulean-blue-50 shadow-lg"
-            : "border-gray-300 hover:border-cerulean-blue-400 hover:bg-cerulean-blue-25"
-        }`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={handleBrowseClick}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple={requirements.maxFiles !== 1}
-          accept={overrideExtensions ? "" : requirements.allowedExtensions.join(",")}
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+      {requirements.maxFiles === 1 && showPasteMode && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Paste file content</label>
+          <textarea
+            value={pastedContent}
+            onChange={(e) => {
+              setPastedContent(e.target.value);
+              if (e.target.value.trim()) {
+                // Create a file from the pasted content
+                const extension = requirements.allowedExtensions[0] || ".txt";
+                const fileName = `pasted-content${extension}`;
+                const blob = new Blob([e.target.value], { type: "text/plain" });
+                const file = new File([blob], fileName, { type: "text/plain" });
+                onFilesChange([file]);
+              } else {
+                onFilesChange([]);
+              }
+            }}
+            placeholder={`Paste your ${selectedMethod === "metadata-json" ? "metadata JSON" : "file"} content here...`}
+            rows={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
+          />
+        </div>
+      )}
 
-        {uploadedFiles.length === 0 ? (
-          <div className="text-center">
-            <AiOutlineFileAdd
-              className={`mx-auto h-12 w-12 transition-colors ${
-                isDragOver ? "text-cerulean-blue-500" : "text-gray-400 group-hover:text-cerulean-blue-500"
-              }`}
-            />
-            <div className="mt-1">
-              <p className="text-sm text-gray-600 group-hover:text-cerulean-blue-500">
-                Choose {requirements.maxFiles === 1 ? "a" : ""} file{requirements.maxFiles === 1 ? "" : "s"} or drag and
-                drop
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {overrideExtensions ? "Any file type" : `${requirements.allowedExtensions.join(", ")} files`}
-              </p>
+      {!showPasteMode && (
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group ${
+            isDragOver
+              ? "border-cerulean-blue-500 bg-cerulean-blue-50 shadow-lg"
+              : "border-gray-300 hover:border-cerulean-blue-400 hover:bg-cerulean-blue-25"
+          }`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={handleBrowseClick}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple={requirements.maxFiles !== 1}
+            accept={overrideExtensions ? "" : requirements.allowedExtensions.join(",")}
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+
+          {uploadedFiles.length === 0 ? (
+            <div className="text-center">
+              <AiOutlineFileAdd
+                className={`mx-auto h-12 w-12 transition-colors ${
+                  isDragOver ? "text-cerulean-blue-500" : "text-gray-400 group-hover:text-cerulean-blue-500"
+                }`}
+              />
+              <div className="mt-1">
+                <p className="text-sm text-gray-600 group-hover:text-cerulean-blue-500">
+                  Choose {requirements.maxFiles === 1 ? "a" : ""} file{requirements.maxFiles === 1 ? "" : "s"} or drag
+                  and drop
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {overrideExtensions ? "Any file type" : `${requirements.allowedExtensions.join(", ")} files`}
+                </p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div>
-            <div className="grid gap-2 mb-4">
-              {uploadedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md"
-                >
-                  <div className="flex items-center space-x-2">
-                    {getFileIcon(file.name)}
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                      <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile(index);
-                    }}
-                    className="text-red-400 hover:text-red-600 focus:outline-none"
+          ) : (
+            <div>
+              <div className="grid gap-2 mb-4">
+                {uploadedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md"
                   >
-                    <IoMdClose className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center space-x-2">
+                      {getFileIcon(file.name)}
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                        <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(index);
+                      }}
+                      className="text-red-400 hover:text-red-600 focus:outline-none"
+                    >
+                      <IoMdClose className="h-5 w-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="flex justify-center items-center space-x-4 border-t border-gray-200 pt-4">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleBrowseClick();
-                }}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cerulean-blue-500"
-              >
-                {requirements.maxFiles === 1 ? "Choose different file" : "Add more files"}
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeAllFiles();
-                }}
-                className="text-sm font-medium text-red-600 hover:text-red-700 hover:underline focus:outline-none focus:underline"
-              >
-                Remove all files
-              </button>
+              <div className="flex justify-center items-center space-x-4 border-t border-gray-200 pt-4">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBrowseClick();
+                  }}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cerulean-blue-500"
+                >
+                  {requirements.maxFiles === 1 ? "Choose different file" : "Add more files"}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeAllFiles();
+                  }}
+                  className="text-sm font-medium text-red-600 hover:text-red-700 hover:underline focus:outline-none focus:underline"
+                >
+                  Remove all files
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

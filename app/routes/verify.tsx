@@ -189,20 +189,6 @@ export default function Verify() {
                 </>
               )}
 
-              {!isFrameworkMethod && (
-                <div>
-                  <label htmlFor="sourceCode" className="block text-base font-semibold text-gray-900 mb-2">
-                    Source Code (Optional)
-                  </label>
-                  <textarea
-                    id="sourceCode"
-                    name="sourceCode"
-                    rows={6}
-                    placeholder="Paste your contract source code here..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
-                  />
-                </div>
-              )}
 
               {!isFrameworkMethod && (
                 <div className="flex justify-end">
