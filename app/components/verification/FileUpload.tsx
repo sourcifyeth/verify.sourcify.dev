@@ -123,21 +123,27 @@ export default function FileUpload({
       if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
         try {
           const newFiles = await processDroppedItems(e.dataTransfer.items);
+          // Filter out .DS_Store files
+          const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
           // For single file methods, replace instead of append
-          const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+          const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
           validateFiles(allFiles);
           onFilesChange(allFiles);
         } catch (error) {
           console.error("Error processing dropped items:", error);
           // Fallback to regular file handling
           const newFiles = Array.from(e.dataTransfer.files);
-          const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+          // Filter out .DS_Store files
+          const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+          const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
           validateFiles(allFiles);
           onFilesChange(allFiles);
         }
       } else {
         const newFiles = Array.from(e.dataTransfer.files);
-        const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+        // Filter out .DS_Store files
+        const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+        const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
         validateFiles(allFiles);
         onFilesChange(allFiles);
       }
@@ -158,8 +164,10 @@ export default function FileUpload({
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newFiles = Array.from(e.target.files || []);
+      // Filter out .DS_Store files
+      const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
       // For single file methods, replace instead of append
-      const allFiles = requirements.maxFiles === 1 ? newFiles : [...uploadedFiles, ...newFiles];
+      const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
       validateFiles(allFiles);
       onFilesChange(allFiles);
     },
