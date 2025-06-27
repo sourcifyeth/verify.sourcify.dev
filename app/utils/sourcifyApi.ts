@@ -146,3 +146,38 @@ export async function submitStdJsonFile(
     creationTransactionHash
   );
 }
+
+interface MetadataVerificationPayload {
+  sources: Record<string, string>;
+  metadata: any;
+  creationTransactionHash?: string;
+}
+
+export async function submitMetadataVerification(
+  chainId: string,
+  address: string,
+  sources: Record<string, string>,
+  metadata: any,
+  creationTransactionHash?: string
+): Promise<VerificationResponse> {
+  const payload: MetadataVerificationPayload = {
+    sources,
+    metadata,
+    ...(creationTransactionHash && { creationTransactionHash }),
+  };
+
+  const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/verify/metadata/${chainId}/${address}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error: VerificationError = await response.json();
+    throw new Error(`${error.customCode}: ${error.message}`);
+  }
+
+  return response.json();
+}

@@ -13,8 +13,10 @@ import CompilerSettings from "../components/verification/CompilerSettings";
 import ContractIdentifier from "../components/verification/ContractIdentifier";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
-import { assembleAndSubmitStandardJson, submitStdJsonFile } from "../utils/sourcifyApi";
-import React from "react";
+import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
+import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
+import MetadataValidation from "../components/verification/MetadataValidation";
+import React, { useState } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -54,6 +56,9 @@ export default function Verify() {
     setSubmissionResult,
   } = useVerificationState();
 
+  // Track metadata validation status
+  const [isMetadataValid, setIsMetadataValid] = useState(false);
+
   const {
     isFormValid,
     errors,
@@ -84,6 +89,7 @@ export default function Verify() {
     updateCompilerVersion(selectedCompilerVersion);
   }, [selectedCompilerVersion, updateCompilerVersion]);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -94,19 +100,30 @@ export default function Verify() {
       return;
     }
 
-    // Skip metadata-json for now (TBD)
-    if (selectedMethod === "metadata-json") {
-      alert("Metadata-json verification is TBD");
-      return;
-    }
-
     setIsSubmitting(true);
     setSubmissionResult(null);
 
     try {
       let result;
 
-      if (selectedMethod === "std-json") {
+      if (selectedMethod === "metadata-json") {
+        // Handle metadata-json method
+        if (!metadataFile) {
+          throw new Error("No metadata.json file uploaded");
+        }
+        
+        const { sources, metadata } = await buildMetadataSubmissionSources(
+          metadataFile,
+          uploadedFiles
+        );
+        
+        result = await submitMetadataVerification(
+          selectedChainId,
+          contractAddress,
+          sources,
+          metadata
+        );
+      } else if (selectedMethod === "std-json") {
         // For std-json method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
           throw new Error("No standard JSON file uploaded");
@@ -249,16 +266,26 @@ export default function Verify() {
                   />
 
                   {selectedMethod === "metadata-json" && (
-                    // Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case.
-                    <FileUpload
-                      selectedMethod={"multiple-files" as VerificationMethod}
-                      selectedLanguage={selectedLanguage}
-                      onFilesChange={handleFilesChange}
-                      uploadedFiles={uploadedFiles}
-                    />
+                    <>
+                      {/* Metadata Validation - Show between metadata and source file uploads */}
+                      <MetadataValidation
+                        metadataFile={metadataFile}
+                        uploadedFiles={uploadedFiles}
+                        onValidationChange={setIsMetadataValid}
+                      />
+                      
+                      {/* Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case. */}
+                      <FileUpload
+                        selectedMethod={"multiple-files" as VerificationMethod}
+                        selectedLanguage={selectedLanguage}
+                        onFilesChange={handleFilesChange}
+                        uploadedFiles={uploadedFiles}
+                      />
+                    </>
                   )}
                 </>
               )}
+
 
               {/* Submission Result Feedback */}
               {submissionResult && (
