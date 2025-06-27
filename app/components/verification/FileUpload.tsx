@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { AiOutlineFileAdd } from "react-icons/ai";
 import { IoMdClose, IoMdWarning } from "react-icons/io";
+import { BsFiletypeJson } from "react-icons/bs";
 import type { VerificationMethod, Language } from "../../types/verification";
 
 interface FileUploadProps {
@@ -180,7 +181,7 @@ export default function FileUpload({
     const extension = fileName.split(".").pop()?.toLowerCase();
     switch (extension) {
       case "json":
-        return <span className="text-lg">📄</span>;
+        return <BsFiletypeJson className="w-5 h-5 text-blue-600" />;
       case "sol":
         return <img src="/solidity.svg" alt="Solidity" className="w-5 h-5" />;
       case "vy":
