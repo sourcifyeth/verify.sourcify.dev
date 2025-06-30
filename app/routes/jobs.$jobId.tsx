@@ -301,7 +301,7 @@ export default function JobDetails() {
                 jobData.error.recompiledRuntimeCode ||
                 jobData.error.onchainRuntimeCode ? (
                   <div>
-                    <h3 className="text-base font-bold text-gray-900 mb-3">Bytecode Information</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Bytecode Data</h3>
 
                     {/* Runtime Bytecode Section */}
                     <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
