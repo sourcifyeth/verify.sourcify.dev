@@ -124,7 +124,7 @@ export default function FileUpload({
         try {
           const newFiles = await processDroppedItems(e.dataTransfer.items);
           // Filter out .DS_Store files
-          const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+          const filteredNewFiles = newFiles.filter((file) => file.name !== ".DS_Store");
           // For single file methods, replace instead of append
           const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
           validateFiles(allFiles);
@@ -134,7 +134,7 @@ export default function FileUpload({
           // Fallback to regular file handling
           const newFiles = Array.from(e.dataTransfer.files);
           // Filter out .DS_Store files
-          const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+          const filteredNewFiles = newFiles.filter((file) => file.name !== ".DS_Store");
           const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
           validateFiles(allFiles);
           onFilesChange(allFiles);
@@ -142,7 +142,7 @@ export default function FileUpload({
       } else {
         const newFiles = Array.from(e.dataTransfer.files);
         // Filter out .DS_Store files
-        const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+        const filteredNewFiles = newFiles.filter((file) => file.name !== ".DS_Store");
         const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
         validateFiles(allFiles);
         onFilesChange(allFiles);
@@ -165,7 +165,7 @@ export default function FileUpload({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newFiles = Array.from(e.target.files || []);
       // Filter out .DS_Store files
-      const filteredNewFiles = newFiles.filter(file => file.name !== ".DS_Store");
+      const filteredNewFiles = newFiles.filter((file) => file.name !== ".DS_Store");
       // For single file methods, replace instead of append
       const allFiles = requirements.maxFiles === 1 ? filteredNewFiles : [...uploadedFiles, ...filteredNewFiles];
       validateFiles(allFiles);
@@ -374,7 +374,7 @@ export default function FileUpload({
 
       {!showPasteMode && (
         <div
-          className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group ${
+          className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group min-h-[250px] flex items-center justify-center ${
             isDragOver
               ? "border-cerulean-blue-500 bg-cerulean-blue-50 shadow-lg"
               : "border-gray-300 hover:border-cerulean-blue-400 hover:bg-cerulean-blue-25"
@@ -411,7 +411,7 @@ export default function FileUpload({
               </div>
             </div>
           ) : (
-            <div>
+            <div className="w-full">
               <div className="grid gap-2 mb-4">
                 {uploadedFiles.map((file, index) => (
                   <div
@@ -431,7 +431,7 @@ export default function FileUpload({
                         e.stopPropagation();
                         removeFile(index);
                       }}
-                      className="text-red-400 hover:text-red-600 focus:outline-none"
+                      className="text-red-400 hover:text-red-600 focus:outline-none p-2"
                     >
                       <IoMdClose className="h-5 w-5" />
                     </button>
