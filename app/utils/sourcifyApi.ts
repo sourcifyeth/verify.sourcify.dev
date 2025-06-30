@@ -181,3 +181,65 @@ export async function submitMetadataVerification(
 
   return response.json();
 }
+
+// Verification Job Status Types
+export interface VerificationJobStatus {
+  isJobCompleted: boolean;
+  verificationId: string;
+  error?: {
+    customCode: string;
+    message: string;
+    errorId: string;
+    recompiledCreationCode?: string;
+    recompiledRuntimeCode?: string;
+    onchainRuntimeCode?: string;
+    creationTransactionHash?: string;
+    errorData?: {
+      compilerErrors?: Array<{
+        component: string;
+        errorCode: string;
+        formattedMessage: string;
+        message: string;
+        severity: string;
+        sourceLocation?: {
+          end: number;
+          file: string;
+          start: number;
+        };
+        type: string;
+      }>;
+    };
+  };
+  jobStartTime: string;
+  jobFinishTime?: string;
+  compilationTime?: string;
+  contract?: {
+    match: "match" | "exact_match" | null;
+    creationMatch: "match" | "exact_match" | null;
+    runtimeMatch: "match" | "exact_match" | null;
+    chainId: string;
+    address: string;
+    verifiedAt?: string;
+    matchId?: string;
+  };
+}
+
+export async function getVerificationJobStatus(verificationId: string): Promise<VerificationJobStatus> {
+  const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/verify/${verificationId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      const error: VerificationError = await response.json();
+      throw new Error(`Job not found: ${error.message}`);
+    }
+    const error: VerificationError = await response.json();
+    throw new Error(`${error.customCode}: ${error.message}`);
+  }
+
+  return response.json();
+}
