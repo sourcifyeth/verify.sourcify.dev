@@ -2,10 +2,12 @@ import type { Route } from "./+types/jobs.$jobId";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { IoCheckmarkDoneCircle, IoCheckmarkCircle, IoOpenOutline } from "react-icons/io5";
+import { TbArrowsDiff } from "react-icons/tb";
 import { useChains } from "../contexts/ChainsContext";
 import { getChainName } from "../utils/chains";
 import { getVerificationJobStatus, type VerificationJobStatus } from "../utils/sourcifyApi";
 import PageLayout from "../components/PageLayout";
+import BytecodeDiffModal from "../components/verification/BytecodeDiffModal";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
@@ -18,6 +20,12 @@ export default function JobDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(15);
+  const [diffModalOpen, setDiffModalOpen] = useState(false);
+  const [diffModalData, setDiffModalData] = useState<{
+    title: string;
+    onchain: string;
+    recompiled: string;
+  } | null>(null);
 
   const fetchJobStatus = async () => {
     if (!jobId) return;
@@ -64,6 +72,16 @@ export default function JobDetails() {
   const getRepoUrl = (chainId: string, address: string) => {
     const repoBaseUrl = import.meta.env.VITE_SOURCIFY_REPO_URL || "https://repo.sourcify.dev";
     return `${repoBaseUrl}/${chainId}/${address}`;
+  };
+
+  const openDiffModal = (title: string, onchain: string, recompiled: string) => {
+    setDiffModalData({ title, onchain, recompiled });
+    setDiffModalOpen(true);
+  };
+
+  const closeDiffModal = () => {
+    setDiffModalOpen(false);
+    setDiffModalData(null);
   };
 
   const getMatchBadge = (matchType: "match" | "exact_match" | null) => {
@@ -306,6 +324,23 @@ export default function JobDetails() {
                     {/* Runtime Bytecode Section */}
                     <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-900 mb-3">Runtime Bytecode</h4>
+                      {jobData?.error?.onchainRuntimeCode && jobData.error?.recompiledRuntimeCode && (
+                        <div className="mb-4">
+                          <button
+                            onClick={() =>
+                              openDiffModal(
+                                "Runtime",
+                                jobData?.error?.onchainRuntimeCode || "",
+                                jobData?.error?.recompiledRuntimeCode || ""
+                              )
+                            }
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-cerulean-blue-600 hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                          >
+                            <TbArrowsDiff className="w-4 h-4" />
+                            View Diff
+                          </button>
+                        </div>
+                      )}
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between mb-2">
@@ -359,6 +394,7 @@ export default function JobDetails() {
                     {/* Creation Bytecode Section */}
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-900 mb-3">Creation Bytecode</h4>
+                      {/* Note: Creation bytecode diff button is not shown because onchain creation bytecode is not available */}
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between mb-2">
@@ -439,6 +475,17 @@ export default function JobDetails() {
             </div>
           )}
         </div>
+
+        {/* Bytecode Diff Modal */}
+        {diffModalData && (
+          <BytecodeDiffModal
+            isOpen={diffModalOpen}
+            onClose={closeDiffModal}
+            title={diffModalData.title}
+            onchainBytecode={diffModalData.onchain}
+            recompiledBytecode={diffModalData.recompiled}
+          />
+        )}
       </>
     </PageLayout>
   );
