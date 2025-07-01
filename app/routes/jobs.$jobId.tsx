@@ -8,6 +8,7 @@ import { getChainName } from "../utils/chains";
 import { getVerificationJobStatus, type VerificationJobStatus } from "../utils/sourcifyApi";
 import PageLayout from "../components/PageLayout";
 import BytecodeDiffModal from "../components/verification/BytecodeDiffModal";
+import MatchBadge from "../components/verification/MatchBadge";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 
 export function meta({}: Route.MetaArgs) {
@@ -110,31 +111,6 @@ export default function JobDetails() {
         }
         return newSet;
       });
-    }
-  };
-
-  const getMatchBadge = (matchType: "match" | "exact_match" | null) => {
-    if (matchType === "exact_match") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium border bg-green-100 text-green-800 border-green-200">
-          <IoCheckmarkDoneCircle className="w-4 h-4" />
-          Exact Match
-        </span>
-      );
-    } else if (matchType === "match") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium border bg-green-100 text-green-800 border-green-200">
-          <IoCheckmarkCircle className="w-4 h-4" />
-          Match
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium border bg-gray-100 text-gray-600 border-gray-200">
-          <span className="w-4 h-4 text-gray-400">-</span>
-          No Match
-        </span>
-      );
     }
   };
 
@@ -290,8 +266,11 @@ export default function JobDetails() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">Verification Result</h2>
               <div className="space-y-3">
                 <div className="flex flex-row space-x-8 flex-wrap">
-                  <DetailRow label="Runtime Match" value={getMatchBadge(jobData.contract.runtimeMatch)} />
-                  <DetailRow label="Creation Match" value={getMatchBadge(jobData.contract.creationMatch)} />
+                  <DetailRow label="Runtime Match" value={<MatchBadge match={jobData.contract.runtimeMatch} small />} />
+                  <DetailRow
+                    label="Creation Match"
+                    value={<MatchBadge match={jobData.contract.creationMatch} small />}
+                  />
                 </div>
                 {(jobData.contract.runtimeMatch || jobData.contract.creationMatch) && (
                   <div className="mt-4">

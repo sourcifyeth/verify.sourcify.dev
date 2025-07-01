@@ -1,10 +1,11 @@
 import React from "react";
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import { Fragment } from "react";
-import { IoCheckmarkDoneCircle, IoCheckmarkCircle, IoOpenOutline, IoClose } from "react-icons/io5";
+import { IoOpenOutline, IoClose } from "react-icons/io5";
 import { useChains } from "../../contexts/ChainsContext";
 import { getChainName } from "../../utils/chains";
 import { getRepoLink } from "../../utils/verification";
+import MatchBadge from "./MatchBadge";
 import type { VerifiedContractMinimal } from "../../types/verification";
 
 interface VerifiedAllChainsModalProps {
@@ -16,31 +17,6 @@ interface VerifiedAllChainsModalProps {
 
 export default function VerifiedAllChainsModal({ isOpen, onClose, contracts, address }: VerifiedAllChainsModalProps) {
   const { chains } = useChains();
-
-  const getMatchBadge = (matchType: string) => {
-    if (matchType === "exact_match") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border bg-green-100 text-green-800 border-green-200">
-          <IoCheckmarkDoneCircle className="w-4 h-4" />
-          Exact Match
-        </span>
-      );
-    } else if (matchType === "match") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border bg-green-100 text-green-800 border-green-200">
-          <IoCheckmarkCircle className="w-4 h-4" />
-          Match
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border bg-gray-100 text-gray-600 border-gray-200">
-          <span className="w-4 h-4 text-gray-400">-</span>
-          No Match
-        </span>
-      );
-    }
-  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -103,8 +79,12 @@ export default function VerifiedAllChainsModal({ isOpen, onClose, contracts, add
                                 <div className="text-gray-500 text-xs">Chain ID: {contract.chainId}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-sm">{getMatchBadge(contract.creationMatch)}</td>
-                            <td className="px-6 py-4 text-sm">{getMatchBadge(contract.runtimeMatch)}</td>
+                            <td className="px-6 py-4 text-sm">
+                              <MatchBadge match={contract.creationMatch as "match" | "exact_match" | null} small />
+                            </td>
+                            <td className="px-6 py-4 text-sm">
+                              <MatchBadge match={contract.runtimeMatch as "match" | "exact_match" | null} small />
+                            </td>
                             <td className="px-6 py-4 text-sm text-gray-700">
                               {new Date(contract.verifiedAt).toISOString().split("T")[0]}
                             </td>

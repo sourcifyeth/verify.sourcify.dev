@@ -6,7 +6,8 @@ import { fetchVerifiedAllChains, fetchVerifiedContract, getRepoLink, shortenAddr
 import type { Chain } from "../../types/chains";
 import type { VerifiedContractMinimal } from "../../types/verification";
 import { getChainName } from "~/utils/chains";
-import { IoCheckmarkCircle, IoCheckmarkDoneCircle, IoOpenOutline } from "react-icons/io5";
+import { IoCheckmarkCircle, IoOpenOutline } from "react-icons/io5";
+import MatchBadge from "./MatchBadge";
 
 interface ChainAndAddressProps {
   selectedChainId: string;
@@ -138,14 +139,7 @@ export default function ChainAndAddress({
             {currentChainContract ? (
               <div className="p-2 bg-green-50 border border-green-200 rounded-md">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium border bg-green-100 text-green-800 border-green-200">
-                    {currentChainContract.match === "exact_match" ? (
-                      <IoCheckmarkDoneCircle className="w-4 h-4" />
-                    ) : (
-                      <IoCheckmarkCircle className="w-4 h-4" />
-                    )}
-                    {currentChainContract.match === "exact_match" ? "Exact Match" : "Match"}
-                  </span>
+                  <MatchBadge match={currentChainContract.match as "match" | "exact_match" | null} small />
                   <p className="text-sm text-green-800">
                     <span className="font-medium">{shortenAddress(contractAddress)}</span> is already verified on{" "}
                     <span className="font-medium">{currentChainName}</span>{" "}
