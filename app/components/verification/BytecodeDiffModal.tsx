@@ -176,7 +176,7 @@ export default function BytecodeDiffModal({
   onchainBytecode,
   recompiledBytecode,
 }: BytecodeDiffModalProps) {
-  const [viewMode, setViewMode] = React.useState<"unified" | "split">("unified");
+  const [viewMode, setViewMode] = React.useState<"unified" | "split">("split");
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const diffResult = compareBytecodeDiff(onchainBytecode, recompiledBytecode);
 
@@ -302,17 +302,6 @@ export default function BytecodeDiffModal({
                     <span className="text-sm text-gray-700">View:</span>
                     <div className="flex bg-gray-100 rounded-lg p-1">
                       <button
-                        onClick={() => handleViewModeChange("unified")}
-                        disabled={isTransitioning}
-                        className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
-                          viewMode === "unified"
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                        } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        Unified
-                      </button>
-                      <button
                         onClick={() => handleViewModeChange("split")}
                         disabled={isTransitioning}
                         className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
@@ -322,6 +311,17 @@ export default function BytecodeDiffModal({
                         } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         Split
+                      </button>
+                      <button
+                        onClick={() => handleViewModeChange("unified")}
+                        disabled={isTransitioning}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          viewMode === "unified"
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        Unified
                       </button>
                     </div>
                   </div>
