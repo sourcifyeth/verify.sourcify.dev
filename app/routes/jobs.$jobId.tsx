@@ -299,6 +299,19 @@ export default function JobDetails() {
                       </span>
                     }
                   />
+                  {/* Compiler Errors */}
+                  {jobData.error.errorData?.compilerErrors && (
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 mb-2">Compiler Errors</h3>
+                      <div className="space-y-2">
+                        {jobData.error.errorData.compilerErrors.map((error, index) => (
+                          <div key={index} className="bg-gray-100 rounded p-3">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap">{error.formattedMessage}</pre>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <DetailRow
                     label="Error Message"
                     value={<span className="text-gray-900">{jobData.error.message}</span>}
@@ -435,20 +448,6 @@ export default function JobDetails() {
                   <div>
                     <h3 className="text-base font-bold text-gray-900 mb-2">Bytecode Information</h3>
                     <p className="text-gray-500 text-xs ml-4">No bytecode found</p>
-                  </div>
-                )}
-
-                {/* Compiler Errors */}
-                {jobData.error.errorData?.compilerErrors && (
-                  <div>
-                    <h3 className="text-base font-bold text-gray-900 mb-2">Compiler Errors</h3>
-                    <div className="space-y-2">
-                      {jobData.error.errorData.compilerErrors.map((error, index) => (
-                        <div key={index} className="bg-gray-100 rounded p-3">
-                          <pre className="text-xs text-gray-700 whitespace-pre-wrap">{error.formattedMessage}</pre>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
