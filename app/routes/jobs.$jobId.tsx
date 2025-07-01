@@ -91,7 +91,7 @@ export default function JobDetails() {
 
   const toggleErrorExpansion = (index: number, isModal: boolean = false) => {
     if (isModal) {
-      setExpandedModalErrors(prev => {
+      setExpandedModalErrors((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(index)) {
           newSet.delete(index);
@@ -101,7 +101,7 @@ export default function JobDetails() {
         return newSet;
       });
     } else {
-      setExpandedErrors(prev => {
+      setExpandedErrors((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(index)) {
           newSet.delete(index);
@@ -220,7 +220,7 @@ export default function JobDetails() {
   }
 
   return (
-    <PageLayout title="Verification Job">
+    <PageLayout>
       <>
         <div className="px-8 pt-6">
           <a href="/verify" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
@@ -368,7 +368,7 @@ export default function JobDetails() {
                                   onClick={() => toggleErrorExpansion(index)}
                                   className="text-xs text-cerulean-blue-600 hover:text-cerulean-blue-800 focus:outline-none"
                                 >
-                                  {expandedErrors.has(index) ? 'Hide Raw Error' : 'Show Raw Error'}
+                                  {expandedErrors.has(index) ? "Hide Raw Error" : "Show Raw Error"}
                                 </button>
                               </div>
                               {expandedErrors.has(index) && (
@@ -653,7 +653,7 @@ export default function JobDetails() {
                                 onClick={() => toggleErrorExpansion(index, true)}
                                 className="text-xs text-cerulean-blue-600 hover:text-cerulean-blue-800 focus:outline-none"
                               >
-                                {expandedModalErrors.has(index) ? 'Hide Raw Error' : 'Show Raw Error'}
+                                {expandedModalErrors.has(index) ? "Hide Raw Error" : "Show Raw Error"}
                               </button>
                             </div>
                             {expandedModalErrors.has(index) && (
