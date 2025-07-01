@@ -235,9 +235,8 @@ export default function JobDetails() {
               <DetailRow label="Job ID" value={jobData.verificationId} fontMono />
               {jobData.contract && (
                 <>
-                  <DetailRow label="Contract Address" value={jobData.contract.address} fontMono className="break-all" />
                   <DetailRow
-                    label="Contract Chain"
+                    label="Chain"
                     value={
                       <span>
                         {getChainName(chains, parseInt(jobData.contract.chainId))}{" "}
@@ -245,6 +244,7 @@ export default function JobDetails() {
                       </span>
                     }
                   />
+                  <DetailRow label="Address" value={jobData.contract.address} fontMono className="break-all" />
                 </>
               )}
               <DetailRow label="Job Started At" value={new Date(jobData.jobStartTime).toISOString()} />
