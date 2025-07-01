@@ -16,7 +16,8 @@ import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
 import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
 import MetadataValidation from "../components/verification/MetadataValidation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,6 +28,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Verify() {
   const { chains } = useChains();
+  const navigate = useNavigate();
   const {
     selectedChainId,
     contractAddress,
@@ -58,6 +60,7 @@ export default function Verify() {
 
   // Track metadata validation status
   const [isMetadataValid, setIsMetadataValid] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   const {
     isFormValid,
@@ -89,7 +92,6 @@ export default function Verify() {
     updateCompilerVersion(selectedCompilerVersion);
   }, [selectedCompilerVersion, updateCompilerVersion]);
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -111,18 +113,10 @@ export default function Verify() {
         if (!metadataFile) {
           throw new Error("No metadata.json file uploaded");
         }
-        
-        const { sources, metadata } = await buildMetadataSubmissionSources(
-          metadataFile,
-          uploadedFiles
-        );
-        
-        result = await submitMetadataVerification(
-          selectedChainId,
-          contractAddress,
-          sources,
-          metadata
-        );
+
+        const { sources, metadata } = await buildMetadataSubmissionSources(metadataFile, uploadedFiles);
+
+        result = await submitMetadataVerification(selectedChainId, contractAddress, sources, metadata);
       } else if (selectedMethod === "std-json") {
         // For std-json method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
@@ -161,6 +155,9 @@ export default function Verify() {
         success: true,
         verificationId: result.verificationId,
       });
+
+      // Start countdown for redirect
+      setRedirectCountdown(10);
     } catch (error) {
       setSubmissionResult({
         success: false,
@@ -168,6 +165,30 @@ export default function Verify() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle countdown and redirect
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+
+    if (redirectCountdown === 0) {
+      if (submissionResult?.success && submissionResult.verificationId) {
+        navigate(`/jobs/${submissionResult.verificationId}`);
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRedirectCountdown(redirectCountdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [redirectCountdown, navigate, submissionResult]);
+
+  const handleRedirectClick = () => {
+    if (submissionResult?.success && submissionResult.verificationId) {
+      navigate(`/jobs/${submissionResult.verificationId}`);
     }
   };
 
@@ -246,7 +267,7 @@ export default function Verify() {
                         uploadedFiles={uploadedFiles}
                         onValidationChange={setIsMetadataValid}
                       />
-                      
+
                       {/* Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case. */}
                       <FileUpload
                         selectedMethod={"multiple-files" as VerificationMethod}
@@ -286,7 +307,6 @@ export default function Verify() {
                 uploadedFiles={uploadedFiles}
               />
 
-
               {/* Submission Result Feedback */}
               {submissionResult && (
                 <div
@@ -296,13 +316,22 @@ export default function Verify() {
                 >
                   {submissionResult.success ? (
                     <div className="text-green-800">
-                      <h4 className="font-medium">Verification submitted successfully!</h4>
-                      <p className="text-sm mt-1">
-                        Job ID:{" "}
-                        <code className="bg-green-100 px-2 py-1 rounded text-xs">
-                          {submissionResult.verificationId}
-                        </code>
-                      </p>
+                      <h4 className="font-medium">
+                        Verification submitted with job ID: {submissionResult.verificationId}
+                      </h4>
+                      <div className="mt-3 space-y-2">
+                        {redirectCountdown !== null && (
+                          <div className="flex items-center justify-between p-3 bg-green-100 rounded-md">
+                            <span className="text-sm">Redirecting to job status in {redirectCountdown} seconds...</span>
+                            <button
+                              onClick={handleRedirectClick}
+                              className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none"
+                            >
+                              Click here to go now
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-red-800">
@@ -314,18 +343,21 @@ export default function Verify() {
               )}
 
               {!isFrameworkMethod && (
-                <div className="flex justify-end">
+                <div className="flex justify-center">
                   <button
                     type="submit"
                     disabled={!isFormValid || isSubmitting}
-                    className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors ${
+                    className={`px-12 py-3 text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 ${
                       isFormValid && !isSubmitting
                         ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                     title={getSubmitButtonTooltip()}
                   >
-                    {isSubmitting ? "Submitting..." : "Verify Contract"}
+                    {isSubmitting && (
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    )}
+                    <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
                   </button>
                 </div>
               )}
