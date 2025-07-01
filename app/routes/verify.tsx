@@ -227,33 +227,6 @@ export default function Verify() {
                 />
               )}
 
-              <CompilerSelector
-                language={selectedLanguage}
-                verificationMethod={getSelectedMethodObject()}
-                selectedVersion={selectedCompilerVersion}
-                onVersionSelect={handleCompilerVersionSelect}
-              />
-
-              <CompilerSettings
-                selectedLanguage={selectedLanguage}
-                selectedMethod={selectedMethod}
-                isFrameworkMethod={isFrameworkMethod}
-                evmVersion={evmVersion}
-                optimizerEnabled={optimizerEnabled}
-                optimizerRuns={optimizerRuns}
-                onEvmVersionChange={handleEvmVersionChange}
-                onOptimizerEnabledChange={handleOptimizerEnabledChange}
-                onOptimizerRunsChange={handleOptimizerRunsChange}
-              />
-
-              <ContractIdentifier
-                selectedLanguage={selectedLanguage}
-                selectedMethod={selectedMethod}
-                contractIdentifier={contractIdentifier}
-                onContractIdentifierChange={handleContractIdentifierChange}
-                uploadedFiles={uploadedFiles}
-              />
-
               {!isFrameworkMethod && !!selectedMethod && (
                 <>
                   <FileUpload
@@ -285,6 +258,33 @@ export default function Verify() {
                   )}
                 </>
               )}
+
+              <CompilerSelector
+                language={selectedLanguage}
+                verificationMethod={getSelectedMethodObject()}
+                selectedVersion={selectedCompilerVersion}
+                onVersionSelect={handleCompilerVersionSelect}
+              />
+
+              <CompilerSettings
+                selectedLanguage={selectedLanguage}
+                selectedMethod={selectedMethod}
+                isFrameworkMethod={isFrameworkMethod}
+                evmVersion={evmVersion}
+                optimizerEnabled={optimizerEnabled}
+                optimizerRuns={optimizerRuns}
+                onEvmVersionChange={handleEvmVersionChange}
+                onOptimizerEnabledChange={handleOptimizerEnabledChange}
+                onOptimizerRunsChange={handleOptimizerRunsChange}
+              />
+
+              <ContractIdentifier
+                selectedLanguage={selectedLanguage}
+                selectedMethod={selectedMethod}
+                contractIdentifier={contractIdentifier}
+                onContractIdentifierChange={handleContractIdentifierChange}
+                uploadedFiles={uploadedFiles}
+              />
 
 
               {/* Submission Result Feedback */}
