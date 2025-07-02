@@ -196,7 +196,14 @@ export default function ContractIdentifier({
     }
   };
 
-  if (!selectedLanguage || !selectedMethod || selectedMethod === "metadata-json") return null;
+  if (
+    !selectedLanguage ||
+    !selectedMethod ||
+    selectedMethod === "metadata-json" ||
+    selectedMethod === "hardhat" ||
+    selectedMethod === "foundry"
+  )
+    return null;
 
   const getPlaceholderText = () => {
     if (selectedLanguage === "vyper") {
