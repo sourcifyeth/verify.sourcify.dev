@@ -1,87 +1,93 @@
-# Welcome to React Router!
+# Sourcify Verification UI
 
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A modern, user-friendly web interface for verifying smart contracts with [Sourcify](https://sourcify.dev/). This application provides an intuitive way to verify Solidity and Vyper smart contracts by uploading source code and comparing it against deployed bytecode on various blockchain networks.
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+### Contract Verification
+
+- **Multiple Verification Methods**: Support for single-file, multiple-files, standard JSON, and metadata.json verification
+- **Language Support**: Solidity and Vyper with multiple compiler versions
+- **Bytecode Comparison**: Visual diff tool with Web Workers for performance
+
+### Smart Contract Discovery
+
+- **Cross-chain Lookup**: Automatically check if contracts are verified on other networks
+- **Verification Status**: Real-time display of verification status with match badges
+- **Repository Links**: Direct links to verified contracts in the Sourcify repository
+
+### Job Management
+
+- **Job Tracking**: Monitor verification job progress with real-time status updates
+- **Recent Verifications**: View and manage your recent verification attempts
+- **Detailed Results**: Comprehensive error reporting and bytecode analysis
+
+### Configuration
+
+- **Server Settings**: Configure custom Sourcify server URLs
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js (version 20 or higher recommended)
+- npm or yarn package manager
+
 ### Installation
 
-Install the dependencies:
+1. Clone the repository:
+
+```bash
+git clone https://github.com/sourcifyeth/verify.sourcify.dev.git
+cd verify.sourcify.dev
+```
+
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
+3. Set up environment variables (optional):
+
+```bash
+# Create .env file with custom server URLs
+VITE_SOURCIFY_SERVER_URL=https://sourcify.dev/server
+VITE_SOURCIFY_REPO_URL=https://repo.sourcify.dev
+```
+
 ### Development
 
-Start the development server with HMR:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+The application will be available at `http://localhost:5173` (or another port if 5173 is busy).
 
-## Building for Production
+### Building
 
-Create a production build:
+Build the application for production:
 
 ```bash
 npm run build
 ```
 
-## Deployment
+This creates optimized production files in the `build/` directory.
 
-### Docker Deployment
+### Production Deployment
 
-To build and run using Docker:
+Start the production server:
 
 ```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+npm start
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+### Type Checking
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+Run TypeScript type checking:
 
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
+```bash
+npm run typecheck
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
