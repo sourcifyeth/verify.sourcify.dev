@@ -207,38 +207,38 @@ export default function JobDetails() {
         <div className="p-8">
           {/* Status Info for Pending Jobs - Moved to top */}
           {!jobData.isJobCompleted && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Job Status</h2>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin h-4 w-4 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
-                  <span className="text-yellow-800 font-medium">Job is processing...</span>
-                </div>
-                <p className="text-yellow-700 mt-2 text-sm">
-                  The verification job is currently being processed. We will check the job status every 10 seconds.
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex flex-col items-center my-4 ">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin h-4 w-4 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
+                <span className="text-yellow-800 font-medium">Job is processing...</span>
+              </div>
+              <p className="text-yellow-700 mt-2 text-sm">
+                The verification job is currently being processed. We will check the job status every 10 seconds.
+              </p>
+              <div className="mt-2 text-center space-y-2">
+                <p className="text-yellow-700 text-sm">
+                  Next refresh in: <span className="font-mono font-medium">{countdown}</span> seconds
                 </p>
-                <div className="mt-3 text-center space-y-2">
-                  <p className="text-yellow-700 text-sm">
-                    Next refresh in: <span className="font-mono font-medium">{countdown}</span> seconds
-                  </p>
-                  <p className="text-gray-500 text-xs font-mono">
-                    Job ID: {jobData.verificationId}
-                  </p>
-                  <button
-                    onClick={handleRefresh}
-                    className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm cursor-pointer mx-auto"
+                <p className="text-gray-500 text-xs font-mono">Job ID: {jobData.verificationId}</p>
+                <button
+                  onClick={handleRefresh}
+                  className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm cursor-pointer mx-auto group"
+                >
+                  <svg
+                    className="w-4 h-4 group-hover:[animation:spin_2s_linear_infinite_reverse]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    <span>Refresh Now</span>
-                  </button>
-                </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  <span>Refresh Now</span>
+                </button>
               </div>
             </div>
           )}
