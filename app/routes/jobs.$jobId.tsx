@@ -217,13 +217,16 @@ export default function JobDetails() {
                 <p className="text-yellow-700 mt-2 text-sm">
                   The verification job is currently being processed. We will check the job status every 10 seconds.
                 </p>
-                <div className="flex items-center justify-between mt-3">
+                <div className="mt-3 text-center space-y-2">
                   <p className="text-yellow-700 text-sm">
                     Next refresh in: <span className="font-mono font-medium">{countdown}</span> seconds
                   </p>
+                  <p className="text-gray-500 text-xs font-mono">
+                    Job ID: {jobData.verificationId}
+                  </p>
                   <button
                     onClick={handleRefresh}
-                    className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm cursor-pointer"
+                    className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm cursor-pointer mx-auto"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path

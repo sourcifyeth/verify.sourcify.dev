@@ -315,27 +315,30 @@ export default function Verify() {
                   }`}
                 >
                   {submissionResult.success ? (
-                    <div className="text-green-800">
-                      <h4 className="font-medium">
-                        Verification submitted with job ID: {submissionResult.verificationId}
-                      </h4>
-                      <div className="mt-3 space-y-2">
-                        {redirectCountdown !== null && (
-                          <div className="flex items-center justify-between p-3 bg-green-100 rounded-md">
-                            <span className="text-sm">Redirecting to job status in {redirectCountdown} seconds...</span>
-                            <button
-                              onClick={handleRedirectClick}
-                              className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none"
-                            >
-                              Click here to go now
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex flex-col items-center text-green-800">
+                      <h3 className="font-medium text-lg">Submitted verification</h3>
+                      <div className="text-sm mt-1">Verification Job ID:</div>
+                      <span className="text-sm mt-1 font-mono bg-gray-100 text-gray-900 px-2 py-1 rounded-md">
+                        {submissionResult.verificationId}
+                      </span>
+
+                      {redirectCountdown !== null && (
+                        <div className="flex flex-col items-center mt-4 rounded-md text-center space-y-2">
+                          <span className="text-sm block">
+                            Redirecting to job status in {redirectCountdown} seconds...
+                          </span>
+                          <button
+                            onClick={handleRedirectClick}
+                            className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none cursor-pointer block"
+                          >
+                            Click here to go now
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="text-red-800">
-                      <h4 className="font-medium">Verification failed</h4>
+                    <div className="flex flex-col items-center text-center text-red-800">
+                      <h3 className="font-medium text-lg">Verification failed</h3>
                       <p className="text-sm mt-1">{submissionResult.error}</p>
                     </div>
                   )}
