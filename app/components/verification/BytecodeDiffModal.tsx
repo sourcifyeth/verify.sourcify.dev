@@ -2,7 +2,7 @@ import React from "react";
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import { Fragment } from "react";
 import { IoClose } from "react-icons/io5";
-import { diffChars } from "diff";
+import { diffChars, diffArrays } from "diff";
 
 interface DiffSegment {
   value: string;
@@ -17,15 +17,41 @@ interface BytecodeDiffResult {
   removedCount: number;
 }
 
+
 /**
- * Compares two bytecode strings character by character
+ * Compares two bytecode strings using specified diff mode
  * @param onchain - The onchain bytecode (original)
  * @param recompiled - The recompiled bytecode (new)
+ * @param diffMode - Whether to diff by "chars" or "bytes"
  * @returns Diff result with segments and statistics
  */
-function compareBytecodeDiff(onchain: string, recompiled: string): BytecodeDiffResult {
-  // Keep the full strings including 0x prefix for comparison
-  const diff = diffChars(onchain, recompiled);
+function compareBytecodeDiff(onchain: string, recompiled: string, diffMode: "chars" | "bytes" = "chars"): BytecodeDiffResult {
+  let diff;
+  
+  if (diffMode === "bytes") {
+    // Convert to byte arrays - each byte is 2 hex characters
+    const onchainBytes = [];
+    for (let i = 0; i < onchain.length; i += 2) {
+      onchainBytes.push(onchain.slice(i, i + 2));
+    }
+    
+    const recompiledBytes = [];
+    for (let i = 0; i < recompiled.length; i += 2) {
+      recompiledBytes.push(recompiled.slice(i, i + 2));
+    }
+    
+    // Diff the byte arrays
+    const byteDiff = diffArrays(onchainBytes, recompiledBytes);
+    
+    // Convert back to string format
+    diff = byteDiff.map((part) => ({
+      ...part,
+      value: part.value.join('')
+    }));
+  } else {
+    // Character comparison
+    diff = diffChars(onchain, recompiled);
+  }
 
   let addedCount = 0;
   let removedCount = 0;
@@ -93,8 +119,6 @@ function renderDiffSegments(segments: DiffSegment[]): React.ReactElement {
 }
 
 function renderSplitView(
-  onchain: string,
-  recompiled: string,
   diffResult: BytecodeDiffResult,
   onchainRef: React.RefObject<HTMLDivElement>,
   recompiledRef: React.RefObject<HTMLDivElement>,
@@ -177,8 +201,8 @@ export default function BytecodeDiffModal({
   recompiledBytecode,
 }: BytecodeDiffModalProps) {
   const [viewMode, setViewMode] = React.useState<"unified" | "split">("split");
-  const [isTransitioning, setIsTransitioning] = React.useState(false);
-  const diffResult = compareBytecodeDiff(onchainBytecode, recompiledBytecode);
+  const [diffMode, setDiffMode] = React.useState<"chars" | "bytes">("chars");
+  const diffResult = compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode);
 
   // Move refs to component level to avoid conditional hook calls
   const onchainRef = React.useRef<HTMLDivElement>(null);
@@ -204,16 +228,12 @@ export default function BytecodeDiffModal({
 
   const handleViewModeChange = (newMode: "unified" | "split") => {
     if (newMode === viewMode) return;
+    setViewMode(newMode);
+  };
 
-    setIsTransitioning(true);
-
-    // Small delay to allow fade out effect
-    setTimeout(() => {
-      setViewMode(newMode);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50); // Short delay to allow new content to render before fading in
-    }, 150);
+  const handleDiffModeChange = (newMode: "chars" | "bytes") => {
+    if (newMode === diffMode) return;
+    setDiffMode(newMode);
   };
 
   return (
@@ -286,7 +306,7 @@ export default function BytecodeDiffModal({
                   </div>
                 </div>
 
-                {/* View Mode Toggle */}
+                {/* View Mode and Diff Mode Toggles */}
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center space-x-6 text-sm">
                     <div className="flex items-center space-x-2">
@@ -298,43 +318,68 @@ export default function BytecodeDiffModal({
                       <span>Only in onchain</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-700">View:</span>
-                    <div className="flex bg-gray-100 rounded-lg p-1">
-                      <button
-                        onClick={() => handleViewModeChange("split")}
-                        disabled={isTransitioning}
-                        className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
-                          viewMode === "split"
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                        } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        Split
-                      </button>
-                      <button
-                        onClick={() => handleViewModeChange("unified")}
-                        disabled={isTransitioning}
-                        className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
-                          viewMode === "unified"
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                        } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        Unified
-                      </button>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-700">Diff:</span>
+                      <div className="flex bg-gray-100 rounded-lg p-1">
+                        <button
+                          onClick={() => handleDiffModeChange("chars")}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                            diffMode === "chars"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          }`}
+                        >
+                          Chars
+                        </button>
+                        <button
+                          onClick={() => handleDiffModeChange("bytes")}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                            diffMode === "bytes"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          }`}
+                        >
+                          Bytes
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-700">View:</span>
+                      <div className="flex bg-gray-100 rounded-lg p-1">
+                        <button
+                          onClick={() => handleViewModeChange("split")}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                            viewMode === "split"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          }`}
+                        >
+                          Split
+                        </button>
+                        <button
+                          onClick={() => handleViewModeChange("unified")}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                            viewMode === "unified"
+                              ? "bg-white text-gray-900 shadow-sm"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          }`}
+                        >
+                          Unified
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Diff Display */}
-                <div
-                  className={`transition-all duration-300 ease-in-out ${isTransitioning ? "opacity-0" : "opacity-100"}`}
-                >
+                <div>
                   {viewMode === "unified" ? (
                     <div className="border border-gray-200 rounded-lg">
                       <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900">Character-by-character comparison</h3>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {diffMode === "chars" ? "Character-by-character comparison" : "Byte-by-byte comparison"}
+                        </h3>
                       </div>
                       <div className="p-4" style={{ height: "384px", overflow: "auto" }}>
                         <div className="font-mono text-xs break-all leading-relaxed">
@@ -349,8 +394,6 @@ export default function BytecodeDiffModal({
                       </div>
                       <div className="border-l border-r border-b border-gray-200 rounded-b-lg p-4">
                         {renderSplitView(
-                          onchainBytecode,
-                          recompiledBytecode,
                           diffResult,
                           onchainRef as React.RefObject<HTMLDivElement>,
                           recompiledRef as React.RefObject<HTMLDivElement>,
