@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { Chain } from "../types/chains";
 import { fetchChains } from "../utils/chains";
+import { useServerConfig } from "./ServerConfigContext";
 
 interface ChainsContextType {
   chains: Chain[];
@@ -13,6 +14,7 @@ interface ChainsContextType {
 const ChainsContext = createContext<ChainsContextType | undefined>(undefined);
 
 export function ChainsProvider({ children }: { children: ReactNode }) {
+  const { serverUrl } = useServerConfig();
   const [chains, setChains] = useState<Chain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export function ChainsProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const fetchedChains = await fetchChains();
+      const fetchedChains = await fetchChains(serverUrl);
       setChains(fetchedChains);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch chains");
@@ -37,7 +39,7 @@ export function ChainsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadChains();
-  }, []);
+  }, [serverUrl]);
 
   return <ChainsContext.Provider value={{ chains, loading, error, refetch }}>{children}</ChainsContext.Provider>;
 }

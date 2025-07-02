@@ -1,11 +1,10 @@
 import type { AllChainsResponse, VerifiedContractMinimal } from "../types/verification";
 
-const SOURCIFY_SERVER_URL = import.meta.env.VITE_SOURCIFY_SERVER_URL || "https://sourcify.dev/server";
 const SOURCIFY_REPO_URL = import.meta.env.VITE_SOURCIFY_REPO_URL || "https://repo.sourcify.dev";
 
-export async function fetchVerifiedAllChains(address: string): Promise<VerifiedContractMinimal[]> {
+export async function fetchVerifiedAllChains(serverUrl: string, address: string): Promise<VerifiedContractMinimal[]> {
   try {
-    const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/contract/all-chains/${address}`);
+    const response = await fetch(`${serverUrl}/v2/contract/all-chains/${address}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -23,9 +22,9 @@ export async function fetchVerifiedAllChains(address: string): Promise<VerifiedC
   }
 }
 
-export async function fetchVerifiedContract(chainId: string, address: string): Promise<VerifiedContractMinimal | null> {
+export async function fetchVerifiedContract(serverUrl: string, chainId: string, address: string): Promise<VerifiedContractMinimal | null> {
   try {
-    const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/contract/${chainId}/${address}`);
+    const response = await fetch(`${serverUrl}/v2/contract/${chainId}/${address}`);
 
     if (!response.ok) {
       if (response.status === 404) {

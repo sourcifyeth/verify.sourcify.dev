@@ -1,7 +1,5 @@
 import type { Language } from "../types/verification";
 
-const SOURCIFY_SERVER_URL = import.meta.env.VITE_SOURCIFY_SERVER_URL || "https://sourcify.dev/server";
-
 interface CompilerSettings {
   evmVersion: string;
   optimizerEnabled: boolean;
@@ -47,7 +45,7 @@ async function buildStandardJsonInput(
   settings: CompilerSettings
 ): Promise<StandardJsonInput> {
   const sources: { [fileName: string]: { content: string } } = {};
-  
+
   // Read all file contents
   for (const file of files) {
     const content = await file.text();
@@ -68,6 +66,7 @@ async function buildStandardJsonInput(
 }
 
 async function submitStandardJsonVerification(
+  serverUrl: string,
   chainId: string,
   address: string,
   stdJsonInput: StandardJsonInput,
@@ -82,7 +81,7 @@ async function submitStandardJsonVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/verify/${chainId}/${address}`, {
+  const response = await fetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -99,6 +98,7 @@ async function submitStandardJsonVerification(
 }
 
 export async function assembleAndSubmitStandardJson(
+  serverUrl: string,
   chainId: string,
   address: string,
   files: File[],
@@ -109,8 +109,9 @@ export async function assembleAndSubmitStandardJson(
   creationTransactionHash?: string
 ): Promise<VerificationResponse> {
   const stdJsonInput = await buildStandardJsonInput(files, language, settings);
-  
+
   return submitStandardJsonVerification(
+    serverUrl,
     chainId,
     address,
     stdJsonInput,
@@ -121,6 +122,7 @@ export async function assembleAndSubmitStandardJson(
 }
 
 export async function submitStdJsonFile(
+  serverUrl: string,
   chainId: string,
   address: string,
   stdJsonFile: File,
@@ -130,7 +132,7 @@ export async function submitStdJsonFile(
 ): Promise<VerificationResponse> {
   const stdJsonContent = await stdJsonFile.text();
   let stdJsonInput: StandardJsonInput;
-  
+
   try {
     stdJsonInput = JSON.parse(stdJsonContent);
   } catch (error) {
@@ -138,6 +140,7 @@ export async function submitStdJsonFile(
   }
 
   return submitStandardJsonVerification(
+    serverUrl,
     chainId,
     address,
     stdJsonInput,
@@ -154,6 +157,7 @@ interface MetadataVerificationPayload {
 }
 
 export async function submitMetadataVerification(
+  serverUrl: string,
   chainId: string,
   address: string,
   sources: Record<string, string>,
@@ -166,7 +170,7 @@ export async function submitMetadataVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/verify/metadata/${chainId}/${address}`, {
+  const response = await fetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -224,8 +228,11 @@ export interface VerificationJobStatus {
   };
 }
 
-export async function getVerificationJobStatus(verificationId: string): Promise<VerificationJobStatus> {
-  const response = await fetch(`${SOURCIFY_SERVER_URL}/v2/verify/${verificationId}`, {
+export async function getVerificationJobStatus(
+  serverUrl: string,
+  verificationId: string
+): Promise<VerificationJobStatus> {
+  const response = await fetch(`${serverUrl}/v2/verify/${verificationId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

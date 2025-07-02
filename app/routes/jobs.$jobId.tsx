@@ -10,6 +10,7 @@ import PageLayout from "../components/PageLayout";
 import BytecodeDiffModal from "../components/verification/BytecodeDiffModal";
 import MatchBadge from "../components/verification/MatchBadge";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import { useServerConfig } from "../contexts/ServerConfigContext";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
@@ -32,13 +33,14 @@ export default function JobDetails() {
   const [errorMessageModalOpen, setErrorMessageModalOpen] = useState(false);
   const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set());
   const [expandedModalErrors, setExpandedModalErrors] = useState<Set<number>>(new Set());
+  const { serverUrl } = useServerConfig();
 
   const fetchJobStatus = async () => {
     if (!jobId) return;
 
     try {
       setLoading(true);
-      const data = await getVerificationJobStatus(jobId);
+      const data = await getVerificationJobStatus(serverUrl, jobId);
       setJobData(data);
       setError(null);
     } catch (err) {

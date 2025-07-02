@@ -12,6 +12,7 @@ import {
   type StoredVerificationJob,
 } from "../../utils/jobStorage";
 import { getVerificationJobStatus } from "../../utils/sourcifyApi";
+import { useServerConfig } from "../../contexts/ServerConfigContext";
 
 interface RecentVerificationsProps {
   className?: string;
@@ -23,7 +24,7 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
   const [jobs, setJobs] = useState<StoredVerificationJob[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
-
+  const { serverUrl } = useServerConfig();
   const loadJobs = () => {
     const allJobs = getStoredJobs();
     setJobs(allJobs);
@@ -43,7 +44,7 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
       try {
         for (const job of pendingJobs) {
           try {
-            const jobData = await getVerificationJobStatus(job.verificationId);
+            const jobData = await getVerificationJobStatus(serverUrl, job.verificationId);
             if (jobData.isJobCompleted) {
               updateJobStatus(job.verificationId, jobData);
             }

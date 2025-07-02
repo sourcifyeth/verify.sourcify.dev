@@ -8,6 +8,7 @@ import type { VerifiedContractMinimal } from "../../types/verification";
 import { getChainName } from "~/utils/chains";
 import { IoCheckmarkCircle, IoOpenOutline } from "react-icons/io5";
 import MatchBadge from "./MatchBadge";
+import { useServerConfig } from "../../contexts/ServerConfigContext";
 
 interface ChainAndAddressProps {
   selectedChainId: string;
@@ -26,6 +27,7 @@ export default function ChainAndAddress({
   chains,
   onValidationChange,
 }: ChainAndAddressProps) {
+  const { serverUrl } = useServerConfig();
   const [addressError, setAddressError] = useState("");
   const [verifiedContracts, setVerifiedContracts] = useState<VerifiedContractMinimal[]>([]);
   const [currentChainContract, setCurrentChainContract] = useState<VerifiedContractMinimal | null>(null);
@@ -36,7 +38,7 @@ export default function ChainAndAddress({
   const handleFetchAllChains = async (address: string) => {
     setIsLoadingAllChains(true);
     try {
-      const contracts = await fetchVerifiedAllChains(address);
+      const contracts = await fetchVerifiedAllChains(serverUrl, address);
       setVerifiedContracts(contracts);
     } catch (error) {
       console.error("Error fetching all chains verification data:", error);
@@ -51,7 +53,7 @@ export default function ChainAndAddress({
 
     setIsLoadingCurrentChain(true);
     try {
-      const contract = await fetchVerifiedContract(chainId, address);
+      const contract = await fetchVerifiedContract(serverUrl, chainId, address);
       setCurrentChainContract(contract);
     } catch (error) {
       console.error("Error fetching current chain verification data:", error);
@@ -87,7 +89,7 @@ export default function ChainAndAddress({
       setCurrentChainContract(null);
       onValidationChange?.(false);
     }
-  }, [contractAddress, selectedChainId, onValidationChange]);
+  }, [contractAddress, selectedChainId, serverUrl, onValidationChange]);
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onContractAddressChange(e.target.value);

@@ -1,10 +1,8 @@
 import type { Chain } from "../types/chains";
 
-const SOURCIFY_SERVER_URL = import.meta.env.VITE_SOURCIFY_SERVER_URL || "https://sourcify.dev/server";
-
-export async function fetchChains(): Promise<Chain[]> {
+export async function fetchChains(serverUrl: string): Promise<Chain[]> {
   try {
-    const response = await fetch(`${SOURCIFY_SERVER_URL}/chains`);
+    const response = await fetch(`${serverUrl}/chains`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch chains: ${response.status} ${response.statusText}`);

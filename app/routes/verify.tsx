@@ -20,6 +20,8 @@ import RecentVerifications from "../components/verification/RecentVerifications"
 import { saveJob } from "../utils/jobStorage";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import Settings from "../components/verification/Settings";
+import { useServerConfig } from "../contexts/ServerConfigContext";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -29,6 +31,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Verify() {
+  const { serverUrl } = useServerConfig();
   const { chains } = useChains();
   const navigate = useNavigate();
   const {
@@ -61,13 +64,10 @@ export default function Verify() {
   } = useVerificationState();
 
   // Track metadata validation status
-  const [isMetadataValid, setIsMetadataValid] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
-
 
   const {
     isFormValid,
-    errors,
     updateAddressValidation,
     updateChainId,
     updateLanguage,
@@ -75,7 +75,6 @@ export default function Verify() {
     updateCompilerVersion,
     getSubmissionErrors,
     isFrameworkMethod,
-    isCompilerVersionRequired,
   } = useFormValidation();
 
   // Sync verification state with validation hook
@@ -119,7 +118,7 @@ export default function Verify() {
 
         const { sources, metadata } = await buildMetadataSubmissionSources(metadataFile, uploadedFiles);
 
-        result = await submitMetadataVerification(selectedChainId, contractAddress, sources, metadata);
+        result = await submitMetadataVerification(serverUrl, selectedChainId, contractAddress, sources, metadata);
       } else if (selectedMethod === "std-json") {
         // For std-json method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
@@ -127,6 +126,7 @@ export default function Verify() {
         }
 
         result = await submitStdJsonFile(
+          serverUrl,
           selectedChainId,
           contractAddress,
           uploadedFiles[0],
@@ -140,6 +140,7 @@ export default function Verify() {
         }
 
         result = await assembleAndSubmitStandardJson(
+          serverUrl,
           selectedChainId,
           contractAddress,
           uploadedFiles,
@@ -234,14 +235,9 @@ export default function Verify() {
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
         <>
-          <div className="p-8">
-            <form className="space-y-12" onSubmit={handleSubmit}>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sourcify Server</h3>
-                <div className="text-sm text-gray-600">
-                  <p>Server URL: {import.meta.env.VITE_SOURCIFY_SERVER_URL || "https://sourcify.dev/server"}</p>
-                </div>
-              </div>
+          <div className="px-8 py-6">
+            <form className="space-y-8" onSubmit={handleSubmit}>
+              <Settings />
               <ChainAndAddress
                 selectedChainId={selectedChainId}
                 contractAddress={contractAddress}
@@ -280,7 +276,7 @@ export default function Verify() {
                       <MetadataValidation
                         metadataFile={metadataFile}
                         uploadedFiles={uploadedFiles}
-                        onValidationChange={setIsMetadataValid}
+                        onValidationChange={() => {}}
                       />
 
                       {/* Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case. */}
