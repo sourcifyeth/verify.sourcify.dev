@@ -16,6 +16,8 @@ import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
 import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
 import MetadataValidation from "../components/verification/MetadataValidation";
+import RecentVerifications from "../components/verification/RecentVerifications";
+import { saveJob } from "../utils/jobStorage";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
@@ -61,6 +63,7 @@ export default function Verify() {
   // Track metadata validation status
   const [isMetadataValid, setIsMetadataValid] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+
 
   const {
     isFormValid,
@@ -154,6 +157,18 @@ export default function Verify() {
       setSubmissionResult({
         success: true,
         verificationId: result.verificationId,
+      });
+
+      // Save job to localStorage
+      saveJob({
+        verificationId: result.verificationId,
+        isJobCompleted: false,
+        jobStartTime: new Date().toISOString(),
+        submittedAt: new Date().toISOString(),
+        contract: {
+          chainId: selectedChainId,
+          address: contractAddress,
+        },
       });
 
       // Start countdown for redirect
@@ -367,17 +382,7 @@ export default function Verify() {
             </form>
           </div>
           <div className="p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Recent Verifications</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm text-gray-600">0x1234...5678</span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Verified</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm text-gray-600">0xabcd...efgh</span>
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
-              </div>
-            </div>
+            <RecentVerifications />
           </div>
         </>
       </PageLayout>
