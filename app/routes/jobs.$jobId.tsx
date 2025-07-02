@@ -16,13 +16,15 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
 }
 
+const DEFAULT_COUNTDOWN = 5;
+
 export default function JobDetails() {
   const { jobId } = useParams<{ jobId: string }>();
   const { chains } = useChains();
   const [jobData, setJobData] = useState<VerificationJobStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(DEFAULT_COUNTDOWN);
   const [diffModalOpen, setDiffModalOpen] = useState(false);
   const [diffModalData, setDiffModalData] = useState<{
     title: string;
@@ -63,7 +65,7 @@ export default function JobDetails() {
       setCountdown((prev) => {
         if (prev <= 1) {
           fetchJobStatus();
-          return 10; // Reset countdown
+          return DEFAULT_COUNTDOWN; // Reset countdown
         }
         return prev - 1;
       });
@@ -74,7 +76,7 @@ export default function JobDetails() {
 
   const handleRefresh = () => {
     fetchJobStatus();
-    setCountdown(10);
+    setCountdown(DEFAULT_COUNTDOWN);
   };
 
   const getRepoUrl = (chainId: string, address: string) => {
