@@ -17,7 +17,6 @@ interface BytecodeDiffResult {
   removedCount: number;
 }
 
-
 /**
  * Compares two bytecode strings using specified diff mode
  * @param onchain - The onchain bytecode (original)
@@ -25,28 +24,32 @@ interface BytecodeDiffResult {
  * @param diffMode - Whether to diff by "chars" or "bytes"
  * @returns Diff result with segments and statistics
  */
-function compareBytecodeDiff(onchain: string, recompiled: string, diffMode: "chars" | "bytes" = "chars"): BytecodeDiffResult {
+function compareBytecodeDiff(
+  onchain: string,
+  recompiled: string,
+  diffMode: "chars" | "bytes" = "chars"
+): BytecodeDiffResult {
   let diff;
-  
+
   if (diffMode === "bytes") {
     // Convert to byte arrays - each byte is 2 hex characters
     const onchainBytes = [];
     for (let i = 0; i < onchain.length; i += 2) {
       onchainBytes.push(onchain.slice(i, i + 2));
     }
-    
+
     const recompiledBytes = [];
     for (let i = 0; i < recompiled.length; i += 2) {
       recompiledBytes.push(recompiled.slice(i, i + 2));
     }
-    
+
     // Diff the byte arrays
     const byteDiff = diffArrays(onchainBytes, recompiledBytes);
-    
+
     // Convert back to string format
     diff = byteDiff.map((part) => ({
       ...part,
-      value: part.value.join('')
+      value: part.value.join(""),
     }));
   } else {
     // Character comparison
@@ -202,11 +205,115 @@ export default function BytecodeDiffModal({
 }: BytecodeDiffModalProps) {
   const [viewMode, setViewMode] = React.useState<"unified" | "split">("split");
   const [diffMode, setDiffMode] = React.useState<"chars" | "bytes">("chars");
-  const diffResult = compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode);
+  const [diffResult, setDiffResult] = React.useState<BytecodeDiffResult | null>(null);
+  const [isCalculating, setIsCalculating] = React.useState(false);
 
   // Move refs to component level to avoid conditional hook calls
   const onchainRef = React.useRef<HTMLDivElement>(null);
   const recompiledRef = React.useRef<HTMLDivElement>(null);
+  const workerRef = React.useRef<Worker | null>(null);
+
+  // Cleanup worker when modal closes
+  React.useEffect(() => {
+    if (!isOpen && workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+      setIsCalculating(false);
+    }
+  }, [isOpen]);
+
+  // Cleanup worker on component unmount
+  React.useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Calculate diff asynchronously using Web Worker when inputs change
+  React.useEffect(() => {
+    const calculateDiff = async () => {
+      setIsCalculating(true);
+
+      try {
+        // Terminate any existing worker
+        if (workerRef.current) {
+          workerRef.current.terminate();
+          workerRef.current = null;
+        }
+
+        // Try to use Web Worker for better performance
+        if (typeof Worker !== 'undefined') {
+          const result = await new Promise<BytecodeDiffResult>((resolve, reject) => {
+            const worker = new Worker('/diffWorker.js');
+            workerRef.current = worker;
+            const id = Math.random().toString(36);
+            
+            worker.onmessage = (e) => {
+              const { result, error, id: responseId } = e.data;
+              if (responseId === id) {
+                worker.terminate();
+                workerRef.current = null;
+                if (error) {
+                  reject(new Error(error));
+                } else {
+                  resolve(result);
+                }
+              }
+            };
+            
+            worker.onerror = (error) => {
+              worker.terminate();
+              workerRef.current = null;
+              reject(error);
+            };
+            
+            worker.postMessage({
+              onchain: onchainBytecode,
+              recompiled: recompiledBytecode,
+              diffMode,
+              id
+            });
+          });
+          
+          setDiffResult(result);
+        } else {
+          // Fallback to main thread with setTimeout
+          const result = await new Promise<BytecodeDiffResult>((resolve) => {
+            setTimeout(() => {
+              resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
+            }, 0);
+          });
+          
+          setDiffResult(result);
+        }
+      } catch (error) {
+        console.warn('Worker failed, falling back to main thread:', error);
+        // Fallback to main thread calculation
+        const result = await new Promise<BytecodeDiffResult>((resolve) => {
+          setTimeout(() => {
+            resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
+          }, 0);
+        });
+        
+        setDiffResult(result);
+      } finally {
+        setIsCalculating(false);
+      }
+    };
+
+    calculateDiff();
+
+    // Cleanup function to terminate worker on unmount or dependency change
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, [onchainBytecode, recompiledBytecode, diffMode]);
 
   const getByteCount = (bytecode: string) => {
     const clean = bytecode.startsWith("0x") ? bytecode.slice(2) : bytecode;
@@ -232,7 +339,7 @@ export default function BytecodeDiffModal({
   };
 
   const handleDiffModeChange = (newMode: "chars" | "bytes") => {
-    if (newMode === diffMode) return;
+    if (newMode === diffMode || isCalculating) return;
     setDiffMode(newMode);
   };
 
@@ -294,7 +401,12 @@ export default function BytecodeDiffModal({
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <div className="text-sm font-medium text-gray-600">Number of differences (count):</div>
                     <div className="text-sm font-mono text-gray-900 mt-1">
-                      {diffResult.hasChanges ? (
+                      {isCalculating ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin h-3 w-3 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                          <span>Calculating...</span>
+                        </div>
+                      ) : diffResult?.hasChanges ? (
                         <span>
                           <span className="text-red-600">-{diffResult.removedCount}</span>{" "}
                           <span className="text-green-600">+{diffResult.addedCount}</span>
@@ -324,7 +436,10 @@ export default function BytecodeDiffModal({
                       <div className="flex bg-gray-100 rounded-lg p-1">
                         <button
                           onClick={() => handleDiffModeChange("chars")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          disabled={isCalculating}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                          } ${
                             diffMode === "chars"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -334,7 +449,10 @@ export default function BytecodeDiffModal({
                         </button>
                         <button
                           onClick={() => handleDiffModeChange("bytes")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          disabled={isCalculating}
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                          } ${
                             diffMode === "bytes"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -374,34 +492,44 @@ export default function BytecodeDiffModal({
 
                 {/* Diff Display */}
                 <div>
-                  {viewMode === "unified" ? (
-                    <div className="border border-gray-200 rounded-lg">
-                      <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {diffMode === "chars" ? "Character-by-character comparison" : "Byte-by-byte comparison"}
-                        </h3>
+                  {isCalculating ? (
+                    <div className="border border-gray-200 rounded-lg p-8">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="animate-spin h-8 w-8 border-4 border-cerulean-blue-600 border-t-transparent rounded-full"></div>
+                        <div className="text-gray-600">Calculating diff...</div>
+                        <div className="text-sm text-gray-500">This may take a moment for large bytecode</div>
                       </div>
-                      <div className="p-4" style={{ height: "384px", overflow: "auto" }}>
-                        <div className="font-mono text-xs break-all leading-relaxed">
-                          {renderDiffSegments(diffResult.segments)}
+                    </div>
+                  ) : diffResult ? (
+                    viewMode === "unified" ? (
+                      <div className="border border-gray-200 rounded-lg">
+                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                          <h3 className="text-sm font-medium text-gray-900">
+                            {diffMode === "chars" ? "Character-by-character comparison" : "Byte-by-byte comparison"}
+                          </h3>
+                        </div>
+                        <div className="p-4" style={{ height: "384px", overflow: "auto" }}>
+                          <div className="font-mono text-xs break-all leading-relaxed">
+                            {renderDiffSegments(diffResult.segments)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="bg-gray-50 px-4 py-2 border border-gray-200 rounded-t-lg">
-                        <h3 className="text-sm font-medium text-gray-900">Side-by-side comparison</h3>
+                    ) : (
+                      <div>
+                        <div className="bg-gray-50 px-4 py-2 border border-gray-200 rounded-t-lg">
+                          <h3 className="text-sm font-medium text-gray-900">Side-by-side comparison</h3>
+                        </div>
+                        <div className="border-l border-r border-b border-gray-200 rounded-b-lg p-4">
+                          {renderSplitView(
+                            diffResult,
+                            onchainRef as React.RefObject<HTMLDivElement>,
+                            recompiledRef as React.RefObject<HTMLDivElement>,
+                            handleScroll
+                          )}
+                        </div>
                       </div>
-                      <div className="border-l border-r border-b border-gray-200 rounded-b-lg p-4">
-                        {renderSplitView(
-                          diffResult,
-                          onchainRef as React.RefObject<HTMLDivElement>,
-                          recompiledRef as React.RefObject<HTMLDivElement>,
-                          handleScroll
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    )
+                  ) : null}
                 </div>
 
                 <div className="mt-6 flex justify-end">
