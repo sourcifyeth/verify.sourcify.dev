@@ -3,6 +3,7 @@ name: Release on Google Bucket
 on:
   push:
     branches:
+      - main
       - staging
 
 jobs:
@@ -17,10 +18,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "auth staging"
+        if: github.ref == 'refs/heads/staging'
         uses: "google-github-actions/auth@v2"
         with:
           workload_identity_provider: "projects/1019539084286/locations/global/workloadIdentityPools/github/providers/sourcify"
           service_account: "verify-ui-staging-deployer@sourcify-project.iam.gserviceaccount.com"
+
+      - name: "auth main"
+        if: github.ref == 'refs/heads/main'
+        uses: "google-github-actions/auth@v2"
+        with:
+          workload_identity_provider: "projects/1019539084286/locations/global/workloadIdentityPools/github/providers/sourcify"
+          service_account: "verify-ui-prod-deployer@sourcify-project.iam.gserviceaccount.com"
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -31,15 +40,30 @@ jobs:
         run: npm install
 
       - name: Copy .env.build.staging to .env
+        if: github.ref == 'refs/heads/staging'
         run: cp .env.build.staging .env
+
+      - name: Copy .env.build.main to .env
+        if: github.ref == 'refs/heads/main'
+        run: cp .env.build.main .env
 
       - name: Build
         run: npm run build
 
       - name: Upload files to Staging bucket
+        if: github.ref == 'refs/heads/staging'
         uses: google-github-actions/upload-cloud-storage@v2
         with:
           path: "build/client"
           destination: "verify-sourcify-ui-staging-bucket"
+          parent: false
+          glob: "**/*"
+
+      - name: Upload files to Main bucket
+        if: github.ref == 'refs/heads/main'
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: "build/client"
+          destination: "verify-sourcify-ui-production-bucket"
           parent: false
           glob: "**/*"
