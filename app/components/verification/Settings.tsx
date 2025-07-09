@@ -94,17 +94,18 @@ export default function Settings() {
         showSettings ? "rounded-t-lg" : "rounded-lg"
       }`}
     >
-      <div className="flex items-center justify-between py-1 px-4">
-        <div className="text-sm text-gray-700">
-          <span className="font-medium">Sourcify Server:</span> <span className="font-mono">{serverUrl}</span>
+      <div className="flex items-center justify-between py-1 px-2 sm:px-4">
+        <div className="text-sm text-gray-700 min-w-0 flex-1 mr-2">
+          <span className="font-medium">Sourcify Server:</span>{" "}
+          <span className="font-mono truncate block sm:inline max-w-full sm:max-w-none">{serverUrl}</span>
         </div>
         <button
           type="button"
           onClick={() => setShowSettings(!showSettings)}
-          className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+          className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
         >
           <IoSettings className="w-4 h-4" />
-          <span>{showSettings ? "Close Settings" : "Open Settings"}</span>
+          <span className="hidden sm:inline">{showSettings ? "Close Settings" : "Open Settings"}</span>
         </button>
       </div>
 
@@ -113,8 +114,8 @@ export default function Settings() {
           showSettings ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="px-4 pb-6 pt-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Server Settings</h3>
+        <div className="px-2 sm:px-4 pb-4 sm:pb-6 pt-4">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Server Settings</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Select Server URL</label>
