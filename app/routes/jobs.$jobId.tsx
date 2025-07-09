@@ -167,7 +167,7 @@ export default function JobDetails() {
         <PageLayout title="Verification Job">
           <>
             <div className="mb-6 px-8 pt-6">
-              <a href="/verify" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
+              <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
                 ← Back to Verification
               </a>
             </div>
@@ -203,7 +203,7 @@ export default function JobDetails() {
     <PageLayout>
       <>
         <div className="px-8 pt-6">
-          <a href="/verify" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
+          <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
             ← Back to Verification
           </a>
         </div>
