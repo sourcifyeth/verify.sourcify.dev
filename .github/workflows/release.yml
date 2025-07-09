@@ -1,0 +1,45 @@
+name: Release on Google Bucket
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: "auth staging"
+        uses: "google-github-actions/auth@v2"
+        with:
+          workload_identity_provider: "projects/1019539084286/locations/global/workloadIdentityPools/github/providers/sourcify"
+          service_account: "verify-ui-staging-deployer@sourcify-project.iam.gserviceaccount.com"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.4.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Copy .env.build.staging to .env
+        run: cp .env.build.staging .env
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload files to Staging bucket
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: "build/client"
+          destination: "verify-sourcify-ui-staging-bucket"
+          parent: false
+          glob: "**/*"
