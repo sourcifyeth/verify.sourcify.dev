@@ -92,14 +92,18 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
               filteredOptions.map((chain) => (
                 <div
                   key={chain.chainId}
-                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-cerulean-blue-100 ${
+                  className={`px-4 py-2 text-sm ${
+                    chain.supported 
+                      ? "cursor-pointer hover:bg-cerulean-blue-100" 
+                      : "cursor-not-allowed"
+                  } ${
                     value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""
-                  }`}
-                  onClick={() => {
+                  } ${!chain.supported ? "text-gray-400" : "text-gray-900"}`}
+                  onClick={chain.supported ? () => {
                     handleChainIdChange(chain.chainId.toString());
                     setIsOpen(false);
                     setSearchTerm("");
-                  }}
+                  } : undefined}
                 >
                   {chain.title || chain.name} ({chain.chainId})
                   {!chain.supported && <span className="text-gray-500 text-xs"> - verification deprecated</span>}
