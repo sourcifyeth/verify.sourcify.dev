@@ -135,8 +135,8 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
           <tr className="border-b border-gray-300">
             <th className="py-2 text-left text-sm font-medium text-gray-900">Date</th>
             <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Job ID</th>
-            <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Address</th>
             <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Chain</th>
+            <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Address</th>
             <th className="py-2 text-left text-sm font-medium text-gray-900">Status</th>
           </tr>
         </thead>
@@ -161,6 +161,11 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
                   {truncateJobId(job.verificationId)}
                 </button>
               </td>
+              <td className="py-2 px-4 text-sm text-gray-600 break-words">
+                {job.contract
+                  ? `${getChainName(chains, parseInt(job.contract.chainId))} (${job.contract.chainId})`
+                  : "-"}
+              </td>
               <td className="py-2 px-4 text-sm font-mono text-gray-600">
                 {job.contract?.address ? (
                   <span data-tooltip-id="address-tooltip" data-tooltip-content={job.contract.address}>
@@ -169,11 +174,6 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
                 ) : (
                   "-"
                 )}
-              </td>
-              <td className="py-2 px-4 text-sm text-gray-600 break-words">
-                {job.contract
-                  ? `${getChainName(chains, parseInt(job.contract.chainId))} (${job.contract.chainId})`
-                  : "-"}
               </td>
               <td className="py-2 text-sm">
                 <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job)}`}>
