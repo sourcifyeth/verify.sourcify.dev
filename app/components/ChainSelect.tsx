@@ -94,7 +94,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
                   key={chain.chainId}
                   className={`px-4 py-2 text-sm ${
                     chain.supported 
-                      ? "hover:bg-cerulean-blue-100" 
+                      ? "hover:bg-cerulean-blue-100 cursor-pointer" 
                       : "cursor-not-allowed"
                   } ${
                     value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""
