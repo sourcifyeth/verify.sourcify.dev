@@ -64,7 +64,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
 
   return (
     <>
-      <div className={`${maxWidth} mx-auto px-4 sm:px-6 lg:px-8 mt-12`}>
+      <div className={`${maxWidth} mx-auto px-4 md:px-6 lg:px-8 mt-12`}>
         <div className="relative mt-4">
           <div className="absolute w-full h-full bg-cerulean-blue-500 rounded-lg -top-1" />
           <div className="relative bg-white shadow-lg rounded-lg">
