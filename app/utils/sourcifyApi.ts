@@ -52,16 +52,22 @@ async function buildStandardJsonInput(
     sources[file.name] = { content };
   }
 
+  const standardJsonSettings: any = {
+    optimizer: {
+      enabled: settings.optimizerEnabled,
+      runs: settings.optimizerRuns,
+    },
+  };
+
+  // Only include evmVersion if it's not "default"
+  if (settings.evmVersion !== "default") {
+    standardJsonSettings.evmVersion = settings.evmVersion;
+  }
+
   return {
     language: language === "vyper" ? "Vyper" : "Solidity",
     sources,
-    settings: {
-      optimizer: {
-        enabled: settings.optimizerEnabled,
-        runs: settings.optimizerRuns,
-      },
-      evmVersion: settings.evmVersion === "default" ? "default" : settings.evmVersion,
-    },
+    settings: standardJsonSettings,
   };
 }
 
