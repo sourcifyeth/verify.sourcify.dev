@@ -22,7 +22,7 @@ export default function OptimizerSettings({
     <div>
       <label className="block text-base font-semibold text-gray-900 mb-2">Optimizer Settings</label>
 
-      <div className="flex items-center space-x-6">
+      <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-6">
         <label className="flex items-center space-x-3 py-3 cursor-pointer">
           <input
             type="checkbox"

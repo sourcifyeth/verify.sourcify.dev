@@ -22,10 +22,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <ChainsProvider>
             <CompilerVersionsProvider>
               <header className="shadow-sm">
-                <div className="mx-auto py-4 flex items-center w-full max-w-[100rem] px-6 md:px-12 lg:px-12 xl:px-24">
+                <div className="mx-auto py-3 md:py-4 flex items-center w-full max-w-[100rem] px-4 md:px-12">
                   <Link to="/" className="flex items-center">
-                    <img src="/sourcify.png" alt="Sourcify Logo" className="h-10 w-auto mr-3" width={32} height={32} />
-                    <span className="text-gray-700 font-vt323 text-2xl">sourcify.eth</span>
+                    <img src="/sourcify.png" alt="Sourcify Logo" className="h-8 md:h-10 w-auto mr-2 md:mr-3" width={32} height={32} />
+                    <span className="text-gray-700 font-vt323 text-xl md:text-2xl">sourcify.eth</span>
                   </Link>
                 </div>
               </header>

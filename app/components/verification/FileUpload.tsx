@@ -265,7 +265,7 @@ export default function FileUpload({
       </label>
 
       <div className="mb-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 space-y-2 md:space-y-0">
           <p className="text-sm text-gray-600">{requirements.description}</p>
           {requirements.maxFiles === 1 && (
             <div className="flex items-center space-x-2">

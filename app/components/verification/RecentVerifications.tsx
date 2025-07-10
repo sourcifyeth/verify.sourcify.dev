@@ -130,7 +130,8 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
         </div>
       </div>
 
-      <table className="w-full">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px]">
         <thead>
           <tr className="border-b border-gray-300">
             <th className="py-2 text-left text-sm font-medium text-gray-900">Date</th>
@@ -183,7 +184,8 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       {jobs.length > 5 && (
         <div className="mt-4 text-center">

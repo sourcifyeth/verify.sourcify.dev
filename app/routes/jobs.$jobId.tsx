@@ -141,8 +141,8 @@ export default function JobDetails() {
   const DetailRow = ({ label, value, className, fontMono }: DetailRowProps) => {
     return (
       <div className={`${className}`}>
-        <dt className="font-bold text-gray-900">{label}</dt>
-        <dd className={`text-gray-900 ${fontMono ? "font-mono" : ""}`}>{value}</dd>
+        <dt className="font-bold text-gray-900 text-sm md:text-base">{label}</dt>
+        <dd className={`text-gray-900 text-sm md:text-base ${fontMono ? "font-mono text-xs md:text-sm" : ""}`}>{value}</dd>
       </div>
     );
   };
@@ -166,16 +166,16 @@ export default function JobDetails() {
       <div className="pb-12 bg-cerulean-blue-50 pt-1">
         <PageLayout title="Verification Job">
           <>
-            <div className="mb-6 px-8 pt-6">
+            <div className="mb-6 px-4 md:px-8 pt-4 md:pt-6">
               <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
                 ← Back to Verification
               </a>
             </div>
-            <div className="p-8">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="p-4 md:p-8">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h2 className="text-lg font-medium text-red-800 mb-2">Error Loading Job</h2>
-                  <p className="text-red-600">{error}</p>
+                  <h2 className="text-base md:text-lg font-medium text-red-800 mb-2">Error Loading Job</h2>
+                  <p className="text-sm md:text-base text-red-600">{error}</p>
                 </div>
               </div>
             </div>
@@ -189,9 +189,9 @@ export default function JobDetails() {
     return (
       <div className="pb-12 bg-cerulean-blue-50 pt-1">
         <PageLayout title="Verification Job">
-          <div className="p-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <p className="text-gray-600">Job not found</p>
+          <div className="p-4 md:p-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+              <p className="text-sm md:text-base text-gray-600">Job not found</p>
             </div>
           </div>
         </PageLayout>
@@ -202,13 +202,13 @@ export default function JobDetails() {
   return (
     <PageLayout>
       <>
-        <div className="px-8 pt-6">
+        <div className="px-4 md:px-8 pt-4 md:pt-6">
           <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
             ← Back to Verification
           </a>
         </div>
 
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           {/* Status Info for Pending Jobs - Moved to top */}
           {!jobData.isJobCompleted && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex flex-col items-center my-4 ">
@@ -248,12 +248,12 @@ export default function JobDetails() {
           )}
 
           {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-bold text-gray-900">Verification Job</h1>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6">
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Verification Job</h1>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                  className={`self-start px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
                     jobData.isJobCompleted,
                     !!jobData.error
                   )}`}
@@ -288,10 +288,10 @@ export default function JobDetails() {
 
           {/* Verification Results */}
           {jobData.isJobCompleted && jobData.contract && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 my-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Verification Result</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 my-6 md:my-8">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Verification Result</h2>
               <div className="space-y-3">
-                <div className="flex flex-row space-x-8 flex-wrap">
+                <div className="flex flex-col md:flex-row md:space-x-8 space-y-3 md:space-y-0">
                   <DetailRow label="Runtime Match" value={<MatchBadge match={jobData.contract.runtimeMatch} small />} />
                   <DetailRow
                     label="Creation Match"
@@ -321,8 +321,8 @@ export default function JobDetails() {
 
           {/* Error Details */}
           {jobData.error && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Job Error Details</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Job Error Details</h2>
               <div className="space-y-4">
                 <div className="space-y-3">
                   <DetailRow
@@ -336,7 +336,7 @@ export default function JobDetails() {
                   {/* Compiler Errors */}
                   {jobData.error.errorData?.compilerErrors && (
                     <div>
-                      <h3 className="text-base font-bold text-gray-900 mb-2">
+                      <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2">
                         Compiler Errors ({jobData.error.errorData.compilerErrors.length})
                       </h3>
                       <div className="space-y-3">
@@ -437,11 +437,11 @@ export default function JobDetails() {
                 jobData.error.recompiledRuntimeCode ||
                 jobData.error.onchainRuntimeCode ? (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Bytecode Data</h3>
+                    <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3">Bytecode Data</h3>
 
                     {/* Runtime Bytecode Section */}
-                    <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Runtime Bytecode</h4>
+                    <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
+                      <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-3">Runtime Bytecode</h4>
                       {jobData?.error?.onchainRuntimeCode && jobData.error?.recompiledRuntimeCode && (
                         <div className="mb-4">
                           <button
@@ -462,10 +462,10 @@ export default function JobDetails() {
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <dt className="text-sm font-medium text-gray-700">
+                            <dt className="text-xs md:text-sm font-medium text-gray-700">
                               Onchain
                               {jobData.error.onchainRuntimeCode && (
-                                <span className="text-xs text-gray-500 ml-2">
+                                <span className="text-xs text-gray-500 ml-1 md:ml-2">
                                   ({Math.floor(jobData.error.onchainRuntimeCode.replace("0x", "").length / 2)} bytes)
                                 </span>
                               )}
@@ -485,10 +485,10 @@ export default function JobDetails() {
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <dt className="text-sm font-medium text-gray-700">
+                            <dt className="text-xs md:text-sm font-medium text-gray-700">
                               Recompiled
                               {jobData.error.recompiledRuntimeCode && (
-                                <span className="text-xs text-gray-500 ml-2">
+                                <span className="text-xs text-gray-500 ml-1 md:ml-2">
                                   ({Math.floor(jobData.error.recompiledRuntimeCode.replace("0x", "").length / 2)} bytes)
                                 </span>
                               )}
@@ -510,13 +510,13 @@ export default function JobDetails() {
                     </div>
 
                     {/* Creation Bytecode Section */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Creation Bytecode</h4>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
+                      <h4 className="text-sm md:text-base font-semibold text-gray-900 mb-3">Creation Bytecode</h4>
                       {/* Note: Creation bytecode diff button is not shown because onchain creation bytecode is not available */}
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <dt className="text-sm font-medium text-gray-700">Onchain</dt>
+                            <dt className="text-xs md:text-sm font-medium text-gray-700">Onchain</dt>
                           </div>
                           <dd>
                             <div className="text-gray-500 text-xs italic">No bytecode found</div>
@@ -524,10 +524,10 @@ export default function JobDetails() {
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <dt className="text-sm font-medium text-gray-700">
+                            <dt className="text-xs md:text-sm font-medium text-gray-700">
                               Recompiled
                               {jobData.error.recompiledCreationCode && (
-                                <span className="text-xs text-gray-500 ml-2">
+                                <span className="text-xs text-gray-500 ml-1 md:ml-2">
                                   ({Math.floor(jobData.error.recompiledCreationCode.replace("0x", "").length / 2)}{" "}
                                   bytes)
                                 </span>

@@ -235,8 +235,8 @@ export default function Home() {
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
         <>
-          <div className="px-8 py-6">
-            <form className="space-y-8" onSubmit={handleSubmit}>
+          <div className="px-4 md:px-8 py-4 md:py-6">
+            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <Settings />
               <ChainAndAddress
                 selectedChainId={selectedChainId}
@@ -361,7 +361,7 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={!isFormValid || isSubmitting}
-                    className={`px-12 py-3 text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 ${
+                    className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
                       isFormValid && !isSubmitting
                         ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -377,7 +377,7 @@ export default function Home() {
               )}
             </form>
           </div>
-          <div className="p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+          <div className="p-4 md:p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
             <RecentVerifications />
           </div>
         </>
