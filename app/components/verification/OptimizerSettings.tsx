@@ -23,12 +23,12 @@ export default function OptimizerSettings({
       <label className="block text-base font-semibold text-gray-900 mb-2">Optimizer Settings</label>
 
       <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-6">
-        <label className="flex items-center space-x-3 py-3 cursor-pointer">
+        <label className="flex items-center space-x-3 py-3">
           <input
             type="checkbox"
             checked={optimizerEnabled}
             onChange={(e) => onOptimizerEnabledChange(e.target.checked)}
-            className="rounded border-gray-300 text-cerulean-blue-600 focus:ring-cerulean-blue-500 cursor-pointer"
+            className="rounded border-gray-300 text-cerulean-blue-600 focus:ring-cerulean-blue-500"
           />
           <span className="text-sm text-gray-900">Optimizer Enabled</span>
         </label>

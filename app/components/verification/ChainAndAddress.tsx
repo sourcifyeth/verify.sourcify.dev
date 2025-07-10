@@ -150,7 +150,7 @@ export default function ChainAndAddress({
                       href={getRepoLink(currentChainContract.chainId, currentChainContract.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-2 text-sm text-green-600 hover:text-green-800 font-medium underline hover:cursor-pointer"
+                      className="ml-2 text-sm text-green-600 hover:text-green-800 font-medium underline"
                     >
                       <IoOpenOutline className="w-4 h-4 inline mr-0.5 mb-0.5" />
                       View Contract
@@ -181,7 +181,7 @@ export default function ChainAndAddress({
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium underline hover:cursor-pointer"
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
                 >
                   See all
                 </button>

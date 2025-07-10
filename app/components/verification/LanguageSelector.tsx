@@ -13,7 +13,7 @@ export default function LanguageSelector({ selectedLanguage, onLanguageSelect }:
         <button
           type="button"
           onClick={() => onLanguageSelect("solidity")}
-          className={`w-32 p-4 border-2 rounded-lg text-center transition-all duration-200 cursor-pointer ${
+          className={`w-32 p-4 border-2 rounded-lg text-center transition-all duration-200 ${
             selectedLanguage === "solidity"
               ? "border-cerulean-blue-500 bg-cerulean-blue-50"
               : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"
@@ -32,7 +32,7 @@ export default function LanguageSelector({ selectedLanguage, onLanguageSelect }:
         <button
           type="button"
           onClick={() => onLanguageSelect("vyper")}
-          className={`w-32 p-4 border-2 rounded-lg text-center transition-all duration-200 cursor-pointer ${
+          className={`w-32 p-4 border-2 rounded-lg text-center transition-all duration-200 ${
             selectedLanguage === "vyper"
               ? "border-cerulean-blue-500 bg-cerulean-blue-50"
               : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"

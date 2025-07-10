@@ -229,7 +229,7 @@ export default function ContractIdentifier({
         {parsedContracts.length > 0 && (
           <div className="flex items-center space-x-2 mb-3">
             <span className="text-sm text-gray-700">Select Contract</span>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center">
               <input
                 type="checkbox"
                 checked={showManualInput}
@@ -294,7 +294,7 @@ export default function ContractIdentifier({
               setIsDropdownOpen(!isDropdownOpen);
               setSearchTerm("");
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 font-mono text-left bg-white flex justify-between items-center cursor-pointer text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 font-mono text-left bg-white flex justify-between items-center text-sm"
           >
             <span>
               {contractIdentifier ? (
@@ -336,7 +336,7 @@ export default function ContractIdentifier({
                         setIsDropdownOpen(false);
                         setSearchTerm("");
                       }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none font-mono cursor-pointer text-sm"
+                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none font-mono text-sm"
                     >
                       {contract.fileName}:<span className="font-bold">{contract.contractName}</span>
                     </button>

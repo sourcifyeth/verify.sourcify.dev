@@ -57,7 +57,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
   return (
     <div ref={dropdownRef} className="relative">
       <div
-        className={`${className} flex items-center justify-between cursor-pointer border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm`}
+        className={`${className} flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate text-gray-900">
@@ -94,7 +94,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
                   key={chain.chainId}
                   className={`px-4 py-2 text-sm ${
                     chain.supported 
-                      ? "cursor-pointer hover:bg-cerulean-blue-100" 
+                      ? "hover:bg-cerulean-blue-100" 
                       : "cursor-not-allowed"
                   } ${
                     value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""

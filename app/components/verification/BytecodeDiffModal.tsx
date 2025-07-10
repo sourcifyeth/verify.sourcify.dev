@@ -374,7 +374,7 @@ export default function BytecodeDiffModal({
                   <DialogTitle className="text-lg font-bold text-gray-900">{title} Bytecode Diff</DialogTitle>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded hover:cursor-pointer transition-colors duration-200 ease-in-out"
+                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded transition-colors duration-200 ease-in-out"
                   >
                     <IoClose className="w-6 h-6 transition-transform duration-200 ease-in-out hover:scale-110" />
                   </button>
@@ -438,7 +438,7 @@ export default function BytecodeDiffModal({
                           onClick={() => handleDiffModeChange("chars")}
                           disabled={isCalculating}
                           className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                            isCalculating ? "cursor-not-allowed opacity-50" : ""
                           } ${
                             diffMode === "chars"
                               ? "bg-white text-gray-900 shadow-sm"
@@ -451,7 +451,7 @@ export default function BytecodeDiffModal({
                           onClick={() => handleDiffModeChange("bytes")}
                           disabled={isCalculating}
                           className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                            isCalculating ? "cursor-not-allowed opacity-50" : ""
                           } ${
                             diffMode === "bytes"
                               ? "bg-white text-gray-900 shadow-sm"
@@ -467,7 +467,7 @@ export default function BytecodeDiffModal({
                       <div className="flex bg-gray-100 rounded-lg p-1">
                         <button
                           onClick={() => handleViewModeChange("split")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                             viewMode === "split"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -477,7 +477,7 @@ export default function BytecodeDiffModal({
                         </button>
                         <button
                           onClick={() => handleViewModeChange("unified")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                             viewMode === "unified"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -535,7 +535,7 @@ export default function BytecodeDiffModal({
                 <div className="mt-6 flex justify-end">
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 ease-in-out hover:cursor-pointer hover:scale-105"
+                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 ease-in-out hover:scale-105"
                   >
                     Close
                   </button>

@@ -259,7 +259,7 @@ export default function FileUpload({
   };
 
   return (
-    <div>
+    <div className="[&_button]:cursor-default!">
       <label className="block text-base font-semibold text-gray-900 mb-2">
         {selectedMethod === "metadata-json" ? "Metadata File Upload" : "File Upload"}
       </label>
@@ -270,7 +270,7 @@ export default function FileUpload({
           {requirements.maxFiles === 1 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-700">Upload File</span>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center">
                 <input
                   type="checkbox"
                   checked={showPasteMode}
@@ -309,7 +309,7 @@ export default function FileUpload({
               {requirements.maxFiles !== Infinity &&
                 ` • Maximum ${requirements.maxFiles} file${requirements.maxFiles > 1 ? "s" : ""}`}
             </p>
-            <label className="flex items-center space-x-2 text-xs text-gray-600">
+            <label className="flex items-center space-x-2 text-xs text-gray-600 ">
               <input
                 type="checkbox"
                 checked={overrideExtensions}
@@ -374,7 +374,7 @@ export default function FileUpload({
 
       {!showPasteMode && (
         <div
-          className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group min-h-[250px] flex items-center justify-center ${
+          className={`relative border-2 border-dashed rounded-lg p-6 transition-all group min-h-[250px] flex items-center justify-center ${
             isDragOver
               ? "border-cerulean-blue-500 bg-cerulean-blue-50 shadow-lg"
               : "border-gray-300 hover:border-cerulean-blue-400 hover:bg-cerulean-blue-25"

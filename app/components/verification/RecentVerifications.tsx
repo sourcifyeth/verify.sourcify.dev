@@ -115,7 +115,7 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
           {jobs.length > 0 && (
             <div
               onClick={handleClearAll}
-              className="flex items-center space-x-1 text-sm text-gray-500 hover:text-red-600 cursor-pointer"
+              className="flex items-center space-x-1 text-sm text-gray-500 hover:text-red-600"
             >
               <IoTrashOutline className="w-4 h-4" />
               <span>Clear All</span>
@@ -150,7 +150,7 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
               <td className="py-2 px-4 text-sm">
                 <a
                   href={`/jobs/${job.verificationId}`}
-                  className="font-mono text-cerulean-blue-600 hover:text-cerulean-blue-800 hover:bg-cerulean-blue-50 focus:outline-none text-left underline cursor-pointer"
+                  className="font-mono text-cerulean-blue-600 hover:text-cerulean-blue-800 hover:bg-cerulean-blue-50 focus:outline-none text-left underline"
                   title={job.verificationId}
                 >
                   {truncateJobId(job.verificationId)}

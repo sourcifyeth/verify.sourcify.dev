@@ -226,7 +226,7 @@ export default function JobDetails() {
                 <p className="text-gray-500 text-xs font-mono">Job ID: {jobData.verificationId}</p>
                 <button
                   onClick={handleRefresh}
-                  className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm cursor-pointer mx-auto group"
+                  className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-lg hover:bg-cerulean-blue-700 flex items-center space-x-2 text-sm mx-auto group"
                 >
                   <svg
                     className="w-4 h-4 group-hover:[animation:spin_2s_linear_infinite_reverse]"
@@ -391,7 +391,7 @@ export default function JobDetails() {
                         <div className="mt-4 text-center">
                           <button
                             onClick={() => setCompilerErrorsModalOpen(true)}
-                            className="text-sm px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                            className="text-sm px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
                           >
                             Show All {jobData.error.errorData.compilerErrors.length} Errors
                           </button>
@@ -410,7 +410,7 @@ export default function JobDetails() {
                           <div className="text-center">
                             <button
                               onClick={() => setErrorMessageModalOpen(true)}
-                              className="text-sm px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                              className="text-sm px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
                             >
                               Show Complete Message
                             </button>
@@ -452,7 +452,7 @@ export default function JobDetails() {
                                 jobData?.error?.recompiledRuntimeCode || ""
                               )
                             }
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-cerulean-blue-600 hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-cerulean-blue-600 hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
                           >
                             <TbArrowsDiff className="w-4 h-4" />
                             View Diff

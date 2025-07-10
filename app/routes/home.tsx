@@ -334,7 +334,7 @@ export default function Home() {
                           </span>
                           <a
                             href={`/jobs/${submissionResult.verificationId}`}
-                            className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none cursor-pointer block"
+                            className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none block"
                           >
                             Click here to go now
                           </a>

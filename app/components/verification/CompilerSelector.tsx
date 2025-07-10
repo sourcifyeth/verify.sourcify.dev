@@ -107,7 +107,7 @@ export default function CompilerSelector({
             id="compilerVersion"
             value={selectedVersion || ""}
             onChange={(e) => onVersionSelect(e.target.value)}
-            className="w-full appearance-none cursor-pointer border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm text-gray-900"
+            className="w-full appearance-none border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm text-gray-900"
           >
             <option value="">Select compiler version</option>
             {versionsToShow.map((version) => (
@@ -141,11 +141,11 @@ export default function CompilerSelector({
                 setShowPrereleases(e.target.checked);
               }
             }}
-            className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded hover:cursor-pointer"
+            className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded"
           />
           <label
             htmlFor={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
-            className="ml-2 block text-sm text-gray-700 hover:cursor-pointer"
+            className="ml-2 block text-sm text-gray-700"
           >
             {language === "solidity" ? "Show nightly builds" : "Show prereleases"}
           </label>
