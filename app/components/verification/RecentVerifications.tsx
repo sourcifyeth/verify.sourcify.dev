@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import { IoTrashOutline } from "react-icons/io5";
 import { Tooltip } from "react-tooltip";
 import { useChains } from "../../contexts/ChainsContext";
@@ -19,7 +18,6 @@ interface RecentVerificationsProps {
 }
 
 export default function RecentVerifications({ className = "" }: RecentVerificationsProps) {
-  const navigate = useNavigate();
   const { chains } = useChains();
   const [jobs, setJobs] = useState<StoredVerificationJob[]>([]);
   const [showAll, setShowAll] = useState(false);
@@ -66,10 +64,6 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
 
     return () => clearInterval(interval);
   }, []);
-
-  const handleJobClick = (jobId: string) => {
-    navigate(`/jobs/${jobId}`);
-  };
 
   const handleClearAll = () => {
     clearAllJobs();
@@ -154,13 +148,13 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
                 </div>
               </td>
               <td className="py-2 px-4 text-sm">
-                <button
-                  onClick={() => handleJobClick(job.verificationId)}
+                <a
+                  href={`/jobs/${job.verificationId}`}
                   className="font-mono text-cerulean-blue-600 hover:text-cerulean-blue-800 hover:bg-cerulean-blue-50 focus:outline-none text-left underline cursor-pointer"
                   title={job.verificationId}
                 >
                   {truncateJobId(job.verificationId)}
-                </button>
+                </a>
               </td>
               <td className="py-2 px-4 text-sm text-gray-600 break-words">
                 {job.contract

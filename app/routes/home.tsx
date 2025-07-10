@@ -202,12 +202,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [redirectCountdown, navigate, submissionResult]);
 
-  const handleRedirectClick = () => {
-    if (submissionResult?.success && submissionResult.verificationId) {
-      navigate(`/jobs/${submissionResult.verificationId}`);
-    }
-  };
-
   const getSubmitButtonTooltip = () => {
     if (isFrameworkMethod) {
       return "Framework helpers provide setup instructions only - please select a verification method above";
@@ -338,12 +332,12 @@ export default function Home() {
                           <span className="text-sm block">
                             Redirecting to job status in {redirectCountdown} seconds...
                           </span>
-                          <button
-                            onClick={handleRedirectClick}
+                          <a
+                            href={`/jobs/${submissionResult.verificationId}`}
                             className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none cursor-pointer block"
                           >
                             Click here to go now
-                          </button>
+                          </a>
                         </div>
                       )}
                     </div>
