@@ -57,7 +57,7 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
   return (
     <div ref={dropdownRef} className="relative">
       <div
-        className={`${className} flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm`}
+        className={`${className} flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm cursor-pointer`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate text-gray-900">
@@ -93,17 +93,19 @@ export default function ChainSelect({ value, handleChainIdChange, className = ""
                 <div
                   key={chain.chainId}
                   className={`px-4 py-2 text-sm ${
-                    chain.supported 
-                      ? "hover:bg-cerulean-blue-100 cursor-pointer" 
-                      : "cursor-not-allowed"
-                  } ${
-                    value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""
-                  } ${!chain.supported ? "text-gray-400" : "text-gray-900"}`}
-                  onClick={chain.supported ? () => {
-                    handleChainIdChange(chain.chainId.toString());
-                    setIsOpen(false);
-                    setSearchTerm("");
-                  } : undefined}
+                    chain.supported ? "hover:bg-cerulean-blue-100 cursor-pointer" : "cursor-not-allowed"
+                  } ${value === chain.chainId.toString() ? "bg-cerulean-blue-100" : ""} ${
+                    !chain.supported ? "text-gray-400" : "text-gray-900"
+                  }`}
+                  onClick={
+                    chain.supported
+                      ? () => {
+                          handleChainIdChange(chain.chainId.toString());
+                          setIsOpen(false);
+                          setSearchTerm("");
+                        }
+                      : undefined
+                  }
                 >
                   {chain.title || chain.name} ({chain.chainId})
                   {!chain.supported && <span className="text-gray-500 text-xs"> - verification deprecated</span>}
