@@ -63,9 +63,6 @@ export default function Home() {
     setSubmissionResult,
   } = useVerificationState();
 
-  // Track metadata validation status
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
-
   const {
     isFormValid,
     updateAddressValidation,
@@ -171,9 +168,6 @@ export default function Home() {
           address: contractAddress,
         },
       });
-
-      // Start countdown for redirect
-      setRedirectCountdown(10);
     } catch (error) {
       setSubmissionResult({
         success: false,
@@ -183,24 +177,6 @@ export default function Home() {
       setIsSubmitting(false);
     }
   };
-
-  // Handle countdown and redirect
-  useEffect(() => {
-    if (redirectCountdown === null) return;
-
-    if (redirectCountdown === 0) {
-      if (submissionResult?.success && submissionResult.verificationId) {
-        navigate(`/jobs/${submissionResult.verificationId}`);
-      }
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setRedirectCountdown(redirectCountdown - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [redirectCountdown, navigate, submissionResult]);
 
   const getSubmitButtonTooltip = () => {
     if (isFrameworkMethod) {
@@ -321,25 +297,24 @@ export default function Home() {
                 >
                   {submissionResult.success ? (
                     <div className="flex flex-col items-center text-green-800">
-                      <h3 className="font-medium text-lg">Submitted verification</h3>
-                      <div className="text-sm mt-1">Verification Job ID:</div>
+                      <h3 className="font-medium text-lg">Verification submitted successfully!</h3>
+                      <div className="text-sm mt-2">Verification Job ID:</div>
                       <span className="text-sm mt-1 font-mono bg-gray-100 text-gray-900 px-2 py-1 rounded-md">
                         {submissionResult.verificationId}
                       </span>
 
-                      {redirectCountdown !== null && (
-                        <div className="flex flex-col items-center mt-4 rounded-md text-center space-y-2">
-                          <span className="text-sm block">
-                            Redirecting to job status in {redirectCountdown} seconds...
-                          </span>
-                          <a
-                            href={`/jobs/${submissionResult.verificationId}`}
-                            className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none block"
-                          >
-                            Click here to go now
-                          </a>
-                        </div>
-                      )}
+                      <div className="mt-6">
+                        <a
+                          href={`/jobs/${submissionResult.verificationId}`}
+                          className="inline-flex items-center px-6 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors shadow-sm"
+                        >
+                          View Job Status
+                        </a>
+                      </div>
+
+                      <p className="text-sm mt-3 text-gray-600 text-center">
+                        Your verification is being processed. Click above to monitor progress.
+                      </p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center text-center text-red-800">
