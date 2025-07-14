@@ -1,4 +1,5 @@
 import type { Language } from "../types/verification";
+import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
 
 interface CompilerSettings {
   evmVersion: string;
@@ -255,4 +256,45 @@ export async function getVerificationJobStatus(
   }
 
   return response.json();
+}
+
+export async function submitEtherscanVerification(
+  serverUrl: string,
+  chainId: string,
+  address: string,
+  apiKey: string
+): Promise<VerificationResponse> {
+  // Fetch data from Etherscan
+  const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
+  
+  // Process the result to get files, settings, and contract info
+  const processedResult = await processEtherscanResult(etherscanResult);
+  
+  // Construct contract identifier in the format contractPath:contractName
+  const contractIdentifier = `${processedResult.contractPath}:${processedResult.contractName}`;
+  
+  // Submit verification based on the determined method
+  if (processedResult.verificationMethod === "std-json") {
+    // For std-json method, use the first file which should be the JSON file
+    return await submitStdJsonFile(
+      serverUrl,
+      chainId,
+      address,
+      processedResult.files[0],
+      processedResult.compilerVersion,
+      contractIdentifier
+    );
+  } else {
+    // For single-file and multiple-files methods, use assembleAndSubmitStandardJson
+    return await assembleAndSubmitStandardJson(
+      serverUrl,
+      chainId,
+      address,
+      processedResult.files,
+      processedResult.language as Language,
+      processedResult.compilerVersion,
+      contractIdentifier,
+      processedResult.compilerSettings
+    );
+  }
 }

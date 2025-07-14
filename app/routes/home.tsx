@@ -33,6 +33,22 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
+  const [importError, setImportError] = React.useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
+
+  // Clear success message after 3 seconds
+  React.useEffect(() => {
+    if (importSuccess) {
+      const timer = setTimeout(() => setImportSuccess(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [importSuccess]);
+
+  // Handle import error and clear any existing success
+  const handleImportError = (error: string) => {
+    setImportSuccess(null);
+    setImportError(error);
+  };
   const {
     selectedChainId,
     contractAddress,
@@ -56,7 +72,6 @@ export default function Home() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
-    handleImportedData,
     isSubmitting,
     setIsSubmitting,
     submissionResult,
@@ -227,9 +242,14 @@ export default function Home() {
                   <ImportFromEtherscan
                     chainId={selectedChainId}
                     address={contractAddress}
-                    onImportSuccess={handleImportedData}
+                    setIsSubmitting={setIsSubmitting}
+                    setSubmissionResult={setSubmissionResult}
+                    onImportError={handleImportError}
+                    onImportSuccess={setImportSuccess}
                   />
                 </div>
+                {importError && <div className="mt-3 text-sm text-red-600">{importError}</div>}
+                {importSuccess && <div className="mt-3 text-sm text-green-600">{importSuccess}</div>}
               </div>
 
               <LicenseInfo />

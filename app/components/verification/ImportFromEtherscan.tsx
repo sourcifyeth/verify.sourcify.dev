@@ -1,29 +1,35 @@
 import { useState } from "react";
 import { isAddress } from "ethers";
-import { fetchFromEtherscan, processEtherscanResult } from "../../utils/etherscanApi";
+import { submitEtherscanVerification } from "../../utils/sourcifyApi";
 import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
+import { saveJob } from "../../utils/jobStorage";
+import { useServerConfig } from "../../contexts/ServerConfigContext";
 
 interface ImportFromEtherscanProps {
   chainId: string;
   address: string;
-  onImportSuccess: (data: {
-    language: string;
-    verificationMethod: string;
-    compilerVersion: string;
-    contractName: string;
-    files: File[];
-    compilerSettings: {
-      evmVersion: string;
-      optimizerEnabled: boolean;
-      optimizerRuns: number;
-    };
-  }) => void;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  setSubmissionResult: (
+    result: {
+      success: boolean;
+      verificationId?: string;
+      error?: string;
+    } | null
+  ) => void;
+  onImportError: (error: string) => void;
+  onImportSuccess: (message: string) => void;
 }
 
-export default function ImportFromEtherscan({ chainId, address, onImportSuccess }: ImportFromEtherscanProps) {
+export default function ImportFromEtherscan({
+  chainId,
+  address,
+  setIsSubmitting,
+  setSubmissionResult,
+  onImportError,
+  onImportSuccess,
+}: ImportFromEtherscanProps) {
   const [isImporting, setIsImporting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { serverUrl } = useServerConfig();
 
   // Use the custom hook to reactively track API key changes
   const hasApiKey = useEtherscanApiKey();
@@ -37,8 +43,8 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
     if (!canImport) return;
 
     setIsImporting(true);
-    setError(null);
-    setSuccess(null);
+    setIsSubmitting(true);
+    setSubmissionResult(null);
 
     try {
       const apiKey = getEtherscanApiKey();
@@ -46,20 +52,34 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
         throw new Error("No Etherscan API key found");
       }
 
-      const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
-      const processedResult = await processEtherscanResult(etherscanResult);
+      // Submit verification directly
+      const result = await submitEtherscanVerification(serverUrl, chainId, address, apiKey);
 
-      onImportSuccess(processedResult);
+      // Set successful submission result
+      setSubmissionResult({
+        success: true,
+        verificationId: result.verificationId,
+      });
 
-      setSuccess(`Successfully imported ${processedResult.contractName} from Etherscan`);
+      // Save job to localStorage
+      saveJob({
+        verificationId: result.verificationId,
+        isJobCompleted: false,
+        jobStartTime: new Date().toISOString(),
+        submittedAt: new Date().toISOString(),
+        contract: {
+          chainId,
+          address,
+        },
+      });
 
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
+      onImportSuccess(`Successfully imported and submitted verification from Etherscan`);
     } catch (err) {
       const error = err as Error;
-      setError(error.message || "An unexpected error occurred");
+      onImportError(error.message || "An unexpected error occurred");
     } finally {
       setIsImporting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -92,12 +112,6 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
           <span>{isImporting ? "Importing..." : "Import from Etherscan"}</span>
         </div>
       </button>
-
-      {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</div>}
-
-      {success && (
-        <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md p-2">{success}</div>
-      )}
 
       {getValidationMessage() && <p className="text-xs text-gray-500">{getValidationMessage()}</p>}
     </div>

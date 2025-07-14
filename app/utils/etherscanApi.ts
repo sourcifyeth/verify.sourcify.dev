@@ -21,6 +21,7 @@ export interface ProcessedEtherscanResult {
   verificationMethod: VerificationMethod;
   compilerVersion: string;
   contractName: string;
+  contractPath: string;
   files: File[];
   compilerSettings: {
     evmVersion: string;
@@ -49,6 +50,24 @@ export const parseEtherscanJsonInput = (sourceCodeObject: string) => {
 
 export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
   return etherscanResult.CompilerVersion.startsWith("vyper");
+};
+
+export const getContractPathFromSources = (contractName: string, sources: any): string | undefined => {
+  // Look for a file that contains the contract definition
+  for (const [filePath, source] of Object.entries(sources)) {
+    const content = typeof source === 'string' ? source : (source as any).content;
+    if (content && typeof content === 'string') {
+      // Look for contract definition in the file
+      const contractRegex = new RegExp(`contract\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
+      const interfaceRegex = new RegExp(`interface\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
+      const libraryRegex = new RegExp(`library\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
+      
+      if (contractRegex.test(content) || interfaceRegex.test(content) || libraryRegex.test(content)) {
+        return filePath;
+      }
+    }
+  }
+  return undefined;
 };
 
 export const fetchFromEtherscan = async (
@@ -109,12 +128,20 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
 
   let verificationMethod: VerificationMethod;
   let files: File[] = [];
+  let contractPath: string;
 
   // Determine verification method and create files
   if (isEtherscanJsonInput(sourceCodeObject)) {
     // std-json method
     verificationMethod = "std-json";
     const jsonInput = parseEtherscanJsonInput(sourceCodeObject);
+
+    // Find contract path from sources
+    const foundPath = getContractPathFromSources(contractName, jsonInput.sources);
+    if (!foundPath) {
+      throw new Error("Could not find contract path in sources");
+    }
+    contractPath = foundPath;
 
     // Create a single JSON file
     const jsonContent = JSON.stringify(jsonInput, null, 2);
@@ -125,6 +152,13 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
     verificationMethod = "multiple-files";
     const sourcesObject = JSON.parse(sourceCodeObject);
 
+    // Find contract path from sources
+    const foundPath = getContractPathFromSources(contractName, sourcesObject);
+    if (!foundPath) {
+      throw new Error("Could not find contract path in sources");
+    }
+    contractPath = foundPath;
+
     // Create files from sources object
     files = Object.entries(sourcesObject).map(([filename, content]) => {
       return new File([content as string], filename, { type: "text/plain" });
@@ -134,6 +168,7 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
     verificationMethod = "single-file";
     const extension = language === "vyper" ? "vy" : "sol";
     const filename = `${contractName}.${extension}`;
+    contractPath = filename;
 
     const sourceFile = new File([sourceCodeObject], filename, { type: "text/plain" });
     files = [sourceFile];
@@ -144,6 +179,7 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
     verificationMethod,
     compilerVersion,
     contractName,
+    contractPath,
     files,
     compilerSettings,
   };

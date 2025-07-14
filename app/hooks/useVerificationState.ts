@@ -81,37 +81,6 @@ export function useVerificationState() {
     }
   };
 
-  const handleImportedData = (data: {
-    language: string;
-    verificationMethod: string;
-    compilerVersion: string;
-    contractName: string;
-    files: File[];
-    compilerSettings: {
-      evmVersion: string;
-      optimizerEnabled: boolean;
-      optimizerRuns: number;
-    };
-  }) => {
-    // Set language and method
-    setSelectedLanguage(data.language as Language);
-    setSelectedMethod(data.verificationMethod);
-    
-    // Set compiler version
-    setSelectedCompilerVersion(data.compilerVersion);
-    
-    // Set files
-    setUploadedFiles(data.files);
-    setMetadataFile(null); // Clear metadata file when importing
-    
-    // Set compiler settings
-    setEvmVersion(data.compilerSettings.evmVersion);
-    setOptimizerEnabled(data.compilerSettings.optimizerEnabled);
-    setOptimizerRuns(data.compilerSettings.optimizerRuns);
-    
-    // Set contract identifier (use contract name as default)
-    setContractIdentifier(data.contractName);
-  };
 
   return {
     selectedChainId,
@@ -136,7 +105,6 @@ export function useVerificationState() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
-    handleImportedData,
     isSubmitting,
     setIsSubmitting,
     submissionResult,
