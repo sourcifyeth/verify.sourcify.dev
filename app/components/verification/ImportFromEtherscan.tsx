@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { fetchFromEtherscan, processEtherscanResult } from "../../utils/etherscanApi";
-import { hasEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
+import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
 
 interface ImportFromEtherscanProps {
   chainId: string;
@@ -24,7 +24,10 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const canImport = hasEtherscanApiKey() && chainId && address;
+  // Use the custom hook to reactively track API key changes
+  const hasApiKey = useEtherscanApiKey();
+  
+  const canImport = hasApiKey && chainId && address;
 
   const handleImport = async () => {
     if (!canImport) return;
@@ -58,7 +61,7 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
 
   const getButtonText = () => {
     if (isImporting) return "Importing...";
-    if (!hasEtherscanApiKey()) return "Add API key in settings";
+    if (!hasApiKey) return "Add API key in settings";
     if (!chainId || !address) return "Select chain and address";
     return "Import from Etherscan";
   };
@@ -99,7 +102,7 @@ export default function ImportFromEtherscan({ chainId, address, onImportSuccess 
         </div>
       )}
 
-      {!hasEtherscanApiKey() && (
+      {!hasApiKey && (
         <p className="text-xs text-gray-500">
           Add your Etherscan API key in settings to import verified contracts
         </p>
