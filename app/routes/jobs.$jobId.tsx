@@ -95,7 +95,6 @@ export default function JobDetails() {
     setDiffModalData(null);
   };
 
-
   const toggleErrorExpansion = (index: number, isModal: boolean = false) => {
     if (isModal) {
       setExpandedModalErrors((prev) => {
@@ -144,7 +143,9 @@ export default function JobDetails() {
     return (
       <div className={`${className}`}>
         <dt className="font-bold text-gray-900 text-sm md:text-base">{label}</dt>
-        <dd className={`text-gray-900 text-sm md:text-base ${fontMono ? "font-mono text-xs md:text-sm" : ""}`}>{value}</dd>
+        <dd className={`text-gray-900 text-sm md:text-base ${fontMono ? "font-mono text-xs md:text-sm" : ""}`}>
+          {value}
+        </dd>
       </div>
     );
   };
@@ -178,6 +179,7 @@ export default function JobDetails() {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h2 className="text-base md:text-lg font-medium text-red-800 mb-2">Error Loading Job</h2>
                   <p className="text-sm md:text-base text-red-600">{error}</p>
+                  <p className="text-sm md:text-base text-red-600">Server URL: {serverUrl}</p>
                 </div>
               </div>
             </div>
