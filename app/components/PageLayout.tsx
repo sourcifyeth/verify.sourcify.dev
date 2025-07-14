@@ -47,7 +47,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load networks</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load chains from the Sourcify server</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={refetch}

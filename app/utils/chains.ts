@@ -14,7 +14,7 @@ export async function fetchChains(serverUrl: string): Promise<Chain[]> {
     return chains;
   } catch (error) {
     console.error("Error fetching chains:", error);
-    throw error;
+    throw new Error(`Failed to fetch chains from ${serverUrl}: ${error}`);
   }
 }
 
