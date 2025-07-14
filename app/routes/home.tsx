@@ -18,9 +18,9 @@ import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
 import MetadataValidation from "../components/verification/MetadataValidation";
 import RecentVerifications from "../components/verification/RecentVerifications";
 import { saveJob } from "../utils/jobStorage";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import React from "react";
 import Settings from "../components/verification/Settings";
+import ImportFromEtherscan from "../components/verification/ImportFromEtherscan";
 import { useServerConfig } from "../contexts/ServerConfigContext";
 
 export function meta({}: Route.MetaArgs) {
@@ -33,7 +33,6 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
-  const navigate = useNavigate();
   const {
     selectedChainId,
     contractAddress,
@@ -57,6 +56,7 @@ export default function Home() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    handleImportedData,
     isSubmitting,
     setIsSubmitting,
     submissionResult,
@@ -216,6 +216,18 @@ export default function Home() {
                 chains={chains}
                 onValidationChange={updateAddressValidation}
               />
+
+              {/* Import Sources From section */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Import Sources From</h3>
+                <div className="space-y-3">
+                  <ImportFromEtherscan
+                    chainId={selectedChainId}
+                    address={contractAddress}
+                    onImportSuccess={handleImportedData}
+                  />
+                </div>
+              </div>
 
               <LicenseInfo />
 

@@ -1,0 +1,150 @@
+import type { Language, VerificationMethod } from "../types/verification";
+
+export interface EtherscanResult {
+  SourceCode: string;
+  ABI: string;
+  ContractName: string;
+  CompilerVersion: string;
+  OptimizationUsed: string;
+  Runs: string;
+  ConstructorArguments: string;
+  EVMVersion: string;
+  Library: string;
+  LicenseType: string;
+  Proxy: string;
+  Implementation: string;
+  SwarmSource: string;
+}
+
+export interface ProcessedEtherscanResult {
+  language: Language;
+  verificationMethod: VerificationMethod;
+  compilerVersion: string;
+  contractName: string;
+  files: File[];
+  compilerSettings: {
+    evmVersion: string;
+    optimizerEnabled: boolean;
+    optimizerRuns: number;
+  };
+}
+
+
+export const isEtherscanJsonInput = (sourceCodeObject: string): boolean => {
+  return sourceCodeObject.startsWith("{{");
+};
+
+export const isEtherscanMultipleFilesObject = (sourceCodeObject: string): boolean => {
+  try {
+    return Object.keys(JSON.parse(sourceCodeObject)).length > 0;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const parseEtherscanJsonInput = (sourceCodeObject: string) => {
+  // Etherscan wraps the json object: {{ ... }}
+  return JSON.parse(sourceCodeObject.slice(1, -1));
+};
+
+export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
+  return etherscanResult.CompilerVersion.startsWith("vyper");
+};
+
+export const fetchFromEtherscan = async (
+  chainId: string,
+  address: string,
+  apiKey: string
+): Promise<EtherscanResult> => {
+  const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getsourcecode&address=${address}&apikey=${apiKey}`;
+
+  let response: Response;
+
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error(`Network error: Failed to connect to Etherscan API`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Etherscan API responded with status ${response.status}`);
+  }
+
+  const resultJson = await response.json();
+
+  if (resultJson.message === "NOTOK" && resultJson.result.includes("rate limit reached")) {
+    throw new Error("Etherscan API rate limit reached, please try again later");
+  }
+
+  if (resultJson.message === "NOTOK") {
+    throw new Error(`Etherscan API error: ${resultJson.result}`);
+  }
+
+  if (resultJson.result[0].SourceCode === "") {
+    throw new Error("This contract is not verified on Etherscan");
+  }
+
+  return resultJson.result[0] as EtherscanResult;
+};
+
+export const processEtherscanResult = async (etherscanResult: EtherscanResult): Promise<ProcessedEtherscanResult> => {
+  const sourceCodeObject = etherscanResult.SourceCode;
+  const contractName = etherscanResult.ContractName;
+
+  // Determine language
+  const language: Language = isVyperResult(etherscanResult) ? "vyper" : "solidity";
+
+  // Process compiler version
+  const compilerVersion =
+    etherscanResult.CompilerVersion.charAt(0) === "v"
+      ? etherscanResult.CompilerVersion.slice(1)
+      : etherscanResult.CompilerVersion;
+
+  // Process compiler settings
+  const compilerSettings = {
+    evmVersion: etherscanResult.EVMVersion.toLowerCase() !== "default" ? etherscanResult.EVMVersion : "default",
+    optimizerEnabled: etherscanResult.OptimizationUsed === "1",
+    optimizerRuns: parseInt(etherscanResult.Runs),
+  };
+
+  let verificationMethod: VerificationMethod;
+  let files: File[] = [];
+
+  // Determine verification method and create files
+  if (isEtherscanJsonInput(sourceCodeObject)) {
+    // std-json method
+    verificationMethod = "std-json";
+    const jsonInput = parseEtherscanJsonInput(sourceCodeObject);
+
+    // Create a single JSON file
+    const jsonContent = JSON.stringify(jsonInput, null, 2);
+    const jsonFile = new File([jsonContent], `${contractName}-input.json`, { type: "application/json" });
+    files = [jsonFile];
+  } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
+    // multiple-files method
+    verificationMethod = "multiple-files";
+    const sourcesObject = JSON.parse(sourceCodeObject);
+
+    // Create files from sources object
+    files = Object.entries(sourcesObject).map(([filename, content]) => {
+      return new File([content as string], filename, { type: "text/plain" });
+    });
+  } else {
+    // single-file method
+    verificationMethod = "single-file";
+    const extension = language === "vyper" ? "vy" : "sol";
+    const filename = `${contractName}.${extension}`;
+
+    const sourceFile = new File([sourceCodeObject], filename, { type: "text/plain" });
+    files = [sourceFile];
+  }
+
+  return {
+    language,
+    verificationMethod,
+    compilerVersion,
+    contractName,
+    files,
+    compilerSettings,
+  };
+};
