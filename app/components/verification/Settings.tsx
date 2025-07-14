@@ -5,9 +5,8 @@ import { useServerConfig } from "../../contexts/ServerConfigContext";
 import { getEtherscanApiKey, setEtherscanApiKey, removeEtherscanApiKey } from "../../utils/etherscanStorage";
 
 export default function Settings() {
-  const { serverUrl, setServerUrl, getDefaultServerUrls } = useServerConfig();
+  const { serverUrl, setServerUrl, getDefaultServerUrls, customServerUrls, setCustomServerUrls } = useServerConfig();
   const [showSettings, setShowSettings] = useState(false);
-  const [customServerUrls, setCustomServerUrls] = useState<string[]>([]);
   const [editingCustomUrl, setEditingCustomUrl] = useState<string | null>(null);
   const [newCustomUrl, setNewCustomUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -154,6 +153,7 @@ export default function Settings() {
     }
     return key.substring(0, 4) + "*".repeat(key.length - 4);
   };
+
 
   return (
     <div

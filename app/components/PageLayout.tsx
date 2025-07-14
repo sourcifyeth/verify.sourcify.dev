@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useChains } from "../contexts/ChainsContext";
 import { Tooltip } from "react-tooltip";
+import { useServerConfig } from "~/contexts/ServerConfigContext";
+import { removeCurrentServerUrl } from "../utils/serverStorage";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -11,6 +13,22 @@ interface PageLayoutProps {
 
 export default function PageLayout({ children, maxWidth = "max-w-4xl", title, subtitle }: PageLayoutProps) {
   const { loading, error, refetch } = useChains();
+  const { serverUrl, setServerUrl, getDefaultServerUrls, setCustomServerUrls } = useServerConfig();
+
+  const handleResetServerSettings = () => {
+    // Clear custom server URLs
+    setCustomServerUrls([]);
+
+    // Reset to default server URL
+    const defaultUrls = getDefaultServerUrls();
+    setServerUrl(defaultUrls[0]);
+
+    // Clear from localStorage
+    removeCurrentServerUrl();
+
+    // Refetch after reset
+    refetch();
+  };
 
   const renderHeader = () => {
     if (!title && !subtitle) {
@@ -47,14 +65,23 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load chains from the Sourcify server</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={refetch}
-            className="bg-cerulean-blue-500 text-white px-4 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
-          >
-            Try Again
-          </button>
+          <p className="text-gray-600 mb-4">Server URL: {serverUrl}</p>
+          <div className="flex flex-col space-y-2 items-center">
+            <button
+              onClick={refetch}
+              className="bg-cerulean-blue-500 text-white px-4 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleResetServerSettings}
+              className="text-red-600 px-4 py-2 rounded-md hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 border border-red-200"
+            >
+              Reset Server Settings
+            </button>
+          </div>
         </div>
       );
     }
