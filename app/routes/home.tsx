@@ -219,8 +219,11 @@ export default function Home() {
 
               {/* Import Sources From section */}
               <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Import Sources From</h3>
-                <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">Import Sources</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  You can import the sources and settings from various places to submit a verification on Sourcify.
+                </p>
+                <div className="flex justify-start space-y-3">
                   <ImportFromEtherscan
                     chainId={selectedChainId}
                     address={contractAddress}
