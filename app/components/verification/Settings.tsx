@@ -11,11 +11,13 @@ export default function Settings() {
   const [editingCustomUrl, setEditingCustomUrl] = useState<string | null>(null);
   const [newCustomUrl, setNewCustomUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
-  
+
   // Etherscan API key state
   const [etherscanApiKey, setEtherscanApiKeyState] = useState<string>("");
   const [showEtherscanApiKey, setShowEtherscanApiKey] = useState(false);
   const [etherscanApiKeyError, setEtherscanApiKeyError] = useState<string | null>(null);
+  const [isEditingApiKey, setIsEditingApiKey] = useState(false);
+  const [editingApiKey, setEditingApiKey] = useState<string>("");
 
   // Load Etherscan API key on component mount
   useEffect(() => {
@@ -102,10 +104,22 @@ export default function Settings() {
     }
   };
 
-  const handleEtherscanApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditApiKey = () => {
+    setIsEditingApiKey(true);
+    setEditingApiKey(etherscanApiKey);
+    setEtherscanApiKeyError(null);
+  };
+
+  const handleCancelEditApiKey = () => {
+    setIsEditingApiKey(false);
+    setEditingApiKey("");
+    setEtherscanApiKeyError(null);
+  };
+
+  const handleEditingApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setEtherscanApiKeyState(value);
-    
+    setEditingApiKey(value);
+
     // Clear error when user starts typing
     if (etherscanApiKeyError) {
       setEtherscanApiKeyError(null);
@@ -113,17 +127,19 @@ export default function Settings() {
   };
 
   const handleSaveEtherscanApiKey = () => {
-    const trimmedKey = etherscanApiKey.trim();
-    
+    const trimmedKey = editingApiKey.trim();
+
     if (trimmedKey === "") {
       removeEtherscanApiKey();
       setEtherscanApiKeyState("");
-      setEtherscanApiKeyError(null);
     } else {
       setEtherscanApiKey(trimmedKey);
       setEtherscanApiKeyState(trimmedKey);
-      setEtherscanApiKeyError(null);
     }
+
+    setIsEditingApiKey(false);
+    setEditingApiKey("");
+    setEtherscanApiKeyError(null);
   };
 
   const handleRemoveEtherscanApiKey = () => {
@@ -133,10 +149,10 @@ export default function Settings() {
   };
 
   const maskApiKey = (key: string) => {
-    if (key.length <= 8) {
+    if (key.length <= 4) {
       return "*".repeat(key.length);
     }
-    return key.substring(0, 4) + "*".repeat(key.length - 8) + key.substring(key.length - 4);
+    return key.substring(0, 4) + "*".repeat(key.length - 4);
   };
 
   return (
@@ -162,7 +178,7 @@ export default function Settings() {
 
       <div
         className={`border-t border-gray-200 bg-white rounded-b-lg transition-all duration-300 ease-in-out ${
-          showSettings ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          showSettings ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div className="px-2 md:px-4 pb-4 md:pb-6 pt-4">
@@ -282,65 +298,92 @@ export default function Settings() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Etherscan API Key
-                  <span className="text-gray-500 text-xs ml-1">(Optional - for importing verified contracts)</span>
+                  <span className="inline-flex items-center">
+                    <img src="/etherscan.webp" alt="Etherscan" className="w-4 h-4 mx-1" />
+                    Etherscan API Key
+                  </span>
+                  <p className="text-xs text-gray-500">Saved in the browser and not sent to Sourcify servers.</p>
                 </label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <input
-                        type={showEtherscanApiKey ? "text" : "password"}
-                        value={etherscanApiKey}
-                        onChange={handleEtherscanApiKeyChange}
-                        className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
-                          etherscanApiKeyError ? "border-red-300 bg-red-50" : "border-gray-300"
-                        }`}
-                        placeholder="Enter your Etherscan API key"
-                      />
+                  {isEditingApiKey ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 relative">
+                        <input
+                          type={showEtherscanApiKey ? "text" : "password"}
+                          value={editingApiKey}
+                          onChange={handleEditingApiKeyChange}
+                          className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
+                            etherscanApiKeyError ? "border-red-300 bg-red-50" : "border-gray-300"
+                          }`}
+                          placeholder="Enter your Etherscan API key"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showEtherscanApiKey ? <IoEyeOff className="w-4 h-4" /> : <IoEye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveEtherscanApiKey}
+                        className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center space-x-2"
+                      >
+                        <FaRegSave className="w-4 h-4" />
+                        <span>Save</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEditApiKey}
+                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center space-x-2"
+                      >
+                        <IoClose className="w-4 h-4" />
+                        <span>Cancel</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="flex-1 text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">
+                        {etherscanApiKey ? (
+                          showEtherscanApiKey ? (
+                            etherscanApiKey
+                          ) : (
+                            maskApiKey(etherscanApiKey)
+                          )
+                        ) : (
+                          <span className="text-gray-500">No API key set</span>
+                        )}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded"
+                        disabled={!etherscanApiKey}
                       >
                         {showEtherscanApiKey ? <IoEyeOff className="w-4 h-4" /> : <IoEye className="w-4 h-4" />}
                       </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleSaveEtherscanApiKey}
-                      className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center space-x-2"
-                    >
-                      <FaRegSave className="w-4 h-4" />
-                      <span>Save</span>
-                    </button>
-                    {etherscanApiKey && (
                       <button
                         type="button"
-                        onClick={handleRemoveEtherscanApiKey}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center space-x-2"
+                        onClick={handleEditApiKey}
+                        className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center space-x-2"
                       >
-                        <IoClose className="w-4 h-4" />
-                        <span>Remove</span>
+                        <FaRegEdit className="w-4 h-4" />
+                        <span>Edit</span>
                       </button>
-                    )}
-                  </div>
-                  {etherscanApiKeyError && <p className="text-red-600 text-sm">{etherscanApiKeyError}</p>}
-                  {etherscanApiKey && (
-                    <p className="text-sm text-gray-600">
-                      Current key: <span className="font-mono">{showEtherscanApiKey ? etherscanApiKey : maskApiKey(etherscanApiKey)}</span>
-                    </p>
+                      {etherscanApiKey && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveEtherscanApiKey}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center space-x-2"
+                        >
+                          <IoClose className="w-4 h-4" />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
                   )}
-                  <p className="text-xs text-gray-500">
-                    Get your free API key from{" "}
-                    <a
-                      href="https://etherscan.io/apis"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cerulean-blue-600 hover:text-cerulean-blue-700 underline"
-                    >
-                      etherscan.io/apis
-                    </a>
-                  </p>
+                  {etherscanApiKeyError && <p className="text-red-600 text-sm">{etherscanApiKeyError}</p>}
                 </div>
               </div>
             </div>
