@@ -1,4 +1,11 @@
 import type { Language, VerificationMethod } from "../types/verification";
+import type { VyperVersion } from "../contexts/CompilerVersionsContext";
+
+// Function to convert Vyper short version to long version using pre-loaded versions
+export const getVyperLongVersionFromList = (shortVersion: string, vyperVersions: VyperVersion[]): string => {
+  const foundVersion = vyperVersions.find((version) => version.version === shortVersion);
+  return foundVersion ? foundVersion.longVersion : shortVersion;
+};
 
 export interface EtherscanResult {
   SourceCode: string;
@@ -25,9 +32,13 @@ export interface ProcessedEtherscanResult {
   files: File[];
   compilerSettings: {
     evmVersion: string;
-    optimizerEnabled: boolean;
-    optimizerRuns: number;
+    optimizerEnabled?: boolean;
+    optimizerRuns?: number;
   };
+}
+
+export interface ProcessEtherscanOptions {
+  vyperVersions?: VyperVersion[];
 }
 
 export const isEtherscanJsonInput = (sourceCodeObject: string): boolean => {
@@ -105,7 +116,10 @@ export const fetchFromEtherscan = async (
   return resultJson.result[0] as EtherscanResult;
 };
 
-export const processEtherscanResult = async (etherscanResult: EtherscanResult): Promise<ProcessedEtherscanResult> => {
+export const processEtherscanResult = async (
+  etherscanResult: EtherscanResult,
+  options: ProcessEtherscanOptions = {}
+): Promise<ProcessedEtherscanResult> => {
   const sourceCodeObject = etherscanResult.SourceCode;
   const contractName = etherscanResult.ContractName;
 
@@ -113,17 +127,30 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
   const language: Language = isVyperResult(etherscanResult) ? "vyper" : "solidity";
 
   // Process compiler version
-  const compilerVersion =
-    etherscanResult.CompilerVersion.charAt(0) === "v"
-      ? etherscanResult.CompilerVersion.slice(1)
-      : etherscanResult.CompilerVersion;
+  let compilerVersion = etherscanResult.CompilerVersion;
+
+  if (compilerVersion.startsWith("vyper:")) {
+    const shortVersion = compilerVersion.slice(6);
+    // Convert short version to long version for Vyper using pre-loaded versions
+    if (options.vyperVersions) {
+      compilerVersion = getVyperLongVersionFromList(shortVersion, options.vyperVersions);
+    } else {
+      // Fallback to short version if no versions provided
+      compilerVersion = shortVersion;
+    }
+  } else if (compilerVersion.charAt(0) === "v") {
+    compilerVersion = compilerVersion.slice(1);
+  }
 
   // Process compiler settings
-  const compilerSettings = {
-    evmVersion: etherscanResult.EVMVersion.toLowerCase() !== "default" ? etherscanResult.EVMVersion : "default",
-    optimizerEnabled: etherscanResult.OptimizationUsed === "1",
-    optimizerRuns: parseInt(etherscanResult.Runs),
+  const compilerSettings: ProcessedEtherscanResult["compilerSettings"] = {
+    evmVersion: etherscanResult.EVMVersion.toLowerCase() != "Default" ? etherscanResult.EVMVersion : "default",
   };
+
+  if (language === "solidity") {
+    compilerSettings.optimizerEnabled = etherscanResult.OptimizationUsed === "1";
+    compilerSettings.optimizerRuns = parseInt(etherscanResult.Runs);
+  }
 
   let verificationMethod: VerificationMethod;
   let files: File[] = [];

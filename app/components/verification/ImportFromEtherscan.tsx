@@ -4,6 +4,7 @@ import { submitEtherscanVerification } from "../../utils/sourcifyApi";
 import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
 import { saveJob } from "../../utils/jobStorage";
 import { useServerConfig } from "../../contexts/ServerConfigContext";
+import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
 
 interface ImportFromEtherscanProps {
   chainId: string;
@@ -30,6 +31,7 @@ export default function ImportFromEtherscan({
 }: ImportFromEtherscanProps) {
   const [isImporting, setIsImporting] = useState(false);
   const { serverUrl } = useServerConfig();
+  const { vyperVersions } = useCompilerVersions();
 
   // Use the custom hook to reactively track API key changes
   const hasApiKey = useEtherscanApiKey();
@@ -53,7 +55,7 @@ export default function ImportFromEtherscan({
       }
 
       // Submit verification directly
-      const result = await submitEtherscanVerification(serverUrl, chainId, address, apiKey);
+      const result = await submitEtherscanVerification(serverUrl, chainId, address, apiKey, vyperVersions);
 
       // Set successful submission result
       setSubmissionResult({

@@ -1,5 +1,6 @@
 import type { Language } from "../types/verification";
 import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
+import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
 interface CompilerSettings {
   evmVersion: string;
@@ -61,7 +62,7 @@ async function buildStandardJsonInput(
   };
 
   // Only include evmVersion if it's not "default"
-  if (settings.evmVersion !== "default") {
+  if (settings.evmVersion != "default") {
     standardJsonSettings.evmVersion = settings.evmVersion;
   }
 
@@ -262,17 +263,18 @@ export async function submitEtherscanVerification(
   serverUrl: string,
   chainId: string,
   address: string,
-  apiKey: string
+  apiKey: string,
+  vyperVersions?: VyperVersion[] // Needed because VyperVersions are stored in the context and needs to be passed in the processEtherscanResult function
 ): Promise<VerificationResponse> {
   // Fetch data from Etherscan
   const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
-  
+
   // Process the result to get files, settings, and contract info
-  const processedResult = await processEtherscanResult(etherscanResult);
-  
+  const processedResult = await processEtherscanResult(etherscanResult, { vyperVersions });
+
   // Construct contract identifier in the format contractPath:contractName
   const contractIdentifier = `${processedResult.contractPath}:${processedResult.contractName}`;
-  
+
   // Submit verification based on the determined method
   if (processedResult.verificationMethod === "std-json") {
     // For std-json method, use the first file which should be the JSON file
