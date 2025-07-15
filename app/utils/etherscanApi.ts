@@ -30,7 +30,6 @@ export interface ProcessedEtherscanResult {
   };
 }
 
-
 export const isEtherscanJsonInput = (sourceCodeObject: string): boolean => {
   return sourceCodeObject.startsWith("{{");
 };
@@ -55,13 +54,13 @@ export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
 export const getContractPathFromSources = (contractName: string, sources: any): string | undefined => {
   // Look for a file that contains the contract definition
   for (const [filePath, source] of Object.entries(sources)) {
-    const content = typeof source === 'string' ? source : (source as any).content;
-    if (content && typeof content === 'string') {
+    const content = typeof source === "string" ? source : (source as any).content;
+    if (content && typeof content === "string") {
       // Look for contract definition in the file
-      const contractRegex = new RegExp(`contract\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
-      const interfaceRegex = new RegExp(`interface\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
-      const libraryRegex = new RegExp(`library\\s+${contractName}\\s*[\\s\\S]*?\\{`, 'g');
-      
+      const contractRegex = new RegExp(`contract\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
+      const interfaceRegex = new RegExp(`interface\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
+      const libraryRegex = new RegExp(`library\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
+
       if (contractRegex.test(content) || interfaceRegex.test(content) || libraryRegex.test(content)) {
         return filePath;
       }
@@ -150,7 +149,7 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
   } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
     // multiple-files method
     verificationMethod = "multiple-files";
-    const sourcesObject = JSON.parse(sourceCodeObject);
+    const sourcesObject = JSON.parse(sourceCodeObject) as { [key: string]: { content: string } };
 
     // Find contract path from sources
     const foundPath = getContractPathFromSources(contractName, sourcesObject);
@@ -160,8 +159,8 @@ export const processEtherscanResult = async (etherscanResult: EtherscanResult): 
     contractPath = foundPath;
 
     // Create files from sources object
-    files = Object.entries(sourcesObject).map(([filename, content]) => {
-      return new File([content as string], filename, { type: "text/plain" });
+    files = Object.entries(sourcesObject).map(([filename, object]) => {
+      return new File([object.content as string], filename, { type: "text/plain" });
     });
   } else {
     // single-file method
