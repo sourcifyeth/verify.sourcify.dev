@@ -1,10 +1,41 @@
 import type { Language, VerificationMethod } from "../types/verification";
 import type { VyperVersion } from "../contexts/CompilerVersionsContext";
+import type { SolidityCompilerSettings, VyperCompilerSettings } from "./sourcifyApi";
 
 // Function to convert Vyper short version to long version using pre-loaded versions
 export const getVyperLongVersionFromList = (shortVersion: string, vyperVersions: VyperVersion[]): string => {
   const foundVersion = vyperVersions.find((version) => version.version === shortVersion);
   return foundVersion ? foundVersion.longVersion : shortVersion;
+};
+
+// Helper function to generate compiler settings from Etherscan result
+const generateCompilerSettings = (
+  language: Language,
+  etherscanResult: EtherscanResult
+): SolidityCompilerSettings | VyperCompilerSettings => {
+  if (language === "solidity") {
+    const settings: SolidityCompilerSettings = {
+      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
+      optimizerRuns: parseInt(etherscanResult.Runs),
+    };
+
+    // Only include evmVersion if it's not "default"
+    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
+      settings.evmVersion = etherscanResult.EVMVersion;
+    }
+
+    return settings;
+  } else {
+    // For Vyper, no optimization settings
+    const settings: VyperCompilerSettings = {};
+
+    // Only include evmVersion if it's not "default"
+    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
+      settings.evmVersion = etherscanResult.EVMVersion;
+    }
+
+    return settings;
+  }
 };
 
 export interface EtherscanResult {
@@ -30,11 +61,7 @@ export interface ProcessedEtherscanResult {
   contractName: string;
   contractPath: string;
   files: File[];
-  compilerSettings?: {
-    evmVersion?: string;
-    optimizerEnabled: boolean;
-    optimizerRuns: number;
-  };
+  compilerSettings?: SolidityCompilerSettings | VyperCompilerSettings;
 }
 
 export interface ProcessEtherscanOptions {
@@ -145,7 +172,7 @@ export const processEtherscanResult = async (
   let verificationMethod: VerificationMethod;
   let files: File[] = [];
   let contractPath: string;
-  let compilerSettings: ProcessedEtherscanResult["compilerSettings"];
+  let compilerSettings: SolidityCompilerSettings | VyperCompilerSettings | undefined;
 
   // Determine verification method and create files
   if (isEtherscanJsonInput(sourceCodeObject)) {
@@ -185,15 +212,7 @@ export const processEtherscanResult = async (
     });
 
     // Generate compiler settings for multiple-files method
-    compilerSettings = {
-      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
-      optimizerRuns: parseInt(etherscanResult.Runs),
-    };
-    
-    // Only include evmVersion if it's not "default"
-    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
-      compilerSettings.evmVersion = etherscanResult.EVMVersion;
-    }
+    compilerSettings = generateCompilerSettings(language, etherscanResult);
   } else {
     // single-file method
     verificationMethod = "single-file";
@@ -205,15 +224,7 @@ export const processEtherscanResult = async (
     files = [sourceFile];
 
     // Generate compiler settings for single-file method
-    compilerSettings = {
-      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
-      optimizerRuns: parseInt(etherscanResult.Runs),
-    };
-    
-    // Only include evmVersion if it's not "default"
-    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
-      compilerSettings.evmVersion = etherscanResult.EVMVersion;
-    }
+    compilerSettings = generateCompilerSettings(language, etherscanResult);
   }
 
   return {

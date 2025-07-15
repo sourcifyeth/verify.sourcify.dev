@@ -2,11 +2,18 @@ import type { Language } from "../types/verification";
 import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
 import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
-interface CompilerSettings {
+export interface SolidityCompilerSettings {
   evmVersion?: string;
   optimizerEnabled: boolean;
   optimizerRuns: number;
 }
+
+export interface VyperCompilerSettings {
+  evmVersion?: string;
+  // No optimization settings for single/multiple contracts
+}
+
+type CompilerSettings = SolidityCompilerSettings | VyperCompilerSettings;
 
 interface StandardJsonInput {
   language: string;
@@ -41,6 +48,9 @@ interface VerificationError {
   errorId: string;
 }
 
+/**
+ * Builds the standard JSON input for single-file and multiple-files methods to be submitted to Sourcify in std JSON format
+ */
 async function buildStandardJsonInput(
   files: File[],
   language: Language,
@@ -54,15 +64,20 @@ async function buildStandardJsonInput(
     sources[file.name] = { content };
   }
 
-  const standardJsonSettings: any = {
-    optimizer: {
-      enabled: settings.optimizerEnabled,
-      runs: settings.optimizerRuns,
-    },
-  };
+  const standardJsonSettings: any = {};
+
+  // Handle language-specific compiler settings
+  if (language === "solidity") {
+    const soliditySettings = settings as SolidityCompilerSettings;
+    standardJsonSettings.optimizer = {
+      enabled: soliditySettings.optimizerEnabled,
+      runs: soliditySettings.optimizerRuns,
+    };
+  }
+  // For Vyper, no optimization settings are added
 
   // Only include evmVersion if it's not "default"
-  if (settings.evmVersion != "default") {
+  if (settings.evmVersion?.toLowerCase() !== "default") {
     standardJsonSettings.evmVersion = settings.evmVersion;
   }
 
@@ -291,7 +306,7 @@ export async function submitEtherscanVerification(
     if (!processedResult.compilerSettings) {
       throw new Error("Compiler settings are required for single-file and multiple-files methods");
     }
-    
+
     return await assembleAndSubmitStandardJson(
       serverUrl,
       chainId,
