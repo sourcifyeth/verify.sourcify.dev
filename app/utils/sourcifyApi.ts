@@ -3,7 +3,7 @@ import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
 import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
 interface CompilerSettings {
-  evmVersion: string;
+  evmVersion?: string;
   optimizerEnabled: boolean;
   optimizerRuns: number;
 }
@@ -288,6 +288,10 @@ export async function submitEtherscanVerification(
     );
   } else {
     // For single-file and multiple-files methods, use assembleAndSubmitStandardJson
+    if (!processedResult.compilerSettings) {
+      throw new Error("Compiler settings are required for single-file and multiple-files methods");
+    }
+    
     return await assembleAndSubmitStandardJson(
       serverUrl,
       chainId,

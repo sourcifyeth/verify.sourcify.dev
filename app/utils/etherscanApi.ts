@@ -30,10 +30,10 @@ export interface ProcessedEtherscanResult {
   contractName: string;
   contractPath: string;
   files: File[];
-  compilerSettings: {
-    evmVersion: string;
-    optimizerEnabled?: boolean;
-    optimizerRuns?: number;
+  compilerSettings?: {
+    evmVersion?: string;
+    optimizerEnabled: boolean;
+    optimizerRuns: number;
   };
 }
 
@@ -142,23 +142,14 @@ export const processEtherscanResult = async (
     compilerVersion = compilerVersion.slice(1);
   }
 
-  // Process compiler settings
-  const compilerSettings: ProcessedEtherscanResult["compilerSettings"] = {
-    evmVersion: etherscanResult.EVMVersion.toLowerCase() != "Default" ? etherscanResult.EVMVersion : "default",
-  };
-
-  if (language === "solidity") {
-    compilerSettings.optimizerEnabled = etherscanResult.OptimizationUsed === "1";
-    compilerSettings.optimizerRuns = parseInt(etherscanResult.Runs);
-  }
-
   let verificationMethod: VerificationMethod;
   let files: File[] = [];
   let contractPath: string;
+  let compilerSettings: ProcessedEtherscanResult["compilerSettings"];
 
   // Determine verification method and create files
   if (isEtherscanJsonInput(sourceCodeObject)) {
-    // std-json method
+    // std-json method - compiler settings are already in the JSON input
     verificationMethod = "std-json";
     const jsonInput = parseEtherscanJsonInput(sourceCodeObject);
 
@@ -173,6 +164,9 @@ export const processEtherscanResult = async (
     const jsonContent = JSON.stringify(jsonInput, null, 2);
     const jsonFile = new File([jsonContent], `${contractName}-input.json`, { type: "application/json" });
     files = [jsonFile];
+
+    // For std-json, we don't generate compiler settings since they're in the JSON input
+    // compilerSettings will be undefined
   } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
     // multiple-files method
     verificationMethod = "multiple-files";
@@ -189,6 +183,17 @@ export const processEtherscanResult = async (
     files = Object.entries(sourcesObject).map(([filename, object]) => {
       return new File([object.content as string], filename, { type: "text/plain" });
     });
+
+    // Generate compiler settings for multiple-files method
+    compilerSettings = {
+      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
+      optimizerRuns: parseInt(etherscanResult.Runs),
+    };
+    
+    // Only include evmVersion if it's not "default"
+    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
+      compilerSettings.evmVersion = etherscanResult.EVMVersion;
+    }
   } else {
     // single-file method
     verificationMethod = "single-file";
@@ -198,6 +203,17 @@ export const processEtherscanResult = async (
 
     const sourceFile = new File([sourceCodeObject], filename, { type: "text/plain" });
     files = [sourceFile];
+
+    // Generate compiler settings for single-file method
+    compilerSettings = {
+      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
+      optimizerRuns: parseInt(etherscanResult.Runs),
+    };
+    
+    // Only include evmVersion if it's not "default"
+    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
+      compilerSettings.evmVersion = etherscanResult.EVMVersion;
+    }
   }
 
   return {
