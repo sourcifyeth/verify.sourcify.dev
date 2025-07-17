@@ -52,6 +52,7 @@ export interface EtherscanResult {
   Proxy: string;
   Implementation: string;
   SwarmSource: string;
+  ContractFileName?: string;
 }
 
 export interface ProcessedEtherscanResult {
@@ -89,7 +90,7 @@ export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
   return etherscanResult.CompilerVersion.startsWith("vyper");
 };
 
-export const getContractPathFromSources = (contractName: string, sources: any): string | undefined => {
+export const getContractPathFromSoliditySources = (contractName: string, sources: any): string | undefined => {
   // Look for a file that contains the contract definition
   for (const [filePath, source] of Object.entries(sources)) {
     const content = typeof source === "string" ? source : (source as any).content;
@@ -180,12 +181,16 @@ export const processEtherscanResult = async (
     verificationMethod = "std-json";
     const jsonInput = parseEtherscanJsonInput(sourceCodeObject);
 
-    // Find contract path from sources
-    const foundPath = getContractPathFromSources(contractName, jsonInput.sources);
-    if (!foundPath) {
-      throw new Error("Could not find contract path in sources");
+    // Use ContractFileName if available, otherwise search in sources
+    if (etherscanResult.ContractFileName) {
+      contractPath = etherscanResult.ContractFileName;
+    } else {
+      const foundPath = getContractPathFromSoliditySources(contractName, jsonInput.sources);
+      if (!foundPath) {
+        throw new Error("Could not find contract path in sources");
+      }
+      contractPath = foundPath;
     }
-    contractPath = foundPath;
 
     // Create a single JSON file
     const jsonContent = JSON.stringify(jsonInput, null, 2);
@@ -199,12 +204,16 @@ export const processEtherscanResult = async (
     verificationMethod = "multiple-files";
     const sourcesObject = JSON.parse(sourceCodeObject) as { [key: string]: { content: string } };
 
-    // Find contract path from sources
-    const foundPath = getContractPathFromSources(contractName, sourcesObject);
-    if (!foundPath) {
-      throw new Error("Could not find contract path in sources");
+    // Use ContractFileName if available, otherwise search in sources
+    if (etherscanResult.ContractFileName) {
+      contractPath = etherscanResult.ContractFileName;
+    } else {
+      const foundPath = getContractPathFromSoliditySources(contractName, sourcesObject);
+      if (!foundPath) {
+        throw new Error("Could not find contract path in sources");
+      }
+      contractPath = foundPath;
     }
-    contractPath = foundPath;
 
     // Create files from sources object
     files = Object.entries(sourcesObject).map(([filename, object]) => {
@@ -217,10 +226,15 @@ export const processEtherscanResult = async (
     // single-file method
     verificationMethod = "single-file";
     const extension = language === "vyper" ? "vy" : "sol";
-    const filename = `${contractName}.${extension}`;
-    contractPath = filename;
+    
+    // Use ContractFileName if available, otherwise construct filename
+    if (etherscanResult.ContractFileName) {
+      contractPath = etherscanResult.ContractFileName;
+    } else {
+      contractPath = `${contractName}.${extension}`;
+    }
 
-    const sourceFile = new File([sourceCodeObject], filename, { type: "text/plain" });
+    const sourceFile = new File([sourceCodeObject], contractPath, { type: "text/plain" });
     files = [sourceFile];
 
     // Generate compiler settings for single-file method
