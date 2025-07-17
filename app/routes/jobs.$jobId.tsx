@@ -319,9 +319,6 @@ export default function JobDetails() {
                     </a>
                   </div>
                 )}
-                {jobData.contract.verifiedAt && (
-                  <DetailRow label="Verified At" value={new Date(jobData.contract.verifiedAt).toISOString()} />
-                )}
                 {jobData.contract.matchId && <DetailRow label="Match ID" value={jobData.contract.matchId} />}
               </div>
             </div>
