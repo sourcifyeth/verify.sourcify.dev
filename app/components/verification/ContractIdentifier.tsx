@@ -206,6 +206,9 @@ export default function ContractIdentifier({
     return null;
 
   const getPlaceholderText = () => {
+    if (selectedMethod === "single-file") {
+      return "MyContract";
+    }
     if (selectedLanguage === "vyper") {
       return "contracts/MyContract.vy:MyContract";
     }
@@ -213,7 +216,9 @@ export default function ContractIdentifier({
   };
 
   const getHelpText = () => {
-    const text = "The fully qualified file path and contract name of the contract to verify";
+    const text = `The ${
+      selectedMethod !== "single-file" ? "fully qualified file path and" : ""
+    } contract name of the contract to verify e.g.`;
     if (selectedLanguage === "vyper") {
       return text + " " + getPlaceholderText();
     }
