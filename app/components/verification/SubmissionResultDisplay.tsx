@@ -32,8 +32,8 @@ export default function SubmissionResultDisplay({
       {submissionResult.success ? (
         <div className={`flex flex-col items-center text-green-800 ${showCloseButton ? "pr-8" : ""}`}>
           <h3 className="font-medium text-lg">
-            {submissionResult.isEtherscanSubmission 
-              ? "Etherscan import submitted successfully!" 
+            {submissionResult.isEtherscanSubmission
+              ? "Etherscan import submitted successfully!"
               : "Verification submitted successfully!"}
           </h3>
           <div className="text-sm mt-2">Verification Job ID:</div>
@@ -45,6 +45,8 @@ export default function SubmissionResultDisplay({
             <a
               href={`/jobs/${submissionResult.verificationId}`}
               className="inline-flex items-center px-6 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors shadow-sm"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               View Job Status
             </a>
@@ -59,9 +61,7 @@ export default function SubmissionResultDisplay({
       ) : (
         <div className={`text-red-800 ${showCloseButton ? "pr-8" : ""}`}>
           <h3 className="font-medium text-lg">
-            {submissionResult.isEtherscanSubmission 
-              ? "Etherscan import failed" 
-              : "Verification failed"}
+            {submissionResult.isEtherscanSubmission ? "Etherscan import failed" : "Verification failed"}
           </h3>
           <p className="mt-2 text-sm">{submissionResult.error}</p>
         </div>
