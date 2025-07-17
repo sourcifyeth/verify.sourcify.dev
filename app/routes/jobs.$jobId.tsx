@@ -14,7 +14,11 @@ import { useServerConfig } from "../contexts/ServerConfigContext";
 import { generateGitHubIssueUrl } from "../utils/githubIssue";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Verification Job - Sourcify" }, { name: "description", content: "View verification job details" }];
+  const { jobId } = useParams<{ jobId: string }>();
+  return [
+    { title: `Job ${jobId ?? ""} - verify.sourcify.dev` },
+    { name: "description", content: "View verification job details" },
+  ];
 }
 
 const DEFAULT_COUNTDOWN = 5;
