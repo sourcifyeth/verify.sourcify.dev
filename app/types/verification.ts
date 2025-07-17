@@ -43,3 +43,10 @@ export interface VerifiedContractMinimal {
 export interface AllChainsResponse {
   results: VerifiedContractMinimal[];
 }
+
+export interface SubmissionResult {
+  success: boolean;
+  verificationId?: string;
+  error?: string;
+  isEtherscanSubmission?: boolean;
+}

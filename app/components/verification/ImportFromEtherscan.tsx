@@ -5,18 +5,13 @@ import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanSto
 import { saveJob } from "../../utils/jobStorage";
 import { useServerConfig } from "../../contexts/ServerConfigContext";
 import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
+import type { SubmissionResult } from "../../types/verification";
 
 interface ImportFromEtherscanProps {
   chainId: string;
   address: string;
   setIsSubmitting: (isSubmitting: boolean) => void;
-  setSubmissionResult: (
-    result: {
-      success: boolean;
-      verificationId?: string;
-      error?: string;
-    } | null
-  ) => void;
+  setSubmissionResult: (result: SubmissionResult | null) => void;
   onImportError: (error: string) => void;
   onImportSuccess: (message: string) => void;
 }
@@ -61,6 +56,7 @@ export default function ImportFromEtherscan({
       setSubmissionResult({
         success: true,
         verificationId: result.verificationId,
+        isEtherscanSubmission: true,
       });
 
       // Save job to localStorage

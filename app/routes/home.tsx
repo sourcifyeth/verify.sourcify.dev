@@ -20,7 +20,8 @@ import RecentVerifications from "../components/verification/RecentVerifications"
 import { saveJob } from "../utils/jobStorage";
 import React from "react";
 import Settings from "../components/verification/Settings";
-import ImportFromEtherscan from "../components/verification/ImportFromEtherscan";
+import ImportSources from "../components/verification/ImportSources";
+import SubmissionResultDisplay from "../components/verification/SubmissionResultDisplay";
 import { useServerConfig } from "../contexts/ServerConfigContext";
 
 export function meta({}: Route.MetaArgs) {
@@ -49,6 +50,7 @@ export default function Home() {
     setImportSuccess(null);
     setImportError(error);
   };
+
   const {
     selectedChainId,
     contractAddress,
@@ -232,25 +234,17 @@ export default function Home() {
                 onValidationChange={updateAddressValidation}
               />
 
-              {/* Import Sources From section */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
-                <h3 className="text-lg font-semibold text-gray-900">Import Sources</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  You can import the sources and settings from various places to submit a verification on Sourcify.
-                </p>
-                <div className="flex justify-start space-y-3">
-                  <ImportFromEtherscan
-                    chainId={selectedChainId}
-                    address={contractAddress}
-                    setIsSubmitting={setIsSubmitting}
-                    setSubmissionResult={setSubmissionResult}
-                    onImportError={handleImportError}
-                    onImportSuccess={setImportSuccess}
-                  />
-                </div>
-                {importError && <div className="mt-3 text-sm text-red-600">{importError}</div>}
-                {importSuccess && <div className="mt-3 text-sm text-green-600">{importSuccess}</div>}
-              </div>
+              <ImportSources
+                selectedChainId={selectedChainId}
+                contractAddress={contractAddress}
+                setIsSubmitting={setIsSubmitting}
+                setSubmissionResult={setSubmissionResult}
+                submissionResult={submissionResult}
+                importError={importError}
+                importSuccess={importSuccess}
+                onImportError={handleImportError}
+                onImportSuccess={setImportSuccess}
+              />
 
               <LicenseInfo />
 
@@ -324,40 +318,11 @@ export default function Home() {
               />
 
               {/* Submission Result Feedback */}
-              {submissionResult && (
-                <div
-                  className={`p-4 rounded-md ${
-                    submissionResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
-                  }`}
-                >
-                  {submissionResult.success ? (
-                    <div className="flex flex-col items-center text-green-800">
-                      <h3 className="font-medium text-lg">Verification submitted successfully!</h3>
-                      <div className="text-sm mt-2">Verification Job ID:</div>
-                      <span className="text-sm mt-1 font-mono bg-gray-100 text-gray-900 px-2 py-1 rounded-md">
-                        {submissionResult.verificationId}
-                      </span>
-
-                      <div className="mt-6">
-                        <a
-                          href={`/jobs/${submissionResult.verificationId}`}
-                          className="inline-flex items-center px-6 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors shadow-sm"
-                        >
-                          View Job Status
-                        </a>
-                      </div>
-
-                      <p className="text-sm mt-3 text-gray-600 text-center">
-                        Your verification is being processed. Click above to monitor progress.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center text-center text-red-800">
-                      <h3 className="font-medium text-lg">Verification failed</h3>
-                      <p className="text-sm mt-1">{submissionResult.error}</p>
-                    </div>
-                  )}
-                </div>
+              {submissionResult && !submissionResult.isEtherscanSubmission && (
+                <SubmissionResultDisplay
+                  submissionResult={submissionResult}
+                  showCloseButton={false}
+                />
               )}
 
               {!isFrameworkMethod && (

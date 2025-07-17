@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Language } from "../types/verification";
+import type { Language, SubmissionResult } from "../types/verification";
 
 export function useVerificationState() {
   const [selectedChainId, setSelectedChainId] = useState<string>("");
@@ -16,11 +16,7 @@ export function useVerificationState() {
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState<{
-    success: boolean;
-    verificationId?: string;
-    error?: string;
-  } | null>(null);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
 
   const handleChainIdChange = (value: string) => {
     setSelectedChainId(value);
@@ -80,7 +76,6 @@ export function useVerificationState() {
       setMetadataFile(null);
     }
   };
-
 
   return {
     selectedChainId,
