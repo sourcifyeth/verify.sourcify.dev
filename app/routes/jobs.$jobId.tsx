@@ -332,22 +332,13 @@ export default function JobDetails() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-0">Job Error Details</h2>
-                <a
-                  href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                >
-                  <IoBugOutline className="w-4 h-4" />
-                  Report Issue
-                </a>
               </div>
               <div className="space-y-4">
                 <div className="space-y-3">
                   <DetailRow
                     label="Error Code"
                     value={
-                      <span className="font-mono text-gray-900 bg-gray-200 px-2 py-1 rounded text-sm">
+                      <span className="font-mono text-gray-900 bg-gray-200 px-2 py-1 rounded text-sm break-all">
                         {jobData.error.customCode}
                       </span>
                     }
@@ -574,6 +565,18 @@ export default function JobDetails() {
                     <p className="text-gray-500 text-xs ml-4">No bytecode found</p>
                   </div>
                 )}
+              </div>
+              <div className="flex flex-col items-center mt-4">
+                <p className="text-gray-500 text-xs italic mb-1">Something is wrong? Report an issue on GitHub</p>
+                <a
+                  href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                >
+                  <IoBugOutline className="w-4 h-4" />
+                  Report Issue
+                </a>
               </div>
             </div>
           )}
