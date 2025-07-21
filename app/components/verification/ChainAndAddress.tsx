@@ -189,7 +189,7 @@ export default function ChainAndAddress({
             </div>
           </div>
         ) : (
-          contractAddress && (
+          isAddress(contractAddress) && (
             <p className="mt-1 text-sm text-gray-500">
               {shortenAddress(contractAddress)} not verified yet on any other chain
             </p>
