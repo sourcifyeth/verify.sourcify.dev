@@ -114,8 +114,8 @@ export default function ContractIdentifier({
           }
         }
 
-        // Sort contracts alphabetically by contract name
-        const sortedContracts = contracts.sort((a, b) => a.contractName.localeCompare(b.contractName));
+        // Sort contracts alphabetically by full identifier
+        const sortedContracts = contracts.sort((a, b) => a.fullIdentifier.localeCompare(b.fullIdentifier));
         setParsedContracts(sortedContracts);
 
         // Auto-select the first contract if we have contracts and no current selection
@@ -303,8 +303,11 @@ export default function ContractIdentifier({
           >
             <span>
               {contractIdentifier ? (
-                <span className="font-bold">
-                  {contractIdentifier.substring(contractIdentifier.lastIndexOf(":") + 1)}
+                <span>
+                  {contractIdentifier.substring(0, contractIdentifier.lastIndexOf(":"))}:
+                  <span className="font-bold">
+                    {contractIdentifier.substring(contractIdentifier.lastIndexOf(":") + 1)}
+                  </span>
                 </span>
               ) : (
                 <span className="text-gray-500">Select a contract...</span>
@@ -340,6 +343,7 @@ export default function ContractIdentifier({
                       }}
                       className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none font-mono text-sm"
                     >
+                      {selectedMethod !== "single-file" ? <span>{contract.fileName}:</span> : null}
                       <span className="font-bold">{contract.contractName}</span>
                     </button>
                   ))
