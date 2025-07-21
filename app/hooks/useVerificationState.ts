@@ -13,6 +13,7 @@ export function useVerificationState() {
   const [optimizerEnabled, setOptimizerEnabled] = useState<boolean>(false);
   const [optimizerRuns, setOptimizerRuns] = useState<number>(200);
   const [contractIdentifier, setContractIdentifier] = useState<string>("");
+  const [creationTransactionHash, setCreationTransactionHash] = useState<string>("");
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,6 +70,10 @@ export function useVerificationState() {
     setContractIdentifier(identifier);
   };
 
+  const handleCreationTransactionHashChange = (hash: string) => {
+    setCreationTransactionHash(hash);
+  };
+
   const handleMetadataFileChange = (files: (File | null)[]) => {
     if (files.length > 0) {
       setMetadataFile(files[0]);
@@ -89,6 +94,7 @@ export function useVerificationState() {
     optimizerEnabled,
     optimizerRuns,
     contractIdentifier,
+    creationTransactionHash,
     handleChainIdChange,
     handleContractAddressChange,
     handleLanguageSelect,
@@ -100,6 +106,7 @@ export function useVerificationState() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    handleCreationTransactionHashChange,
     isSubmitting,
     setIsSubmitting,
     submissionResult,

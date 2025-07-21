@@ -11,6 +11,7 @@ import LicenseInfo from "../components/verification/LicenseInfo";
 import FileUpload from "../components/verification/FileUpload";
 import CompilerSettings from "../components/verification/CompilerSettings";
 import ContractIdentifier from "../components/verification/ContractIdentifier";
+import OptionalFields from "../components/verification/OptionalFields";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
@@ -65,6 +66,7 @@ export default function Home() {
     optimizerEnabled,
     optimizerRuns,
     contractIdentifier,
+    creationTransactionHash,
     handleChainIdChange,
     handleContractAddressChange,
     handleLanguageSelect,
@@ -76,6 +78,7 @@ export default function Home() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    handleCreationTransactionHashChange,
     isSubmitting,
     setIsSubmitting,
     submissionResult,
@@ -134,7 +137,14 @@ export default function Home() {
 
         const { sources, metadata } = await buildMetadataSubmissionSources(metadataFile, uploadedFiles);
 
-        result = await submitMetadataVerification(serverUrl, selectedChainId, contractAddress, sources, metadata);
+        result = await submitMetadataVerification(
+          serverUrl,
+          selectedChainId,
+          contractAddress,
+          sources,
+          metadata,
+          creationTransactionHash || undefined
+        );
       } else if (selectedMethod === "std-json") {
         // For std-json method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
@@ -147,7 +157,8 @@ export default function Home() {
           contractAddress,
           uploadedFiles[0],
           selectedCompilerVersion,
-          contractIdentifier
+          contractIdentifier,
+          creationTransactionHash || undefined
         );
       } else {
         // For single-file and multiple-files methods, assemble standard JSON
@@ -167,7 +178,8 @@ export default function Home() {
             evmVersion,
             optimizerEnabled,
             optimizerRuns,
-          }
+          },
+          creationTransactionHash || undefined
         );
       }
 
@@ -329,6 +341,12 @@ export default function Home() {
                 onContractIdentifierChange={handleContractIdentifierChange}
                 uploadedFiles={uploadedFiles}
               />
+              {!isFrameworkMethod && !!selectedMethod && (
+                <OptionalFields
+                  creationTransactionHash={creationTransactionHash}
+                  onCreationTransactionHashChange={handleCreationTransactionHashChange}
+                />
+              )}
 
               {/* Submission Result Feedback */}
               {submissionResult && !submissionResult.isEtherscanSubmission && (
