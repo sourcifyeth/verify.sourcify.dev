@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineFileAdd } from "react-icons/ai";
 import { IoMdClose, IoMdWarning } from "react-icons/io";
 import { BsFiletypeJson } from "react-icons/bs";
@@ -84,6 +84,11 @@ export default function FileUpload({
   // Special handling for metadata.json file upload when selectedMethod is "metadata-json"
   const requirements = getFileRequirements(selectedMethod, selectedLanguage);
 
+  useEffect(() => {
+    // reset paste mode when method changes
+    setShowPasteMode(false);
+  }, [selectedMethod]);
+
   const validateFileName = (fileName: string): string | null => {
     // For std-json, filename is optional
     if (selectedMethod === "std-json") {
@@ -96,8 +101,7 @@ export default function FileUpload({
       }
     }
 
-    const expectedExtension = selectedMethod === "std-json" ? ".json" : 
-                             selectedLanguage === "vyper" ? ".vy" : ".sol";
+    const expectedExtension = selectedMethod === "std-json" ? ".json" : selectedLanguage === "vyper" ? ".vy" : ".sol";
     if (!fileName.endsWith(expectedExtension)) {
       return `File name must end with ${expectedExtension}`;
     }
@@ -448,8 +452,11 @@ export default function FileUpload({
                 }
               }}
               placeholder={`Paste your ${
-                selectedMethod === "metadata-json" ? "metadata JSON" : 
-                selectedMethod === "std-json" ? "Standard JSON" : "file"
+                selectedMethod === "metadata-json"
+                  ? "metadata JSON"
+                  : selectedMethod === "std-json"
+                  ? "Standard JSON"
+                  : "file"
               } content here...`}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
