@@ -23,6 +23,7 @@ import Settings from "../components/verification/Settings";
 import ImportSources from "../components/verification/ImportSources";
 import SubmissionResultDisplay from "../components/verification/SubmissionResultDisplay";
 import { useServerConfig } from "../contexts/ServerConfigContext";
+import { IoSettings } from "react-icons/io5";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -36,6 +37,7 @@ export default function Home() {
   const { chains } = useChains();
   const [importError, setImportError] = React.useState<string | null>(null);
   const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
+  const [showSettings, setShowSettings] = React.useState(false);
 
   // Clear success message after 3 seconds
   React.useEffect(() => {
@@ -222,9 +224,20 @@ export default function Home() {
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
         <>
-          <div className="px-4 md:px-8 py-4 md:py-6">
+          <div className="px-4 md:px-8 py-2 md:py-4">
+            {/* Settings Button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                className="flex items-center space-x-1 md:space-x-2 py-1 md:py-2 px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <IoSettings className="w-4 h-4" />
+                <span>Settings</span>
+              </button>
+            </div>
+
             <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
-              <Settings />
               <ChainAndAddress
                 selectedChainId={selectedChainId}
                 contractAddress={contractAddress}
@@ -319,10 +332,7 @@ export default function Home() {
 
               {/* Submission Result Feedback */}
               {submissionResult && !submissionResult.isEtherscanSubmission && (
-                <SubmissionResultDisplay
-                  submissionResult={submissionResult}
-                  showCloseButton={false}
-                />
+                <SubmissionResultDisplay submissionResult={submissionResult} showCloseButton={false} />
               )}
 
               {!isFrameworkMethod && (
@@ -351,6 +361,9 @@ export default function Home() {
           </div>
         </>
       </PageLayout>
+
+      {/* Settings Modal */}
+      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

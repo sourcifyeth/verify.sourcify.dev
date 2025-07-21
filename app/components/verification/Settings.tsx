@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { IoSettings, IoClose, IoAdd, IoEye, IoEyeOff } from "react-icons/io5";
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
+import { Fragment } from "react";
+import { IoClose, IoAdd, IoEye, IoEyeOff } from "react-icons/io5";
 import { FaRegEdit, FaRegSave } from "react-icons/fa";
 import { useServerConfig } from "../../contexts/ServerConfigContext";
 import { getEtherscanApiKey, setEtherscanApiKey, removeEtherscanApiKey } from "../../utils/etherscanStorage";
 
-export default function Settings() {
+interface SettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Settings({ isOpen, onClose }: SettingsProps) {
   const { serverUrl, setServerUrl, getDefaultServerUrls, customServerUrls, setCustomServerUrls } = useServerConfig();
-  const [showSettings, setShowSettings] = useState(false);
   const [editingCustomUrl, setEditingCustomUrl] = useState<string | null>(null);
   const [newCustomUrl, setNewCustomUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -154,242 +160,277 @@ export default function Settings() {
     return key.substring(0, 4) + "*".repeat(key.length - 4);
   };
 
-
   return (
-    <div
-      className={`bg-gray-50 border border-gray-200 transition-all duration-300 overflow-hidden ${
-        showSettings ? "rounded-t-lg" : "rounded-lg"
-      }`}
-    >
-      <div className="flex items-center justify-between py-1 px-2 md:px-4">
-        <div className="text-sm text-gray-700 min-w-0 flex-1 mr-2">
-          <span className="font-medium">Sourcify Server:</span>{" "}
-          <span className="font-mono truncate block md:inline max-w-full md:max-w-none">{serverUrl}</span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowSettings(!showSettings)}
-          className="flex items-center space-x-1 md:space-x-2 px-2 md:px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <TransitionChild
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
         >
-          <IoSettings className="w-4 h-4" />
-          <span className="hidden md:inline">{showSettings ? "Close Settings" : "Open Settings"}</span>
-        </button>
-      </div>
+          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
 
-      <div
-        className={`border-t border-gray-200 bg-white rounded-b-lg transition-all duration-300 ease-in-out ${
-          showSettings ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="px-2 md:px-4 pb-4 md:pb-6 pt-4">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Server Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Server URL</label>
-              <select
-                value={serverUrl}
-                onChange={(e) => setServerUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
-              >
-                {getDefaultServerUrls().map((url) => (
-                  <option key={url} value={url}>
-                    {url} {url.includes("localhost") ? "(Dev)" : "(Default)"}
-                  </option>
-                ))}
-                {customServerUrls.map((url) => (
-                  <option key={url} value={url}>
-                    {url} (Custom)
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <TransitionChild
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel className="w-full max-w-2xl transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <DialogTitle className="text-xl font-semibold text-gray-900">Settings</DialogTitle>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded transition-colors"
+                  >
+                    <IoClose className="w-6 h-6" />
+                  </button>
+                </div>
 
-            {customServerUrls.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Custom Server URLs</label>
-                <div className="space-y-2">
-                  {customServerUrls.map((url) => (
-                    <div key={url} className="flex items-center space-x-2">
-                      {editingCustomUrl === url ? (
-                        <>
+                {/* Content */}
+                <div>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Sourcify Server Settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Sourcify Server URL</label>
+                      <select
+                        value={serverUrl}
+                        onChange={(e) => setServerUrl(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
+                      >
+                        {getDefaultServerUrls().map((url) => (
+                          <option key={url} value={url}>
+                            {url} {url.includes("localhost") ? "(Dev)" : "(Default)"}
+                          </option>
+                        ))}
+                        {customServerUrls.map((url) => (
+                          <option key={url} value={url}>
+                            {url} (Custom)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {customServerUrls.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Custom Sourcify Server URLs
+                        </label>
+                        <div className="space-y-2">
+                          {customServerUrls.map((url) => (
+                            <div key={url} className="flex items-center space-x-2">
+                              {editingCustomUrl === url ? (
+                                <>
+                                  <input
+                                    type="text"
+                                    value={newCustomUrl}
+                                    onChange={(e) => setNewCustomUrl(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
+                                    placeholder="Enter server URL"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={handleSaveCustomUrl}
+                                    className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
+                                  >
+                                    <FaRegSave className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingCustomUrl(null);
+                                      setNewCustomUrl("");
+                                    }}
+                                    className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded"
+                                  >
+                                    <IoClose className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="flex-1 text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">
+                                    {url}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditCustomUrl(url)}
+                                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                                  >
+                                    <FaRegEdit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCustomUrl(url)}
+                                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                                  >
+                                    <IoClose className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Server URL</label>
+                      <div className="space-y-2">
+                        <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2">
                           <input
                             type="text"
                             value={newCustomUrl}
-                            onChange={(e) => setNewCustomUrl(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
-                            placeholder="Enter server URL"
+                            onChange={handleInputChange}
+                            className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
+                              urlError ? "border-red-300 bg-red-50" : "border-gray-300"
+                            }`}
+                            placeholder="Enter custom server URL"
+                            onKeyDown={handleKeyDown}
                           />
                           <button
                             type="button"
-                            onClick={handleSaveCustomUrl}
-                            className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
+                            onClick={handleAddCustomUrl}
+                            disabled={!newCustomUrl.trim()}
+                            className="w-full md:w-auto px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                           >
-                            <FaRegSave className="w-4 h-4" />
+                            <IoAdd className="w-4 h-4" />
+                            <span>Add</span>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingCustomUrl(null);
-                              setNewCustomUrl("");
-                            }}
-                            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded"
-                          >
-                            <IoClose className="w-4 h-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex-1 text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">
-                            {url}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleEditCustomUrl(url)}
-                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
-                          >
-                            <FaRegEdit className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCustomUrl(url)}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                          >
-                            <IoClose className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Server URL</label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={newCustomUrl}
-                    onChange={handleInputChange}
-                    className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
-                      urlError ? "border-red-300 bg-red-50" : "border-gray-300"
-                    }`}
-                    placeholder="Enter custom server URL"
-                    onKeyDown={handleKeyDown}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCustomUrl}
-                    disabled={!newCustomUrl.trim()}
-                    className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                  >
-                    <IoAdd className="w-4 h-4" />
-                    <span>Add</span>
-                  </button>
-                </div>
-                {urlError && <p className="text-red-600 text-sm">{urlError}</p>}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-4 mt-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">API Keys</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <span className="inline-flex items-center">
-                    <img src="/etherscan.webp" alt="Etherscan" className="w-4 h-4 mx-1" />
-                    Etherscan API Key
-                  </span>
-                  <p className="text-xs text-gray-500">Saved in the browser and not sent to Sourcify servers.</p>
-                </label>
-                <div className="space-y-2">
-                  {isEditingApiKey ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="flex-1 relative">
-                        <input
-                          type={showEtherscanApiKey ? "text" : "password"}
-                          value={editingApiKey}
-                          onChange={handleEditingApiKeyChange}
-                          className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
-                            etherscanApiKeyError ? "border-red-300 bg-red-50" : "border-gray-300"
-                          }`}
-                          placeholder="Enter your Etherscan API key"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showEtherscanApiKey ? <IoEyeOff className="w-4 h-4" /> : <IoEye className="w-4 h-4" />}
-                        </button>
+                        </div>
+                        {urlError && <p className="text-red-600 text-sm">{urlError}</p>}
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleSaveEtherscanApiKey}
-                        className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center space-x-2"
-                      >
-                        <FaRegSave className="w-4 h-4" />
-                        <span>Save</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEditApiKey}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center space-x-2"
-                      >
-                        <IoClose className="w-4 h-4" />
-                        <span>Cancel</span>
-                      </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span className="flex-1 text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">
-                        {etherscanApiKey ? (
-                          showEtherscanApiKey ? (
-                            etherscanApiKey
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-4 mt-6">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">API Keys</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <span className="inline-flex items-center">
+                            <img src="/etherscan.webp" alt="Etherscan" className="w-4 h-4 mx-1" />
+                            Etherscan API Key (v2)
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Saved in the browser and not sent to Sourcify servers.
+                          </p>
+                        </label>
+                        <div className="space-y-2">
+                          {isEditingApiKey ? (
+                            <div className="flex flex-col md:flex-row md:space-x-2 md:space-y-0 space-y-2 items-center w-full">
+                              <div className="flex-1 w-full md:w-auto relative">
+                                <input
+                                  type={showEtherscanApiKey ? "text" : "password"}
+                                  value={editingApiKey}
+                                  onChange={handleEditingApiKeyChange}
+                                  className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
+                                    etherscanApiKeyError ? "border-red-300 bg-red-50" : "border-gray-300"
+                                  }`}
+                                  placeholder="Enter your Etherscan API key"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
+                                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                  {showEtherscanApiKey ? (
+                                    <IoEyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <IoEye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <div className="flex flex-col md:flex-row w-full md:w-auto space-y-1 md:space-y-0 md:space-x-2">
+                                <button
+                                  type="button"
+                                  onClick={handleSaveEtherscanApiKey}
+                                  className="w-full md:w-auto px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                                >
+                                  <FaRegSave className="w-4 h-4" />
+                                  <span>Save</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelEditApiKey}
+                                  className="w-full md:w-auto px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                                >
+                                  <IoClose className="w-4 h-4" />
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            </div>
                           ) : (
-                            maskApiKey(etherscanApiKey)
-                          )
-                        ) : (
-                          <span className="text-gray-500">No API key set</span>
-                        )}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
-                        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded"
-                        disabled={!etherscanApiKey}
-                      >
-                        {showEtherscanApiKey ? <IoEyeOff className="w-4 h-4" /> : <IoEye className="w-4 h-4" />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleEditApiKey}
-                        className="px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center space-x-2"
-                      >
-                        <FaRegEdit className="w-4 h-4" />
-                        <span>Edit</span>
-                      </button>
-                      {etherscanApiKey && (
-                        <button
-                          type="button"
-                          onClick={handleRemoveEtherscanApiKey}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center space-x-2"
-                        >
-                          <IoClose className="w-4 h-4" />
-                          <span>Remove</span>
-                        </button>
-                      )}
+                            <div className="flex flex-col md:flex-row md:space-x-2 md:space-y-0 space-y-2 items-center">
+                              <div className="flex items-center space-x-2 w-full">
+                                <span className="flex-1 text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">
+                                  {etherscanApiKey ? (
+                                    showEtherscanApiKey ? (
+                                      etherscanApiKey
+                                    ) : (
+                                      maskApiKey(etherscanApiKey)
+                                    )
+                                  ) : (
+                                    <span className="text-gray-500">No API key set</span>
+                                  )}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowEtherscanApiKey(!showEtherscanApiKey)}
+                                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded"
+                                  disabled={!etherscanApiKey}
+                                >
+                                  {showEtherscanApiKey ? (
+                                    <IoEyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <IoEye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <div className="flex flex-col md:flex-row w-full md:w-auto space-y-1 md:space-y-0 md:space-x-2">
+                                <button
+                                  type="button"
+                                  onClick={handleEditApiKey}
+                                  className="w-full md:w-auto px-4 py-2 bg-cerulean-blue-600 text-white rounded-md hover:bg-cerulean-blue-700 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                                >
+                                  <FaRegEdit className="w-4 h-4" />
+                                  <span>Edit</span>
+                                </button>
+                                {etherscanApiKey && (
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveEtherscanApiKey}
+                                    className="w-full md:w-auto px-4 py-2 text-red-500 border border-red-300 rounded-md hover:text-red-700 hover:border-red-400 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                                  >
+                                    <IoClose className="w-4 h-4" />
+                                    <span>Remove</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {etherscanApiKeyError && <p className="text-red-600 text-sm">{etherscanApiKeyError}</p>}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {etherscanApiKeyError && <p className="text-red-600 text-sm">{etherscanApiKeyError}</p>}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
-      </div>
-    </div>
+      </Dialog>
+    </Transition>
   );
 }
