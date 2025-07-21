@@ -96,7 +96,7 @@ export default function ImportFromEtherscan({
         className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           canImport && !isImporting
             ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-gray-300 text-gray-500 !cursor-not-allowed"
         }`}
       >
         {isImporting && (
@@ -109,7 +109,7 @@ export default function ImportFromEtherscan({
         </div>
       </button>
 
-      {getValidationMessage() && <p className="text-xs text-gray-500">{getValidationMessage()}</p>}
+      {getValidationMessage() && <p className="text-xs text-gray-500 w-48 text-center">{getValidationMessage()}</p>}
     </div>
   );
 }
