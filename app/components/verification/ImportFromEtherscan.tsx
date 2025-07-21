@@ -70,8 +70,6 @@ export default function ImportFromEtherscan({
           address,
         },
       });
-
-      onImportSuccess(`Successfully imported and submitted verification from Etherscan`);
     } catch (err) {
       const error = err as Error;
       onImportError(error.message || "An unexpected error occurred");
