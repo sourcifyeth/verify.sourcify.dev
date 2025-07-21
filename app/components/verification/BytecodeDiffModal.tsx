@@ -245,12 +245,12 @@ export default function BytecodeDiffModal({
         }
 
         // Try to use Web Worker for better performance
-        if (typeof Worker !== 'undefined') {
+        if (typeof Worker !== "undefined") {
           const result = await new Promise<BytecodeDiffResult>((resolve, reject) => {
-            const worker = new Worker('/diffWorker.js');
+            const worker = new Worker("/diffWorker.js");
             workerRef.current = worker;
             const id = Math.random().toString(36);
-            
+
             worker.onmessage = (e) => {
               const { result, error, id: responseId } = e.data;
               if (responseId === id) {
@@ -263,21 +263,21 @@ export default function BytecodeDiffModal({
                 }
               }
             };
-            
+
             worker.onerror = (error) => {
               worker.terminate();
               workerRef.current = null;
               reject(error);
             };
-            
+
             worker.postMessage({
               onchain: onchainBytecode,
               recompiled: recompiledBytecode,
               diffMode,
-              id
+              id,
             });
           });
-          
+
           setDiffResult(result);
         } else {
           // Fallback to main thread with setTimeout
@@ -286,18 +286,18 @@ export default function BytecodeDiffModal({
               resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
             }, 0);
           });
-          
+
           setDiffResult(result);
         }
       } catch (error) {
-        console.warn('Worker failed, falling back to main thread:', error);
+        console.warn("Worker failed, falling back to main thread:", error);
         // Fallback to main thread calculation
         const result = await new Promise<BytecodeDiffResult>((resolve) => {
           setTimeout(() => {
             resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
           }, 0);
         });
-        
+
         setDiffResult(result);
       } finally {
         setIsCalculating(false);
@@ -497,7 +497,7 @@ export default function BytecodeDiffModal({
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="animate-spin h-8 w-8 border-4 border-cerulean-blue-600 border-t-transparent rounded-full"></div>
                         <div className="text-gray-600">Calculating diff...</div>
-                        <div className="text-sm text-gray-500">This may take a moment for large bytecode</div>
+                        <div className="text-sm text-gray-500">This may take a moment for big differences</div>
                       </div>
                     </div>
                   ) : diffResult ? (
