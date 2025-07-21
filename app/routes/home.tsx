@@ -28,7 +28,12 @@ import { IoSettings } from "react-icons/io5";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "verify.sourcify.dev" },
+    {
+      title:
+        (import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+          ? `(${import.meta.env.VITE_ENV}) `
+          : "") + "verify.sourcify.dev",
+    },
     { name: "description", content: "Verify your smart contracts with Sourcify" },
   ];
 }

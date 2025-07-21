@@ -16,7 +16,12 @@ import { generateGitHubIssueUrl } from "../utils/githubIssue";
 export function meta({}: Route.MetaArgs) {
   const { jobId } = useParams<{ jobId: string }>();
   return [
-    { title: `Job ${jobId ?? ""} - verify.sourcify.dev` },
+    {
+      title:
+        (import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+          ? `(${import.meta.env.VITE_ENV}) `
+          : "") + `Job ${jobId ?? ""} - verify.sourcify.dev`,
+    },
     { name: "description", content: "View verification job details" },
   ];
 }
