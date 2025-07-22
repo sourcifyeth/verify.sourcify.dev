@@ -106,6 +106,7 @@ export default function Home() {
     contractIdentifier,
     uploadedFiles,
     metadataFile,
+    evmVersion,
   });
 
 
@@ -380,6 +381,7 @@ export default function Home() {
                         {errors.method && <li>• {errors.method}</li>}
                         {errors.files && <li>• {errors.files}</li>}
                         {errors.compilerVersion && <li>• {errors.compilerVersion}</li>}
+                        {errors.evmVersion && <li>• {errors.evmVersion}</li>}
                         {errors.contractIdentifier && <li>• {errors.contractIdentifier}</li>}
                       </ul>
                     </div>

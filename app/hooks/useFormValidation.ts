@@ -11,6 +11,7 @@ interface ValidationParams {
   contractIdentifier: string;
   uploadedFiles: File[];
   metadataFile: File | null;
+  evmVersion: string;
 }
 
 interface ValidationErrors {
@@ -21,6 +22,7 @@ interface ValidationErrors {
   compilerVersion?: string;
   contractIdentifier?: string;
   files?: string;
+  evmVersion?: string;
 }
 
 const FRAMEWORK_METHODS = ["hardhat", "foundry"];
@@ -35,6 +37,7 @@ export function useFormValidation({
   contractIdentifier,
   uploadedFiles,
   metadataFile,
+  evmVersion,
 }: ValidationParams) {
   // Convert selectedLanguage to string for consistency
   const languageString = selectedLanguage || "";
@@ -52,10 +55,14 @@ export function useFormValidation({
 
   // Check if files are required based on the selected method
   const areFilesRequired = languageString && selectedMethod && !["hardhat", "foundry"].includes(selectedMethod);
-  
+
+  // Check if EVM version is required (for all languages, not for metadata-json, hardhat, or foundry methods)
+  const isEvmVersionRequired =
+    languageString && selectedMethod && ["single-file", "multiple-files"].includes(selectedMethod);
+
   const validateFiles = () => {
     if (!areFilesRequired) return true;
-    
+
     if (selectedMethod === "metadata-json") {
       // metadata-json requires both metadata file and source files
       return metadataFile !== null && uploadedFiles.length > 0;
@@ -63,7 +70,7 @@ export function useFormValidation({
       // Other methods require uploaded files
       return uploadedFiles.length > 0;
     }
-    
+
     return true;
   };
 
@@ -118,6 +125,11 @@ export function useFormValidation({
       }
     }
 
+    // EVM version validation
+    if (isEvmVersionRequired && !evmVersion) {
+      newErrors.evmVersion = "Please select an EVM version";
+    }
+
     return newErrors;
   }, [
     isAddressValid,
@@ -132,6 +144,8 @@ export function useFormValidation({
     areFilesRequired,
     metadataFile,
     uploadedFiles,
+    isEvmVersionRequired,
+    evmVersion,
   ]);
 
   // Calculate overall form validity
@@ -143,7 +157,8 @@ export function useFormValidation({
     !isFrameworkMethod && // Don't allow submission for framework methods
     (!isCompilerVersionRequired || selectedCompilerVersion) && // Require compiler version when needed
     (!isContractIdentifierRequired || contractIdentifier) && // Require contract identifier when needed
-    (!areFilesRequired || validateFiles()); // Require files when needed
+    (!areFilesRequired || validateFiles()) && // Require files when needed
+    (!isEvmVersionRequired || evmVersion); // Require EVM version when needed
 
   const getSubmissionErrors = useCallback((): string[] => {
     const submissionErrors: string[] = [];
@@ -172,6 +187,9 @@ export function useFormValidation({
     if (areFilesRequired && !validateFiles()) {
       submissionErrors.push("Required files are missing");
     }
+    if (isEvmVersionRequired && !evmVersion) {
+      submissionErrors.push("EVM version selection is required");
+    }
 
     return submissionErrors;
   }, [
@@ -187,6 +205,8 @@ export function useFormValidation({
     areFilesRequired,
     metadataFile,
     uploadedFiles,
+    isEvmVersionRequired,
+    evmVersion,
   ]);
 
   return {

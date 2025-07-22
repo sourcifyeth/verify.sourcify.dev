@@ -52,6 +52,7 @@ export default function EvmVersionSelector({
         onChange={(e) => onEvmVersionSelect(e.target.value)}
         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
       >
+        <option value="">Select EVM version</option>
         {evmVersions.map((version) => (
           <option key={version.value} value={version.value}>
             {version.value}

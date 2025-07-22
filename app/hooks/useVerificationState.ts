@@ -9,7 +9,7 @@ export function useVerificationState() {
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [metadataFile, setMetadataFile] = useState<File | null>(null);
-  const [evmVersion, setEvmVersion] = useState<string>("default");
+  const [evmVersion, setEvmVersion] = useState<string>("");
   const [optimizerEnabled, setOptimizerEnabled] = useState<boolean>(false);
   const [optimizerRuns, setOptimizerRuns] = useState<number>(200);
   const [contractIdentifier, setContractIdentifier] = useState<string>("");
@@ -33,7 +33,7 @@ export function useVerificationState() {
     setSelectedCompilerVersion(""); // Reset compiler version when language changes
     setUploadedFiles([]); // Reset files when language changes
     setMetadataFile(null); // Reset metadata file when language changes
-    setEvmVersion("default"); // Reset EVM version when language changes
+    setEvmVersion(""); // Reset EVM version when language changes
     setOptimizerEnabled(false); // Reset optimizer when language changes
     setOptimizerRuns(200); // Reset optimizer runs when language changes
     setContractIdentifier(""); // Reset contract identifier when language changes
