@@ -118,13 +118,8 @@ export default function ContractIdentifier({
         const sortedContracts = contracts.sort((a, b) => a.fullIdentifier.localeCompare(b.fullIdentifier));
         setParsedContracts(sortedContracts);
 
-        // Auto-select the first contract if we have contracts and no current selection
+        // Set UI state based on parsed contracts
         if (sortedContracts.length > 0) {
-          // Only auto-select if there's no current valid selection
-          const hasValidSelection = sortedContracts.some((c) => c.fullIdentifier === contractIdentifier);
-          if (!hasValidSelection) {
-            onContractIdentifierChange(sortedContracts[0].fullIdentifier);
-          }
           setShowManualInput(false); // Start with dropdown when contracts are detected
         } else if (sortedContracts.length === 0) {
           setShowManualInput(true); // Show manual input when no contracts detected
@@ -240,12 +235,7 @@ export default function ContractIdentifier({
                 checked={showManualInput}
                 onChange={(e) => {
                   setShowManualInput(e.target.checked);
-                  if (!e.target.checked && parsedContracts.length > 0) {
-                    // When switching back to dropdown, select first contract if none selected
-                    if (!contractIdentifier || !parsedContracts.some((c) => c.fullIdentifier === contractIdentifier)) {
-                      onContractIdentifierChange(parsedContracts[0].fullIdentifier);
-                    }
-                  }
+                  // Don't auto-select when switching modes - let user choose
                 }}
                 className="sr-only"
               />
