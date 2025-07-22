@@ -215,10 +215,15 @@ export default function JobDetails() {
   return (
     <PageLayout>
       <>
-        <div className="px-4 md:px-8 pt-4 md:pt-6">
+        <div className="px-4 md:px-8 pt-4 md:pt-6 flex justify-between items-center">
           <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
             ← Back to Verification
           </a>
+          <div className="text-gray-500 text-sm">
+            {import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+              ? `(${import.meta.env.VITE_ENV} environment) `
+              : ""}
+          </div>
         </div>
 
         <div className="p-4 md:p-8">
@@ -569,7 +574,12 @@ export default function JobDetails() {
                 )}
               </div>
               <div className="flex flex-col items-center mt-4">
-                <p className="text-gray-500 text-xs italic mb-1">Something is wrong? Report an issue on GitHub</p>
+                <p className="text-gray-500 text-xs italic mb-1">
+                  {import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+                    ? `(${import.meta.env.VITE_ENV}) `
+                    : ""}
+                  Something is wrong? Report an issue on GitHub
+                </p>
                 <a
                   href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
                   target="_blank"

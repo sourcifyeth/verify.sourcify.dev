@@ -34,10 +34,19 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
     if (!title && !subtitle) {
       return null;
     }
+
+    const envPrefix =
+      import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+        ? `(${import.meta.env.VITE_ENV} environment) `
+        : "";
+
     return (
       <div className="text-center p-4 md:p-8 border-b border-gray-200">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-600">{subtitle}</p>
+        <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-600">
+          {envPrefix}
+          {subtitle}
+        </p>
       </div>
     );
   };
