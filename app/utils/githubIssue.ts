@@ -14,7 +14,9 @@ export function generateGitHubIssueUrl(
   
   const title = `Verification Failed: ${jobData.error.customCode || 'Unknown Error'} - ${chainName} (${jobData.contract.chainId}) ${shortAddress}`;
   
-  const body = `## Verification Job Failed
+  const body = `<!--- Please fill the section in the end of this issue and explain why you expect this job to not fail. If possible, please provide the JSON input you used. --->
+
+## Verification Job Failed
 
 **Job ID:** \`${jobData.verificationId}\`
 **Chain:** ${getChainName(chains, parseInt(jobData.contract.chainId))} (${jobData.contract.chainId})
@@ -39,6 +41,19 @@ ${jobData.error.errorData.compilerErrors.length > 3 ? `\n... and ${jobData.error
 - **Job Started:** ${new Date(jobData.jobStartTime).toISOString()}
 ${jobData.jobFinishTime ? `- **Job Finished:** ${new Date(jobData.jobFinishTime).toISOString()}` : ''}
 ${jobData.compilationTime ? `- **Compilation Time:** ${jobData.compilationTime}ms` : ''}
+
+### User Input and Expectation
+**Why do you expect this verification to succeed?**
+<!-- Please explain why you believe this verification should work -->
+
+**Files Used:**
+<!-- Please upload the files you submitted for verification (source code, metadata, etc.) by dragging and dropping them here or sharing them via a link -->
+\`\`\`
+<!-- Upload files directly to this issue -->
+\`\`\`
+
+**Additional Context:**
+<!-- Any other relevant information -->
 
 ---
 *This issue was automatically generated from the Sourcify verification UI.*`;
