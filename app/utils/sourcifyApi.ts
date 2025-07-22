@@ -2,6 +2,22 @@ import type { Language } from "../types/verification";
 import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
 import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
+/**
+ * Custom fetch function for Sourcify API calls that adds User-Agent header
+ */
+function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
+  const userAgent = `Sourcify-UI/${gitCommit} (verify.sourcify.dev; Web)`;
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      "User-Agent": userAgent,
+    },
+  });
+}
+
 export interface SolidityCompilerSettings {
   evmVersion?: string;
   optimizerEnabled: boolean;
@@ -104,7 +120,7 @@ async function submitStandardJsonVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -193,7 +209,7 @@ export async function submitMetadataVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -255,7 +271,7 @@ export async function getVerificationJobStatus(
   serverUrl: string,
   verificationId: string
 ): Promise<VerificationJobStatus> {
-  const response = await fetch(`${serverUrl}/v2/verify/${verificationId}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${verificationId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

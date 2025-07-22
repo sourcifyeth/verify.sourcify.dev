@@ -2,9 +2,25 @@ import type { AllChainsResponse, VerifiedContractMinimal } from "../types/verifi
 
 const SOURCIFY_REPO_URL = import.meta.env.VITE_SOURCIFY_REPO_URL || "https://repo.sourcify.dev";
 
+/**
+ * Custom fetch function for Sourcify API calls that adds User-Agent header
+ */
+function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
+  const userAgent = `Sourcify-UI/${gitCommit} (verify.sourcify.dev; Web)`;
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      "User-Agent": userAgent,
+    },
+  });
+}
+
 export async function fetchVerifiedAllChains(serverUrl: string, address: string): Promise<VerifiedContractMinimal[]> {
   try {
-    const response = await fetch(`${serverUrl}/v2/contract/all-chains/${address}`);
+    const response = await sourcifyFetch(`${serverUrl}/v2/contract/all-chains/${address}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -24,7 +40,7 @@ export async function fetchVerifiedAllChains(serverUrl: string, address: string)
 
 export async function fetchVerifiedContract(serverUrl: string, chainId: string, address: string): Promise<VerifiedContractMinimal | null> {
   try {
-    const response = await fetch(`${serverUrl}/v2/contract/${chainId}/${address}`);
+    const response = await sourcifyFetch(`${serverUrl}/v2/contract/${chainId}/${address}`);
 
     if (!response.ok) {
       if (response.status === 404) {
