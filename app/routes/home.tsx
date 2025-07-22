@@ -91,12 +91,7 @@ export default function Home() {
     setSubmissionResult,
   } = useVerificationState();
 
-  const {
-    isFormValid,
-    errors,
-    getSubmissionErrors,
-    isFrameworkMethod,
-  } = useFormValidation({
+  const { isFormValid, errors, getSubmissionErrors, isFrameworkMethod } = useFormValidation({
     isAddressValid,
     selectedChainId,
     contractAddress,
@@ -108,7 +103,6 @@ export default function Home() {
     metadataFile,
     evmVersion,
   });
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -359,7 +353,7 @@ export default function Home() {
                       className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
                         isFormValid && !isSubmitting
                           ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-300 text-gray-500 !cursor-not-allowed"
                       }`}
                       title={getSubmitButtonTooltip()}
                     >
