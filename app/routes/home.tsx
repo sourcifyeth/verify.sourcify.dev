@@ -115,8 +115,8 @@ export default function Home() {
       selectedCompilerVersion,
       contractIdentifier,
       evmVersion,
-      uploadedFileNames: uploadedFiles.map(f => f.name + f.size).join(','),
-      metadataFileName: metadataFile ? metadataFile.name + metadataFile.size : '',
+      uploadedFileNames: uploadedFiles.map((f) => f.name + f.size).join(","),
+      metadataFileName: metadataFile ? metadataFile.name + metadataFile.size : "",
     };
     return JSON.stringify(formValues);
   }, [
@@ -130,6 +130,21 @@ export default function Home() {
     uploadedFiles,
     metadataFile,
   ]);
+
+  // Clear success messages when form values change
+  React.useEffect(() => {
+    const hasFormChanged = lastSubmittedValues !== currentFormHash;
+    if (lastSubmittedValues && hasFormChanged) {
+      // Clear submission success result
+      if (submissionResult?.success) {
+        setSubmissionResult(null);
+      }
+      // Clear import success message
+      if (importSuccess) {
+        setImportSuccess(null);
+      }
+    }
+  }, [currentFormHash, lastSubmittedValues, submissionResult?.success, importSuccess, setSubmissionResult]);
 
   // Check if current form values are the same as last submitted values
   const hasFormChanged = lastSubmittedValues !== currentFormHash;
@@ -381,7 +396,11 @@ export default function Home() {
 
               {/* Submission Result Feedback */}
               {submissionResult && !submissionResult.isEtherscanSubmission && (
-                <SubmissionResultDisplay submissionResult={submissionResult} showCloseButton={false} />
+                <SubmissionResultDisplay
+                  submissionResult={submissionResult}
+                  showCloseButton={true}
+                  onClose={() => setSubmissionResult(null)}
+                />
               )}
 
               {!isFrameworkMethod && (
