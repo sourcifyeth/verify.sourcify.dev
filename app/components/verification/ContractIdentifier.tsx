@@ -233,7 +233,7 @@ export default function ContractIdentifier({
 
         {parsedContracts.length > 0 && (
           <div className="flex items-center space-x-2 mb-3">
-            <span className="text-sm text-gray-700">Select Contract</span>
+            <span className="text-sm text-gray-700">Parse Contracts</span>
             <label className="relative inline-flex items-center">
               <input
                 type="checkbox"
