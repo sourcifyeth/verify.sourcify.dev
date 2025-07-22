@@ -574,12 +574,7 @@ export default function JobDetails() {
                 )}
               </div>
               <div className="flex flex-col items-center mt-4">
-                <p className="text-gray-500 text-xs italic mb-1">
-                  {import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
-                    ? `(${import.meta.env.VITE_ENV}) `
-                    : ""}
-                  Something is wrong? Report an issue on GitHub
-                </p>
+                <p className="text-gray-500 text-xs italic mb-1">Something is wrong? Report an issue on GitHub</p>
                 <a
                   href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
                   target="_blank"
