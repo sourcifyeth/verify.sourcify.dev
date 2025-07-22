@@ -75,25 +75,21 @@ export default function ContractIdentifier({
             const jsonContent = await jsonFile.text();
             const stdJson = JSON.parse(jsonContent);
 
-            if (stdJson.sources) {
-              for (const [filePath, sourceInfo] of Object.entries(stdJson.sources)) {
-                if (sourceInfo && typeof sourceInfo === "object" && "content" in sourceInfo) {
-                  const sourceContent = (sourceInfo as any).content;
-                  if (typeof sourceContent === "string") {
-                    if (selectedLanguage === "solidity") {
-                      const fileContracts = await parseFileContent(filePath, sourceContent);
-                      contracts.push(...fileContracts);
-                    } else if (selectedLanguage === "vyper" && filePath.endsWith(".vy")) {
-                      // For Vyper, generate contract identifier from file path
-                      const contractName = filePath.split("/").pop()?.replace(".vy", "") || "";
-                      if (contractName) {
-                        contracts.push({
-                          fileName: filePath,
-                          contractName,
-                          fullIdentifier: `${filePath}:${contractName}`,
-                        });
-                      }
-                    }
+            for (const [filePath, sourceInfo] of Object.entries(stdJson.sources)) {
+              if (sourceInfo && typeof sourceInfo === "object" && "content" in sourceInfo) {
+                const sourceContent = (sourceInfo as any).content;
+                if (selectedLanguage === "solidity") {
+                  const fileContracts = await parseFileContent(filePath, sourceContent);
+                  contracts.push(...fileContracts);
+                } else if (selectedLanguage === "vyper" && filePath.endsWith(".vy")) {
+                  // For Vyper, generate contract identifier from file path
+                  const contractName = filePath.split("/").pop()?.replace(".vy", "") || "";
+                  if (contractName) {
+                    contracts.push({
+                      fileName: filePath,
+                      contractName,
+                      fullIdentifier: `${filePath}:${contractName}`,
+                    });
                   }
                 }
               }
@@ -118,17 +114,12 @@ export default function ContractIdentifier({
           }
         }
 
-        // Sort contracts alphabetically by contract name
-        const sortedContracts = contracts.sort((a, b) => a.contractName.localeCompare(b.contractName));
+        // Sort contracts alphabetically by full identifier
+        const sortedContracts = contracts.sort((a, b) => a.fullIdentifier.localeCompare(b.fullIdentifier));
         setParsedContracts(sortedContracts);
 
-        // Auto-select the first contract if we have contracts and no current selection
+        // Set UI state based on parsed contracts
         if (sortedContracts.length > 0) {
-          // Only auto-select if there's no current valid selection
-          const hasValidSelection = sortedContracts.some((c) => c.fullIdentifier === contractIdentifier);
-          if (!hasValidSelection) {
-            onContractIdentifierChange(sortedContracts[0].fullIdentifier);
-          }
           setShowManualInput(false); // Start with dropdown when contracts are detected
         } else if (sortedContracts.length === 0) {
           setShowManualInput(true); // Show manual input when no contracts detected
@@ -167,7 +158,7 @@ export default function ContractIdentifier({
     }
   }, [isDropdownOpen]);
 
-  const parseFileContent = async (fileName: string, content: string): Promise<ParsedContract[]> => {
+  const parseFileContent = async (fileName: string | null, content: string): Promise<ParsedContract[]> => {
     try {
       const ast = parse(content, {
         loc: false,
@@ -180,6 +171,11 @@ export default function ContractIdentifier({
       if (ast.children) {
         for (const child of ast.children) {
           if (child.type === "ContractDefinition" && child.name) {
+            if (!fileName) {
+              const extension = selectedLanguage === "solidity" ? ".sol" : ".vy";
+              fileName = `${child.name}${extension}`;
+            }
+
             contracts.push({
               fileName,
               contractName: child.name,
@@ -191,8 +187,7 @@ export default function ContractIdentifier({
 
       return contracts;
     } catch (error) {
-      console.warn(`Failed to parse ${fileName}:`, error);
-      return [];
+      throw new Error(`Failed to parse ${fileName}: ${error}`);
     }
   };
 
@@ -206,6 +201,9 @@ export default function ContractIdentifier({
     return null;
 
   const getPlaceholderText = () => {
+    if (selectedMethod === "single-file") {
+      return "MyContract";
+    }
     if (selectedLanguage === "vyper") {
       return "contracts/MyContract.vy:MyContract";
     }
@@ -213,7 +211,9 @@ export default function ContractIdentifier({
   };
 
   const getHelpText = () => {
-    const text = "The fully qualified file path and contract name of the contract to verify";
+    const text = `The ${
+      selectedMethod !== "single-file" ? "fully qualified file path and" : ""
+    } contract name of the contract to verify e.g.`;
     if (selectedLanguage === "vyper") {
       return text + " " + getPlaceholderText();
     }
@@ -228,19 +228,14 @@ export default function ContractIdentifier({
 
         {parsedContracts.length > 0 && (
           <div className="flex items-center space-x-2 mb-3">
-            <span className="text-sm text-gray-700">Select Contract</span>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <span className="text-sm text-gray-700">Parse Contracts</span>
+            <label className="relative inline-flex items-center">
               <input
                 type="checkbox"
                 checked={showManualInput}
                 onChange={(e) => {
                   setShowManualInput(e.target.checked);
-                  if (!e.target.checked && parsedContracts.length > 0) {
-                    // When switching back to dropdown, select first contract if none selected
-                    if (!contractIdentifier || !parsedContracts.some((c) => c.fullIdentifier === contractIdentifier)) {
-                      onContractIdentifierChange(parsedContracts[0].fullIdentifier);
-                    }
-                  }
+                  // Don't auto-select when switching modes - let user choose
                 }}
                 className="sr-only"
               />
@@ -294,16 +289,16 @@ export default function ContractIdentifier({
               setIsDropdownOpen(!isDropdownOpen);
               setSearchTerm("");
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 font-mono text-left bg-white flex justify-between items-center cursor-pointer text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 font-mono text-left bg-white flex justify-between items-center text-sm"
           >
             <span>
               {contractIdentifier ? (
-                <>
+                <span>
                   {contractIdentifier.substring(0, contractIdentifier.lastIndexOf(":"))}:
                   <span className="font-bold">
                     {contractIdentifier.substring(contractIdentifier.lastIndexOf(":") + 1)}
                   </span>
-                </>
+                </span>
               ) : (
                 <span className="text-gray-500">Select a contract...</span>
               )}
@@ -336,9 +331,10 @@ export default function ContractIdentifier({
                         setIsDropdownOpen(false);
                         setSearchTerm("");
                       }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none font-mono cursor-pointer text-sm"
+                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none font-mono text-sm"
                     >
-                      {contract.fileName}:<span className="font-bold">{contract.contractName}</span>
+                      {selectedMethod !== "single-file" ? <span>{contract.fileName}:</span> : null}
+                      <span className="font-bold">{contract.contractName}</span>
                     </button>
                   ))
                 ) : (

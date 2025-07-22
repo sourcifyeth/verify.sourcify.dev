@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useChains } from "../contexts/ChainsContext";
 import { Tooltip } from "react-tooltip";
+import { useServerConfig } from "~/contexts/ServerConfigContext";
+import { removeCurrentServerUrl } from "../utils/serverStorage";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -11,15 +13,40 @@ interface PageLayoutProps {
 
 export default function PageLayout({ children, maxWidth = "max-w-4xl", title, subtitle }: PageLayoutProps) {
   const { loading, error, refetch } = useChains();
+  const { serverUrl, setServerUrl, getDefaultServerUrls, setCustomServerUrls } = useServerConfig();
+
+  const handleResetServerSettings = () => {
+    // Clear custom server URLs
+    setCustomServerUrls([]);
+
+    // Reset to default server URL
+    const defaultUrls = getDefaultServerUrls();
+    setServerUrl(defaultUrls[0]);
+
+    // Clear from localStorage
+    removeCurrentServerUrl();
+
+    // Refetch after reset
+    refetch();
+  };
 
   const renderHeader = () => {
     if (!title && !subtitle) {
       return null;
     }
+
+    const envPrefix =
+      import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+        ? `(${import.meta.env.VITE_ENV} environment) `
+        : "";
+
     return (
-      <div className="text-center p-8 border-b border-gray-200">
-        <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        <p className="max-w-2xl mx-auto text-base text-gray-600">{subtitle}</p>
+      <div className="text-center p-4 md:p-8 border-b border-gray-200">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight">{title}</h1>
+        <p className="max-w-2xl mx-auto text-sm md:text-base text-gray-600">
+          {envPrefix}
+          {subtitle}
+        </p>
       </div>
     );
   };
@@ -27,7 +54,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="text-center p-8">
+        <div className="text-center p-4 md:p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cerulean-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading supported chains...</p>
         </div>
@@ -36,7 +63,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
 
     if (error) {
       return (
-        <div className="text-center p-8">
+        <div className="text-center p-4 md:p-8">
           <div className="text-light-coral-500 mb-4">
             <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -47,14 +74,23 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load networks</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={refetch}
-            className="bg-cerulean-blue-500 text-white px-4 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
-          >
-            Try Again
-          </button>
+          <p className="text-gray-600 mb-4">Server URL: {serverUrl}</p>
+          <div className="flex flex-col space-y-2 items-center">
+            <button
+              onClick={refetch}
+              className="bg-cerulean-blue-500 text-white px-4 py-2 rounded-md hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={handleResetServerSettings}
+              className="text-red-600 px-4 py-2 rounded-md hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 border border-red-200"
+            >
+              Reset Server Settings
+            </button>
+          </div>
         </div>
       );
     }
@@ -64,7 +100,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
 
   return (
     <>
-      <div className={`${maxWidth} mx-auto px-4 sm:px-6 lg:px-8 mt-12`}>
+      <div className={`${maxWidth} mx-auto px-4 md:px-8 mt-6 md:mt-12`}>
         <div className="relative mt-4">
           <div className="absolute w-full h-full bg-cerulean-blue-500 rounded-lg -top-1" />
           <div className="relative bg-white shadow-lg rounded-lg">

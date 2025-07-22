@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Language } from "../types/verification";
+import type { Language, SubmissionResult } from "../types/verification";
 
 export function useVerificationState() {
   const [selectedChainId, setSelectedChainId] = useState<string>("");
@@ -9,18 +9,15 @@ export function useVerificationState() {
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [metadataFile, setMetadataFile] = useState<File | null>(null);
-  const [evmVersion, setEvmVersion] = useState<string>("default");
+  const [evmVersion, setEvmVersion] = useState<string>("");
   const [optimizerEnabled, setOptimizerEnabled] = useState<boolean>(false);
   const [optimizerRuns, setOptimizerRuns] = useState<number>(200);
   const [contractIdentifier, setContractIdentifier] = useState<string>("");
+  const [creationTransactionHash, setCreationTransactionHash] = useState<string>("");
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState<{
-    success: boolean;
-    verificationId?: string;
-    error?: string;
-  } | null>(null);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
 
   const handleChainIdChange = (value: string) => {
     setSelectedChainId(value);
@@ -36,7 +33,7 @@ export function useVerificationState() {
     setSelectedCompilerVersion(""); // Reset compiler version when language changes
     setUploadedFiles([]); // Reset files when language changes
     setMetadataFile(null); // Reset metadata file when language changes
-    setEvmVersion("default"); // Reset EVM version when language changes
+    setEvmVersion(""); // Reset EVM version when language changes
     setOptimizerEnabled(false); // Reset optimizer when language changes
     setOptimizerRuns(200); // Reset optimizer runs when language changes
     setContractIdentifier(""); // Reset contract identifier when language changes
@@ -73,6 +70,10 @@ export function useVerificationState() {
     setContractIdentifier(identifier);
   };
 
+  const handleCreationTransactionHashChange = (hash: string) => {
+    setCreationTransactionHash(hash);
+  };
+
   const handleMetadataFileChange = (files: (File | null)[]) => {
     if (files.length > 0) {
       setMetadataFile(files[0]);
@@ -93,6 +94,7 @@ export function useVerificationState() {
     optimizerEnabled,
     optimizerRuns,
     contractIdentifier,
+    creationTransactionHash,
     handleChainIdChange,
     handleContractAddressChange,
     handleLanguageSelect,
@@ -104,6 +106,7 @@ export function useVerificationState() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    handleCreationTransactionHashChange,
     isSubmitting,
     setIsSubmitting,
     submissionResult,

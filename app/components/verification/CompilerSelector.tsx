@@ -44,7 +44,7 @@ export default function CompilerSelector({
   }
 
   const isLoading = language === "solidity" ? isSolidityLoading : isVyperLoading;
-  const error = language === "solidity" ? solidityError : vyperError;
+  const compilerError = language === "solidity" ? solidityError : vyperError;
 
   if (isLoading) {
     return (
@@ -58,12 +58,12 @@ export default function CompilerSelector({
     );
   }
 
-  if (error) {
+  if (compilerError) {
     return (
       <div>
         <label className="block text-base font-semibold text-gray-900 mb-2">Compiler Version</label>
         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{compilerError}</p>
         </div>
       </div>
     );
@@ -107,7 +107,7 @@ export default function CompilerSelector({
             id="compilerVersion"
             value={selectedVersion || ""}
             onChange={(e) => onVersionSelect(e.target.value)}
-            className="w-full appearance-none cursor-pointer border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm text-gray-900"
+            className="w-full appearance-none border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-cerulean-blue-300 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 shadow-sm text-gray-900"
           >
             <option value="">Select compiler version</option>
             {versionsToShow.map((version) => (
@@ -141,11 +141,11 @@ export default function CompilerSelector({
                 setShowPrereleases(e.target.checked);
               }
             }}
-            className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded hover:cursor-pointer"
+            className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded"
           />
           <label
             htmlFor={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
-            className="ml-2 block text-sm text-gray-700 hover:cursor-pointer"
+            className="ml-2 block text-sm text-gray-700"
           >
             {language === "solidity" ? "Show nightly builds" : "Show prereleases"}
           </label>

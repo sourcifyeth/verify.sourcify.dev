@@ -47,6 +47,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: cp .env.build.main .env
 
+      - name: Set git commit hash
+        run: echo -e "\nVITE_GIT_COMMIT=$(git rev-parse --short HEAD)" >> .env
+
       - name: Build
         run: npm run build
 

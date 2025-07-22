@@ -11,6 +11,7 @@ import LicenseInfo from "../components/verification/LicenseInfo";
 import FileUpload from "../components/verification/FileUpload";
 import CompilerSettings from "../components/verification/CompilerSettings";
 import ContractIdentifier from "../components/verification/ContractIdentifier";
+import OptionalFields from "../components/verification/OptionalFields";
 import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
@@ -18,14 +19,21 @@ import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
 import MetadataValidation from "../components/verification/MetadataValidation";
 import RecentVerifications from "../components/verification/RecentVerifications";
 import { saveJob } from "../utils/jobStorage";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import React from "react";
 import Settings from "../components/verification/Settings";
+import ImportSources from "../components/verification/ImportSources";
+import SubmissionResultDisplay from "../components/verification/SubmissionResultDisplay";
 import { useServerConfig } from "../contexts/ServerConfigContext";
+import { IoSettings } from "react-icons/io5";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "verify.sourcify.dev" },
+    {
+      title:
+        (import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
+          ? `(${import.meta.env.VITE_ENV}) `
+          : "") + "verify.sourcify.dev",
+    },
     { name: "description", content: "Verify your smart contracts with Sourcify" },
   ];
 }
@@ -33,7 +41,26 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
-  const navigate = useNavigate();
+  const [importError, setImportError] = React.useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [isAddressValid, setIsAddressValid] = React.useState(false);
+  const [lastSubmittedValues, setLastSubmittedValues] = React.useState<string | null>(null);
+
+  // Clear success message after 3 seconds
+  React.useEffect(() => {
+    if (importSuccess) {
+      const timer = setTimeout(() => setImportSuccess(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [importSuccess]);
+
+  // Handle import error and clear any existing success
+  const handleImportError = (error: string) => {
+    setImportSuccess(null);
+    setImportError(error);
+  };
+
   const {
     selectedChainId,
     contractAddress,
@@ -46,6 +73,7 @@ export default function Home() {
     optimizerEnabled,
     optimizerRuns,
     contractIdentifier,
+    creationTransactionHash,
     handleChainIdChange,
     handleContractAddressChange,
     handleLanguageSelect,
@@ -57,50 +85,81 @@ export default function Home() {
     handleOptimizerEnabledChange,
     handleOptimizerRunsChange,
     handleContractIdentifierChange,
+    handleCreationTransactionHashChange,
     isSubmitting,
     setIsSubmitting,
     submissionResult,
     setSubmissionResult,
   } = useVerificationState();
 
-  // Track metadata validation status
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const { isFormValid, errors, getSubmissionErrors, isFrameworkMethod } = useFormValidation({
+    isAddressValid,
+    selectedChainId,
+    contractAddress,
+    selectedLanguage,
+    selectedMethod,
+    selectedCompilerVersion,
+    contractIdentifier,
+    uploadedFiles,
+    metadataFile,
+    evmVersion,
+  });
 
-  const {
-    isFormValid,
-    updateAddressValidation,
-    updateChainId,
-    updateLanguage,
-    updateMethod,
-    updateCompilerVersion,
-    getSubmissionErrors,
-    isFrameworkMethod,
-  } = useFormValidation();
+  // Create a hash of current form values to detect changes
+  const currentFormHash = React.useMemo(() => {
+    const formValues = {
+      selectedChainId,
+      contractAddress,
+      selectedLanguage,
+      selectedMethod,
+      selectedCompilerVersion,
+      contractIdentifier,
+      evmVersion,
+      uploadedFileNames: uploadedFiles.map((f) => f.name + f.size).join(","),
+      metadataFileName: metadataFile ? metadataFile.name + metadataFile.size : "",
+    };
+    return JSON.stringify(formValues);
+  }, [
+    selectedChainId,
+    contractAddress,
+    selectedLanguage,
+    selectedMethod,
+    selectedCompilerVersion,
+    contractIdentifier,
+    evmVersion,
+    uploadedFiles,
+    metadataFile,
+  ]);
 
-  // Sync verification state with validation hook
+  // Clear success messages when form values change
   React.useEffect(() => {
-    updateChainId(selectedChainId);
-  }, [selectedChainId, updateChainId]);
+    const hasFormChanged = lastSubmittedValues !== currentFormHash;
+    if (lastSubmittedValues && hasFormChanged) {
+      // Clear submission success result
+      if (submissionResult?.success) {
+        setSubmissionResult(null);
+      }
+      // Clear import success message
+      if (importSuccess) {
+        setImportSuccess(null);
+      }
+    }
+  }, [currentFormHash, lastSubmittedValues, submissionResult?.success, importSuccess, setSubmissionResult]);
 
-  React.useEffect(() => {
-    updateLanguage(selectedLanguage);
-  }, [selectedLanguage, updateLanguage]);
-
-  React.useEffect(() => {
-    updateMethod(selectedMethod);
-  }, [selectedMethod, updateMethod]);
-
-  React.useEffect(() => {
-    updateCompilerVersion(selectedCompilerVersion);
-  }, [selectedCompilerVersion, updateCompilerVersion]);
+  // Check if current form values are the same as last submitted values
+  const hasFormChanged = lastSubmittedValues !== currentFormHash;
+  const canSubmit = isFormValid && hasFormChanged && !isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isFormValid) {
-      const submissionErrors = getSubmissionErrors();
-      console.log("Form submission blocked. Missing:", submissionErrors);
-      // You could show a toast or alert here with the errors
+    if (!canSubmit) {
+      if (!isFormValid) {
+        const submissionErrors = getSubmissionErrors();
+        console.log("Form submission blocked. Missing:", submissionErrors);
+      } else if (!hasFormChanged) {
+        console.log("Form submission blocked. No changes since last submission.");
+      }
       return;
     }
 
@@ -118,7 +177,14 @@ export default function Home() {
 
         const { sources, metadata } = await buildMetadataSubmissionSources(metadataFile, uploadedFiles);
 
-        result = await submitMetadataVerification(serverUrl, selectedChainId, contractAddress, sources, metadata);
+        result = await submitMetadataVerification(
+          serverUrl,
+          selectedChainId,
+          contractAddress,
+          sources,
+          metadata,
+          creationTransactionHash || undefined
+        );
       } else if (selectedMethod === "std-json") {
         // For std-json method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
@@ -131,7 +197,8 @@ export default function Home() {
           contractAddress,
           uploadedFiles[0],
           selectedCompilerVersion,
-          contractIdentifier
+          contractIdentifier,
+          creationTransactionHash || undefined
         );
       } else {
         // For single-file and multiple-files methods, assemble standard JSON
@@ -151,7 +218,8 @@ export default function Home() {
             evmVersion,
             optimizerEnabled,
             optimizerRuns,
-          }
+          },
+          creationTransactionHash || undefined
         );
       }
 
@@ -159,6 +227,9 @@ export default function Home() {
         success: true,
         verificationId: result.verificationId,
       });
+
+      // Store current form values hash to prevent duplicate submissions
+      setLastSubmittedValues(currentFormHash);
 
       // Save job to localStorage
       saveJob({
@@ -171,9 +242,6 @@ export default function Home() {
           address: contractAddress,
         },
       });
-
-      // Start countdown for redirect
-      setRedirectCountdown(10);
     } catch (error) {
       setSubmissionResult({
         success: false,
@@ -184,36 +252,15 @@ export default function Home() {
     }
   };
 
-  // Handle countdown and redirect
-  useEffect(() => {
-    if (redirectCountdown === null) return;
-
-    if (redirectCountdown === 0) {
-      if (submissionResult?.success && submissionResult.verificationId) {
-        navigate(`/jobs/${submissionResult.verificationId}`);
-      }
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setRedirectCountdown(redirectCountdown - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [redirectCountdown, navigate, submissionResult]);
-
-  const handleRedirectClick = () => {
-    if (submissionResult?.success && submissionResult.verificationId) {
-      navigate(`/jobs/${submissionResult.verificationId}`);
-    }
-  };
-
   const getSubmitButtonTooltip = () => {
     if (isFrameworkMethod) {
       return "Framework helpers provide setup instructions only - please select a verification method above";
     }
     if (!isFormValid) {
       return "Please complete all required fields";
+    }
+    if (!hasFormChanged) {
+      return "No changes since last submission";
     }
     return "Submit verification";
   };
@@ -235,16 +282,39 @@ export default function Home() {
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
       <PageLayout title="Verify Smart Contracts">
         <>
-          <div className="px-8 py-6">
-            <form className="space-y-8" onSubmit={handleSubmit}>
-              <Settings />
+          <div className="px-4 md:px-8 py-2 md:py-4">
+            {/* Settings Button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                className="flex items-center space-x-1 md:space-x-2 py-1 md:py-2 px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <IoSettings className="w-4 h-4" />
+                <span>Settings</span>
+              </button>
+            </div>
+
+            <form className="space-y-6 md:space-y-8 mb-6" onSubmit={handleSubmit}>
               <ChainAndAddress
                 selectedChainId={selectedChainId}
                 contractAddress={contractAddress}
                 onChainIdChange={handleChainIdChange}
                 onContractAddressChange={handleContractAddressChange}
                 chains={chains}
-                onValidationChange={updateAddressValidation}
+                onValidationChange={setIsAddressValid}
+              />
+
+              <ImportSources
+                selectedChainId={selectedChainId}
+                contractAddress={contractAddress}
+                setIsSubmitting={setIsSubmitting}
+                setSubmissionResult={setSubmissionResult}
+                submissionResult={submissionResult}
+                importError={importError}
+                importSuccess={importSuccess}
+                onImportError={handleImportError}
+                onImportSuccess={setImportSuccess}
               />
 
               <LicenseInfo />
@@ -317,71 +387,70 @@ export default function Home() {
                 onContractIdentifierChange={handleContractIdentifierChange}
                 uploadedFiles={uploadedFiles}
               />
+              {!isFrameworkMethod && !!selectedMethod && (
+                <OptionalFields
+                  creationTransactionHash={creationTransactionHash}
+                  onCreationTransactionHashChange={handleCreationTransactionHashChange}
+                />
+              )}
 
               {/* Submission Result Feedback */}
-              {submissionResult && (
-                <div
-                  className={`p-4 rounded-md ${
-                    submissionResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
-                  }`}
-                >
-                  {submissionResult.success ? (
-                    <div className="flex flex-col items-center text-green-800">
-                      <h3 className="font-medium text-lg">Submitted verification</h3>
-                      <div className="text-sm mt-1">Verification Job ID:</div>
-                      <span className="text-sm mt-1 font-mono bg-gray-100 text-gray-900 px-2 py-1 rounded-md">
-                        {submissionResult.verificationId}
-                      </span>
-
-                      {redirectCountdown !== null && (
-                        <div className="flex flex-col items-center mt-4 rounded-md text-center space-y-2">
-                          <span className="text-sm block">
-                            Redirecting to job status in {redirectCountdown} seconds...
-                          </span>
-                          <button
-                            onClick={handleRedirectClick}
-                            className="text-sm font-medium text-green-700 hover:text-green-900 underline focus:outline-none cursor-pointer block"
-                          >
-                            Click here to go now
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center text-center text-red-800">
-                      <h3 className="font-medium text-lg">Verification failed</h3>
-                      <p className="text-sm mt-1">{submissionResult.error}</p>
-                    </div>
-                  )}
-                </div>
+              {submissionResult && !submissionResult.isEtherscanSubmission && (
+                <SubmissionResultDisplay
+                  submissionResult={submissionResult}
+                  showCloseButton={true}
+                  onClose={() => setSubmissionResult(null)}
+                />
               )}
 
               {!isFrameworkMethod && (
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={!isFormValid || isSubmitting}
-                    className={`px-12 py-3 text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center space-x-2 ${
-                      isFormValid && !isSubmitting
-                        ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                    title={getSubmitButtonTooltip()}
-                  >
-                    {isSubmitting && (
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    )}
-                    <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
-                  </button>
-                </div>
+                <>
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
+                        canSubmit
+                          ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
+                          : "bg-gray-300 text-gray-500 !cursor-not-allowed"
+                      }`}
+                      title={getSubmitButtonTooltip()}
+                    >
+                      {isSubmitting && (
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      )}
+                      <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
+                    </button>
+                  </div>
+
+                  {/* Validation Errors List */}
+                  {!isFormValid && Object.keys(errors).length > 0 && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                      <h3 className="text-sm font-medium text-red-800 mb-2">Please complete the following fields:</h3>
+                      <ul className="text-sm text-red-700 space-y-1">
+                        {errors.chain && <li>• {errors.chain}</li>}
+                        {errors.address && <li>• {errors.address}</li>}
+                        {errors.language && <li>• {errors.language}</li>}
+                        {errors.method && <li>• {errors.method}</li>}
+                        {errors.files && <li>• {errors.files}</li>}
+                        {errors.compilerVersion && <li>• {errors.compilerVersion}</li>}
+                        {errors.evmVersion && <li>• {errors.evmVersion}</li>}
+                        {errors.contractIdentifier && <li>• {errors.contractIdentifier}</li>}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </form>
           </div>
-          <div className="p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+          <div className="p-4 md:p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
             <RecentVerifications />
           </div>
         </>
       </PageLayout>
+
+      {/* Settings Modal */}
+      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

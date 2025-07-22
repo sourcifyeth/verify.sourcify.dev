@@ -245,12 +245,12 @@ export default function BytecodeDiffModal({
         }
 
         // Try to use Web Worker for better performance
-        if (typeof Worker !== 'undefined') {
+        if (typeof Worker !== "undefined") {
           const result = await new Promise<BytecodeDiffResult>((resolve, reject) => {
-            const worker = new Worker('/diffWorker.js');
+            const worker = new Worker("/diffWorker.js");
             workerRef.current = worker;
             const id = Math.random().toString(36);
-            
+
             worker.onmessage = (e) => {
               const { result, error, id: responseId } = e.data;
               if (responseId === id) {
@@ -263,21 +263,21 @@ export default function BytecodeDiffModal({
                 }
               }
             };
-            
+
             worker.onerror = (error) => {
               worker.terminate();
               workerRef.current = null;
               reject(error);
             };
-            
+
             worker.postMessage({
               onchain: onchainBytecode,
               recompiled: recompiledBytecode,
               diffMode,
-              id
+              id,
             });
           });
-          
+
           setDiffResult(result);
         } else {
           // Fallback to main thread with setTimeout
@@ -286,18 +286,18 @@ export default function BytecodeDiffModal({
               resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
             }, 0);
           });
-          
+
           setDiffResult(result);
         }
       } catch (error) {
-        console.warn('Worker failed, falling back to main thread:', error);
+        console.warn("Worker failed, falling back to main thread:", error);
         // Fallback to main thread calculation
         const result = await new Promise<BytecodeDiffResult>((resolve) => {
           setTimeout(() => {
             resolve(compareBytecodeDiff(onchainBytecode, recompiledBytecode, diffMode));
           }, 0);
         });
-        
+
         setDiffResult(result);
       } finally {
         setIsCalculating(false);
@@ -374,7 +374,7 @@ export default function BytecodeDiffModal({
                   <DialogTitle className="text-lg font-bold text-gray-900">{title} Bytecode Diff</DialogTitle>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded hover:cursor-pointer transition-colors duration-200 ease-in-out"
+                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded transition-colors duration-200 ease-in-out"
                   >
                     <IoClose className="w-6 h-6 transition-transform duration-200 ease-in-out hover:scale-110" />
                   </button>
@@ -438,7 +438,7 @@ export default function BytecodeDiffModal({
                           onClick={() => handleDiffModeChange("chars")}
                           disabled={isCalculating}
                           className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                            isCalculating ? "cursor-not-allowed opacity-50" : ""
                           } ${
                             diffMode === "chars"
                               ? "bg-white text-gray-900 shadow-sm"
@@ -451,7 +451,7 @@ export default function BytecodeDiffModal({
                           onClick={() => handleDiffModeChange("bytes")}
                           disabled={isCalculating}
                           className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                            isCalculating ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                            isCalculating ? "cursor-not-allowed opacity-50" : ""
                           } ${
                             diffMode === "bytes"
                               ? "bg-white text-gray-900 shadow-sm"
@@ -467,7 +467,7 @@ export default function BytecodeDiffModal({
                       <div className="flex bg-gray-100 rounded-lg p-1">
                         <button
                           onClick={() => handleViewModeChange("split")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                             viewMode === "split"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -477,7 +477,7 @@ export default function BytecodeDiffModal({
                         </button>
                         <button
                           onClick={() => handleViewModeChange("unified")}
-                          className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                          className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                             viewMode === "unified"
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -497,7 +497,7 @@ export default function BytecodeDiffModal({
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="animate-spin h-8 w-8 border-4 border-cerulean-blue-600 border-t-transparent rounded-full"></div>
                         <div className="text-gray-600">Calculating diff...</div>
-                        <div className="text-sm text-gray-500">This may take a moment for large bytecode</div>
+                        <div className="text-sm text-gray-500">This may take a moment for big differences</div>
                       </div>
                     </div>
                   ) : diffResult ? (
@@ -535,7 +535,7 @@ export default function BytecodeDiffModal({
                 <div className="mt-6 flex justify-end">
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 ease-in-out hover:cursor-pointer hover:scale-105"
+                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 ease-in-out hover:scale-105"
                   >
                     Close
                   </button>

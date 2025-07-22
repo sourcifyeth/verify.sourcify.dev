@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineFileAdd } from "react-icons/ai";
 import { IoMdClose, IoMdWarning } from "react-icons/io";
 import { BsFiletypeJson } from "react-icons/bs";
@@ -77,10 +77,43 @@ export default function FileUpload({
   const [overrideExtensions, setOverrideExtensions] = useState(false);
   const [showPasteMode, setShowPasteMode] = useState(false);
   const [pastedContent, setPastedContent] = useState("");
+  const [pastedFileName, setPastedFileName] = useState("");
+  const [fileNameError, setFileNameError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Special handling for metadata.json file upload when selectedMethod is "metadata-json"
   const requirements = getFileRequirements(selectedMethod, selectedLanguage);
+
+  useEffect(() => {
+    // reset paste mode when method changes
+    setShowPasteMode(false);
+  }, [selectedMethod]);
+
+  const validateFileName = (fileName: string): string | null => {
+    // For std-json, filename is optional
+    if (selectedMethod === "std-json") {
+      if (!fileName.trim()) {
+        return null; // No error for empty filename in std-json
+      }
+    } else {
+      if (!fileName.trim()) {
+        return "File name is required";
+      }
+    }
+
+    const expectedExtension = selectedMethod === "std-json" ? ".json" : selectedLanguage === "vyper" ? ".vy" : ".sol";
+    if (!fileName.endsWith(expectedExtension)) {
+      return `File name must end with ${expectedExtension}`;
+    }
+
+    // Check for valid filename characters
+    const validFileNameRegex = /^[a-zA-Z0-9_.-]+$/;
+    if (!validFileNameRegex.test(fileName)) {
+      return "File name contains invalid characters";
+    }
+
+    return null;
+  };
 
   const validateFiles = useCallback(
     (files: File[], overrideParam?: boolean) => {
@@ -259,18 +292,18 @@ export default function FileUpload({
   };
 
   return (
-    <div>
+    <div className="[&_button]:cursor-default!">
       <label className="block text-base font-semibold text-gray-900 mb-2">
         {selectedMethod === "metadata-json" ? "Metadata File Upload" : "File Upload"}
       </label>
 
       <div className="mb-3">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 space-y-2 md:space-y-0">
           <p className="text-sm text-gray-600">{requirements.description}</p>
           {requirements.maxFiles === 1 && (
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-700">Upload File</span>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center">
                 <input
                   type="checkbox"
                   checked={showPasteMode}
@@ -278,8 +311,15 @@ export default function FileUpload({
                     setShowPasteMode(e.target.checked);
                     if (!e.target.checked) {
                       setPastedContent("");
+                      setPastedFileName("");
+                      setFileNameError(null);
                       // Clear any file created from pasted content
-                      if (uploadedFiles.length > 0 && uploadedFiles[0].name.startsWith("pasted-content")) {
+                      if (
+                        uploadedFiles.length > 0 &&
+                        (uploadedFiles[0].name.startsWith("pasted-content") ||
+                          uploadedFiles[0].name.endsWith(".sol") ||
+                          uploadedFiles[0].name.endsWith(".vy"))
+                      ) {
                         onFilesChange([]);
                       }
                     }
@@ -309,7 +349,7 @@ export default function FileUpload({
               {requirements.maxFiles !== Infinity &&
                 ` • Maximum ${requirements.maxFiles} file${requirements.maxFiles > 1 ? "s" : ""}`}
             </p>
-            <label className="flex items-center space-x-2 text-xs text-gray-600">
+            <label className="flex items-center space-x-2 text-xs text-gray-600 ">
               <input
                 type="checkbox"
                 checked={overrideExtensions}
@@ -348,33 +388,86 @@ export default function FileUpload({
       )}
 
       {requirements.maxFiles === 1 && showPasteMode && (
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Paste file content</label>
-          <textarea
-            value={pastedContent}
-            onChange={(e) => {
-              setPastedContent(e.target.value);
-              if (e.target.value.trim()) {
-                // Create a file from the pasted content
-                const extension = requirements.allowedExtensions[0] || ".txt";
-                const fileName = `pasted-content${extension}`;
-                const blob = new Blob([e.target.value], { type: "text/plain" });
-                const file = new File([blob], fileName, { type: "text/plain" });
-                onFilesChange([file]);
-              } else {
-                onFilesChange([]);
-              }
-            }}
-            placeholder={`Paste your ${selectedMethod === "metadata-json" ? "metadata JSON" : "file"} content here...`}
-            rows={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
-          />
+        <div className="mb-4 space-y-4">
+          {selectedMethod !== "std-json" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                File name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={pastedFileName}
+                onChange={(e) => {
+                  const fileName = e.target.value;
+                  setPastedFileName(fileName);
+                  const error = validateFileName(fileName);
+                  setFileNameError(error);
+
+                  // Create file if both filename and content are valid
+                  if (pastedContent.trim() && fileName.trim() && !error) {
+                    const blob = new Blob([pastedContent], { type: "text/plain" });
+                    const file = new File([blob], fileName, { type: "text/plain" });
+                    onFilesChange([file]);
+                  } else {
+                    onFilesChange([]);
+                  }
+                }}
+                placeholder={selectedLanguage === "vyper" ? "MyContract.vy" : "MyContract.sol"}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
+                  fileNameError ? "border-red-300" : "border-gray-300"
+                }`}
+              />
+              {fileNameError && <p className="mt-1 text-sm text-red-600">{fileNameError}</p>}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {selectedMethod === "std-json" ? "Standard JSON content" : "File content"}
+            </label>
+            <textarea
+              value={pastedContent}
+              onChange={(e) => {
+                setPastedContent(e.target.value);
+
+                if (e.target.value.trim()) {
+                  if (selectedMethod === "std-json") {
+                    // For std-json, always use "input.json" as filename
+                    const blob = new Blob([e.target.value], { type: "text/plain" });
+                    const file = new File([blob], "input.json", { type: "text/plain" });
+                    onFilesChange([file]);
+                  } else {
+                    // For other methods, need valid filename
+                    const fileNameValidationError = validateFileName(pastedFileName);
+                    if (pastedFileName.trim() && !fileNameValidationError) {
+                      const blob = new Blob([e.target.value], { type: "text/plain" });
+                      const file = new File([blob], pastedFileName, { type: "text/plain" });
+                      onFilesChange([file]);
+                    } else {
+                      onFilesChange([]);
+                    }
+                  }
+                } else {
+                  onFilesChange([]);
+                }
+              }}
+              placeholder={`Paste your ${
+                selectedMethod === "metadata-json"
+                  ? "metadata JSON"
+                  : selectedMethod === "std-json"
+                  ? "Standard JSON"
+                  : "file"
+              } content here...`}
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500"
+            />
+          </div>
         </div>
       )}
 
       {!showPasteMode && (
         <div
-          className={`relative border-2 border-dashed rounded-lg p-6 transition-all cursor-pointer group min-h-[250px] flex items-center justify-center ${
+          className={`relative border-2 border-dashed rounded-lg p-6 transition-all group min-h-[250px] flex items-center justify-center ${
             isDragOver
               ? "border-cerulean-blue-500 bg-cerulean-blue-50 shadow-lg"
               : "border-gray-300 hover:border-cerulean-blue-400 hover:bg-cerulean-blue-25"

@@ -73,7 +73,7 @@ export default function MetadataValidationModal({ isOpen, onClose, validationRes
                   <DialogTitle className="text-xl font-semibold text-gray-900">Metadata Validation Details</DialogTitle>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded hover:cursor-pointer transition-colors"
+                    className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 rounded transition-colors"
                   >
                     <IoClose className="h-6 w-6" />
                   </button>
@@ -219,7 +219,7 @@ export default function MetadataValidationModal({ isOpen, onClose, validationRes
                 <div className="flex justify-end p-6 border-t border-gray-200">
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors hover:cursor-pointer"
+                    className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                   >
                     Close
                   </button>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import { IoTrashOutline } from "react-icons/io5";
 import { Tooltip } from "react-tooltip";
 import { useChains } from "../../contexts/ChainsContext";
@@ -19,7 +18,6 @@ interface RecentVerificationsProps {
 }
 
 export default function RecentVerifications({ className = "" }: RecentVerificationsProps) {
-  const navigate = useNavigate();
   const { chains } = useChains();
   const [jobs, setJobs] = useState<StoredVerificationJob[]>([]);
   const [showAll, setShowAll] = useState(false);
@@ -66,10 +64,6 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
 
     return () => clearInterval(interval);
   }, []);
-
-  const handleJobClick = (jobId: string) => {
-    navigate(`/jobs/${jobId}`);
-  };
 
   const handleClearAll = () => {
     clearAllJobs();
@@ -119,71 +113,74 @@ export default function RecentVerifications({ className = "" }: RecentVerificati
             </div>
           )}
           {jobs.length > 0 && (
-            <div
+            <button
+              type="button"
               onClick={handleClearAll}
-              className="flex items-center space-x-1 text-sm text-gray-500 hover:text-red-600 cursor-pointer"
+              className="flex items-center space-x-1 text-sm text-gray-500 hover:text-red-600 focus:outline-none"
             >
               <IoTrashOutline className="w-4 h-4" />
               <span>Clear All</span>
-            </div>
+            </button>
           )}
         </div>
       </div>
 
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-300">
-            <th className="py-2 text-left text-sm font-medium text-gray-900">Date</th>
-            <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Job ID</th>
-            <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Chain</th>
-            <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Address</th>
-            <th className="py-2 text-left text-sm font-medium text-gray-900">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayedJobs.map((job) => (
-            <tr key={job.verificationId} className="border-b border-gray-200 hover:bg-gray-100">
-              <td className="py-2 text-sm text-gray-700">
-                <div>
-                  <div className="text-[0.65rem] text-gray-500">
-                    {new Date(job.submittedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (
-                    {Intl.DateTimeFormat().resolvedOptions().timeZone})
-                  </div>
-                  <div>{new Date(job.submittedAt).toISOString().split("T")[0]}</div>
-                </div>
-              </td>
-              <td className="py-2 px-4 text-sm">
-                <button
-                  onClick={() => handleJobClick(job.verificationId)}
-                  className="font-mono text-cerulean-blue-600 hover:text-cerulean-blue-800 hover:bg-cerulean-blue-50 focus:outline-none text-left underline cursor-pointer"
-                  title={job.verificationId}
-                >
-                  {truncateJobId(job.verificationId)}
-                </button>
-              </td>
-              <td className="py-2 px-4 text-sm text-gray-600 break-words">
-                {job.contract
-                  ? `${getChainName(chains, parseInt(job.contract.chainId))} (${job.contract.chainId})`
-                  : "-"}
-              </td>
-              <td className="py-2 px-4 text-sm font-mono text-gray-600">
-                {job.contract?.address ? (
-                  <span data-tooltip-id="address-tooltip" data-tooltip-content={job.contract.address}>
-                    {truncateAddress(job.contract.address)}
-                  </span>
-                ) : (
-                  "-"
-                )}
-              </td>
-              <td className="py-2 text-sm">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job)}`}>
-                  {getStatusText(job)}
-                </span>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px]">
+          <thead>
+            <tr className="border-b border-gray-300">
+              <th className="py-2 text-left text-sm font-medium text-gray-900">Date</th>
+              <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Job ID</th>
+              <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Chain</th>
+              <th className="py-2 px-4 text-left text-sm font-medium text-gray-900">Address</th>
+              <th className="py-2 text-left text-sm font-medium text-gray-900">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayedJobs.map((job) => (
+              <tr key={job.verificationId} className="border-b border-gray-200 hover:bg-gray-100">
+                <td className="py-2 text-sm text-gray-700">
+                  <div>
+                    <div className="text-[0.65rem] text-gray-500">
+                      {new Date(job.submittedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (
+                      {Intl.DateTimeFormat().resolvedOptions().timeZone})
+                    </div>
+                    <div>{new Date(job.submittedAt).toISOString().split("T")[0]}</div>
+                  </div>
+                </td>
+                <td className="py-2 px-4 text-sm">
+                  <a
+                    href={`/jobs/${job.verificationId}`}
+                    className="font-mono text-cerulean-blue-600 hover:text-cerulean-blue-800 hover:bg-cerulean-blue-50 focus:outline-none text-left underline"
+                    title={job.verificationId}
+                  >
+                    {truncateJobId(job.verificationId)}
+                  </a>
+                </td>
+                <td className="py-2 px-4 text-sm text-gray-600 break-words">
+                  {job.contract
+                    ? `${getChainName(chains, parseInt(job.contract.chainId))} (${job.contract.chainId})`
+                    : "-"}
+                </td>
+                <td className="py-2 px-4 text-sm font-mono text-gray-600">
+                  {job.contract?.address ? (
+                    <span data-tooltip-id="address-tooltip" data-tooltip-content={job.contract.address}>
+                      {truncateAddress(job.contract.address)}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td className="py-2 text-sm">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job)}`}>
+                    {getStatusText(job)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {jobs.length > 5 && (
         <div className="mt-4 text-center">

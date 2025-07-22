@@ -54,6 +54,7 @@ npm install
 # Create .env file with custom server URLs
 VITE_SOURCIFY_SERVER_URL=https://sourcify.dev/server
 VITE_SOURCIFY_REPO_URL=https://repo.sourcify.dev
+VITE_ENV=development
 ```
 
 ### Development

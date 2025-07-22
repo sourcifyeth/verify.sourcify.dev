@@ -37,7 +37,7 @@ export default function VerificationMethodSelector({
             key={method.id}
             type="button"
             onClick={() => onMethodSelect(method.id)}
-            className={`relative flex flex-col items-center p-3 border-2 rounded-lg text-center transition-all duration-200 cursor-pointer w-36 ${
+            className={`relative flex flex-col items-center p-3 border-2 rounded-lg text-center transition-all duration-200 w-36 ${
               selectedMethod === method.id
                 ? "border-cerulean-blue-500 bg-cerulean-blue-50"
                 : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"
@@ -58,7 +58,7 @@ export default function VerificationMethodSelector({
                     e.stopPropagation();
                     window.open("https://docs.soliditylang.org/en/latest/metadata.html", "_blank");
                   }}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-full flex items-center justify-center text-xs font-medium transition-colors duration-200 shadow-sm cursor-pointer"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-full flex items-center justify-center text-xs font-medium transition-colors duration-200 shadow-sm"
                 >
                   ?
                 </button>
@@ -84,7 +84,7 @@ export default function VerificationMethodSelector({
             key={method.id}
             type="button"
             onClick={() => onMethodSelect(method.id)}
-            className={`relative flex items-center justify-center gap-2 p-3 border-2 rounded-lg text-center transition-all duration-200 cursor-pointer w-36 ${
+            className={`relative flex items-center justify-center gap-2 p-3 border-2 rounded-lg text-center transition-all duration-200 w-36 ${
               selectedMethod === method.id
                 ? "border-cerulean-blue-500 bg-cerulean-blue-50"
                 : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"

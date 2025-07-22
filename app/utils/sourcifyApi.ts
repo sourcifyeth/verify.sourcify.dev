@@ -1,10 +1,36 @@
 import type { Language } from "../types/verification";
+import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
+import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
-interface CompilerSettings {
-  evmVersion: string;
+/**
+ * Custom fetch function for Sourcify API calls that adds client identification headers
+ */
+function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
+  
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      "X-Client-Source": "sourcify-ui",
+      "X-Client-Version": gitCommit,
+      "X-Client-Type": "web",
+    },
+  });
+}
+
+export interface SolidityCompilerSettings {
+  evmVersion?: string;
   optimizerEnabled: boolean;
   optimizerRuns: number;
 }
+
+export interface VyperCompilerSettings {
+  evmVersion?: string;
+  // No optimization settings for single/multiple contracts
+}
+
+type CompilerSettings = SolidityCompilerSettings | VyperCompilerSettings;
 
 interface StandardJsonInput {
   language: string;
@@ -39,6 +65,9 @@ interface VerificationError {
   errorId: string;
 }
 
+/**
+ * Builds the standard JSON input for single-file and multiple-files methods to be submitted to Sourcify in std JSON format
+ */
 async function buildStandardJsonInput(
   files: File[],
   language: Language,
@@ -52,16 +81,27 @@ async function buildStandardJsonInput(
     sources[file.name] = { content };
   }
 
+  const standardJsonSettings: any = {};
+
+  // Handle language-specific compiler settings
+  if (language === "solidity") {
+    const soliditySettings = settings as SolidityCompilerSettings;
+    standardJsonSettings.optimizer = {
+      enabled: soliditySettings.optimizerEnabled,
+      runs: soliditySettings.optimizerRuns,
+    };
+  }
+  // For Vyper, no optimization settings are added
+
+  // Only include evmVersion if it's not "default"
+  if (settings.evmVersion?.toLowerCase() !== "default") {
+    standardJsonSettings.evmVersion = settings.evmVersion;
+  }
+
   return {
     language: language === "vyper" ? "Vyper" : "Solidity",
     sources,
-    settings: {
-      optimizer: {
-        enabled: settings.optimizerEnabled,
-        runs: settings.optimizerRuns,
-      },
-      evmVersion: settings.evmVersion === "default" ? "default" : settings.evmVersion,
-    },
+    settings: standardJsonSettings,
   };
 }
 
@@ -81,7 +121,7 @@ async function submitStandardJsonVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -170,7 +210,7 @@ export async function submitMetadataVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await fetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -232,7 +272,7 @@ export async function getVerificationJobStatus(
   serverUrl: string,
   verificationId: string
 ): Promise<VerificationJobStatus> {
-  const response = await fetch(`${serverUrl}/v2/verify/${verificationId}`, {
+  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${verificationId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -249,4 +289,50 @@ export async function getVerificationJobStatus(
   }
 
   return response.json();
+}
+
+export async function submitEtherscanVerification(
+  serverUrl: string,
+  chainId: string,
+  address: string,
+  apiKey: string,
+  vyperVersions?: VyperVersion[] // Needed because VyperVersions are stored in the context and needs to be passed in the processEtherscanResult function
+): Promise<VerificationResponse> {
+  // Fetch data from Etherscan
+  const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
+
+  // Process the result to get files, settings, and contract info
+  const processedResult = await processEtherscanResult(etherscanResult, { vyperVersions });
+
+  // Construct contract identifier in the format contractPath:contractName
+  const contractIdentifier = `${processedResult.contractPath}:${processedResult.contractName}`;
+
+  // Submit verification based on the determined method
+  if (processedResult.verificationMethod === "std-json") {
+    // For std-json method, use the first file which should be the JSON file
+    return await submitStdJsonFile(
+      serverUrl,
+      chainId,
+      address,
+      processedResult.files[0],
+      processedResult.compilerVersion,
+      contractIdentifier
+    );
+  } else {
+    // For single-file and multiple-files methods, use assembleAndSubmitStandardJson
+    if (!processedResult.compilerSettings) {
+      throw new Error("Compiler settings are required for single-file and multiple-files methods");
+    }
+
+    return await assembleAndSubmitStandardJson(
+      serverUrl,
+      chainId,
+      address,
+      processedResult.files,
+      processedResult.language as Language,
+      processedResult.compilerVersion,
+      contractIdentifier,
+      processedResult.compilerSettings
+    );
+  }
 }
