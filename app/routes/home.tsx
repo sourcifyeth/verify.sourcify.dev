@@ -295,7 +295,7 @@ export default function Home() {
               </button>
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+            <form className="space-y-6 md:space-y-8 mb-6" onSubmit={handleSubmit}>
               <ChainAndAddress
                 selectedChainId={selectedChainId}
                 contractAddress={contractAddress}
