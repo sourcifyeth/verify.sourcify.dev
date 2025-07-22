@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import type { Language } from "../types/verification";
 
 interface ValidationParams {
@@ -39,6 +39,29 @@ export function useFormValidation({
   metadataFile,
   evmVersion,
 }: ValidationParams) {
+  // JSON validation state for std-json method
+  const [isJsonValid, setIsJsonValid] = useState(true);
+
+  // Validate JSON files when uploaded for std-json method
+  useEffect(() => {
+    const validateJsonFile = async () => {
+      if ((selectedMethod === "std-json" || selectedMethod === "metadata-json") && uploadedFiles.length > 0) {
+        try {
+          const file = uploadedFiles[0];
+          const content = await file.text();
+          JSON.parse(content);
+          setIsJsonValid(true);
+        } catch (error) {
+          setIsJsonValid(false);
+        }
+      } else {
+        setIsJsonValid(true); // Reset to valid for non-std-json methods
+      }
+    };
+
+    validateJsonFile();
+  }, [selectedMethod, uploadedFiles]);
+
   // Convert selectedLanguage to string for consistency
   const languageString = selectedLanguage || "";
 
@@ -66,7 +89,10 @@ export function useFormValidation({
     if (selectedMethod === "metadata-json") {
       // metadata-json requires both metadata file and source files
       return metadataFile !== null && uploadedFiles.length > 0;
-    } else if (["single-file", "multiple-files", "std-json"].includes(selectedMethod)) {
+    } else if (selectedMethod === "std-json") {
+      // std-json requires uploaded files and valid JSON
+      return uploadedFiles.length > 0 && isJsonValid;
+    } else if (["single-file", "multiple-files"].includes(selectedMethod)) {
       // Other methods require uploaded files
       return uploadedFiles.length > 0;
     }
@@ -117,7 +143,11 @@ export function useFormValidation({
           newErrors.files = "Please upload source files";
         }
       } else if (selectedMethod === "std-json") {
-        newErrors.files = "Please upload standard JSON file";
+        if (uploadedFiles.length === 0) {
+          newErrors.files = "Please upload standard JSON file";
+        } else if (!isJsonValid) {
+          newErrors.files = "Uploaded file contains invalid JSON format";
+        }
       } else if (selectedMethod === "single-file") {
         newErrors.files = "Please upload contract file";
       } else if (selectedMethod === "multiple-files") {
@@ -146,6 +176,7 @@ export function useFormValidation({
     uploadedFiles,
     isEvmVersionRequired,
     evmVersion,
+    isJsonValid,
   ]);
 
   // Calculate overall form validity
@@ -207,6 +238,7 @@ export function useFormValidation({
     uploadedFiles,
     isEvmVersionRequired,
     evmVersion,
+    isJsonValid,
   ]);
 
   return {
