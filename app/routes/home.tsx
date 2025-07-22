@@ -45,6 +45,7 @@ export default function Home() {
   const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
   const [isAddressValid, setIsAddressValid] = React.useState(false);
+  const [lastSubmittedValues, setLastSubmittedValues] = React.useState<string | null>(null);
 
   // Clear success message after 3 seconds
   React.useEffect(() => {
@@ -104,13 +105,46 @@ export default function Home() {
     evmVersion,
   });
 
+  // Create a hash of current form values to detect changes
+  const currentFormHash = React.useMemo(() => {
+    const formValues = {
+      selectedChainId,
+      contractAddress,
+      selectedLanguage,
+      selectedMethod,
+      selectedCompilerVersion,
+      contractIdentifier,
+      evmVersion,
+      uploadedFileNames: uploadedFiles.map(f => f.name + f.size).join(','),
+      metadataFileName: metadataFile ? metadataFile.name + metadataFile.size : '',
+    };
+    return JSON.stringify(formValues);
+  }, [
+    selectedChainId,
+    contractAddress,
+    selectedLanguage,
+    selectedMethod,
+    selectedCompilerVersion,
+    contractIdentifier,
+    evmVersion,
+    uploadedFiles,
+    metadataFile,
+  ]);
+
+  // Check if current form values are the same as last submitted values
+  const hasFormChanged = lastSubmittedValues !== currentFormHash;
+  const canSubmit = isFormValid && hasFormChanged && !isSubmitting;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isFormValid) {
-      const submissionErrors = getSubmissionErrors();
-      console.log("Form submission blocked. Missing:", submissionErrors);
-      // You could show a toast or alert here with the errors
+    if (!canSubmit) {
+      if (!isFormValid) {
+        const submissionErrors = getSubmissionErrors();
+        console.log("Form submission blocked. Missing:", submissionErrors);
+      } else if (!hasFormChanged) {
+        console.log("Form submission blocked. No changes since last submission.");
+      }
       return;
     }
 
@@ -179,6 +213,9 @@ export default function Home() {
         verificationId: result.verificationId,
       });
 
+      // Store current form values hash to prevent duplicate submissions
+      setLastSubmittedValues(currentFormHash);
+
       // Save job to localStorage
       saveJob({
         verificationId: result.verificationId,
@@ -206,6 +243,9 @@ export default function Home() {
     }
     if (!isFormValid) {
       return "Please complete all required fields";
+    }
+    if (!hasFormChanged) {
+      return "No changes since last submission";
     }
     return "Submit verification";
   };
@@ -349,9 +389,9 @@ export default function Home() {
                   <div className="flex justify-center">
                     <button
                       type="submit"
-                      disabled={!isFormValid || isSubmitting}
+                      disabled={!canSubmit}
                       className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
-                        isFormValid && !isSubmitting
+                        canSubmit
                           ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
                           : "bg-gray-300 text-gray-500 !cursor-not-allowed"
                       }`}
