@@ -44,6 +44,7 @@ export default function Home() {
   const [importError, setImportError] = React.useState<string | null>(null);
   const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [isAddressValid, setIsAddressValid] = React.useState(false);
 
   // Clear success message after 3 seconds
   React.useEffect(() => {
@@ -92,31 +93,21 @@ export default function Home() {
 
   const {
     isFormValid,
-    updateAddressValidation,
-    updateChainId,
-    updateLanguage,
-    updateMethod,
-    updateCompilerVersion,
+    errors,
     getSubmissionErrors,
     isFrameworkMethod,
-  } = useFormValidation();
+  } = useFormValidation({
+    isAddressValid,
+    selectedChainId,
+    contractAddress,
+    selectedLanguage,
+    selectedMethod,
+    selectedCompilerVersion,
+    contractIdentifier,
+    uploadedFiles,
+    metadataFile,
+  });
 
-  // Sync verification state with validation hook
-  React.useEffect(() => {
-    updateChainId(selectedChainId);
-  }, [selectedChainId, updateChainId]);
-
-  React.useEffect(() => {
-    updateLanguage(selectedLanguage);
-  }, [selectedLanguage, updateLanguage]);
-
-  React.useEffect(() => {
-    updateMethod(selectedMethod);
-  }, [selectedMethod, updateMethod]);
-
-  React.useEffect(() => {
-    updateCompilerVersion(selectedCompilerVersion);
-  }, [selectedCompilerVersion, updateCompilerVersion]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,7 +252,7 @@ export default function Home() {
                 onChainIdChange={handleChainIdChange}
                 onContractAddressChange={handleContractAddressChange}
                 chains={chains}
-                onValidationChange={updateAddressValidation}
+                onValidationChange={setIsAddressValid}
               />
 
               <ImportSources
@@ -359,23 +350,41 @@ export default function Home() {
               )}
 
               {!isFrameworkMethod && (
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={!isFormValid || isSubmitting}
-                    className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
-                      isFormValid && !isSubmitting
-                        ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                    title={getSubmitButtonTooltip()}
-                  >
-                    {isSubmitting && (
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    )}
-                    <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
-                  </button>
-                </div>
+                <>
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      disabled={!isFormValid || isSubmitting}
+                      className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
+                        isFormValid && !isSubmitting
+                          ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                      title={getSubmitButtonTooltip()}
+                    >
+                      {isSubmitting && (
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      )}
+                      <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
+                    </button>
+                  </div>
+
+                  {/* Validation Errors List */}
+                  {!isFormValid && Object.keys(errors).length > 0 && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                      <h3 className="text-sm font-medium text-red-800 mb-2">Please complete the following fields:</h3>
+                      <ul className="text-sm text-red-700 space-y-1">
+                        {errors.chain && <li>• {errors.chain}</li>}
+                        {errors.address && <li>• {errors.address}</li>}
+                        {errors.language && <li>• {errors.language}</li>}
+                        {errors.method && <li>• {errors.method}</li>}
+                        {errors.files && <li>• {errors.files}</li>}
+                        {errors.compilerVersion && <li>• {errors.compilerVersion}</li>}
+                        {errors.contractIdentifier && <li>• {errors.contractIdentifier}</li>}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </form>
           </div>

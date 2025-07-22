@@ -44,7 +44,7 @@ export default function CompilerSelector({
   }
 
   const isLoading = language === "solidity" ? isSolidityLoading : isVyperLoading;
-  const error = language === "solidity" ? solidityError : vyperError;
+  const compilerError = language === "solidity" ? solidityError : vyperError;
 
   if (isLoading) {
     return (
@@ -58,12 +58,12 @@ export default function CompilerSelector({
     );
   }
 
-  if (error) {
+  if (compilerError) {
     return (
       <div>
         <label className="block text-base font-semibold text-gray-900 mb-2">Compiler Version</label>
         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800">{compilerError}</p>
         </div>
       </div>
     );
