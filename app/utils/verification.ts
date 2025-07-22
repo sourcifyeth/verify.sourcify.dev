@@ -3,17 +3,18 @@ import type { AllChainsResponse, VerifiedContractMinimal } from "../types/verifi
 const SOURCIFY_REPO_URL = import.meta.env.VITE_SOURCIFY_REPO_URL || "https://repo.sourcify.dev";
 
 /**
- * Custom fetch function for Sourcify API calls that adds User-Agent header
+ * Custom fetch function for Sourcify API calls that adds client identification headers
  */
 function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
-  const userAgent = `Sourcify-UI/${gitCommit} (verify.sourcify.dev; Web)`;
   
   return fetch(url, {
     ...options,
     headers: {
       ...options.headers,
-      "User-Agent": userAgent,
+      "X-Client-Source": "sourcify-ui",
+      "X-Client-Version": gitCommit,
+      "X-Client-Type": "web",
     },
   });
 }
