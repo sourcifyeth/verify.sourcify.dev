@@ -30,7 +30,7 @@ export default function SubmissionResultDisplay({
       )}
 
       {submissionResult.success ? (
-        <div className={`flex flex-col items-center text-green-800 ${showCloseButton ? "pr-8" : ""}`}>
+        <div className={`flex flex-col items-center text-green-800`}>
           <h3 className="font-medium text-lg">
             {submissionResult.isEtherscanSubmission
               ? "Etherscan import submitted successfully!"
