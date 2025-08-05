@@ -28,6 +28,12 @@ export default function VerificationMethodSelector({
   // Get the framework message for the selected framework
   const selectedFrameworkMessage = selectedMethod && frameworkMessages[selectedMethod];
 
+  // Check if selected method is a framework method
+  const isFrameworkMethod = frameworkMethods.some((method) => method.id === selectedMethod);
+  
+  // Check if we're in build-info mode (selected method is build-info)
+  const isBuildInfoMode = selectedMethod === "build-info";
+
   return (
     <div>
       <label className="block text-base font-semibold text-gray-900 mb-2">Verification Method</label>
@@ -102,6 +108,53 @@ export default function VerificationMethodSelector({
         ))}
       </div>
 
+      {/* Framework Build-Info Toggle */}
+      {isFrameworkMethod && (
+        <div className="mt-4 mb-4 flex items-center gap-2">
+          <span className="text-sm text-gray-700">Show Commands</span>
+          <label className="relative inline-flex items-center">
+            <input
+              type="checkbox"
+              checked={false}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onMethodSelect("build-info");
+                }
+              }}
+              className="sr-only"
+            />
+            <div className="w-11 h-6 rounded-full relative transition-colors bg-gray-200">
+              <div className="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform"></div>
+            </div>
+          </label>
+          <span className="text-sm text-gray-700">Upload build-info file</span>
+        </div>
+      )}
+
+      {/* Build-info back to framework toggle */}
+      {isBuildInfoMode && (
+        <div className="mt-4 mb-4 flex items-center gap-2">
+          <span className="text-sm text-gray-700">Show Commands</span>
+          <label className="relative inline-flex items-center">
+            <input
+              type="checkbox"
+              checked={true}
+              onChange={(e) => {
+                if (!e.target.checked) {
+                  // Go back to hardhat as default - we could make this smarter by remembering the previous framework
+                  onMethodSelect("hardhat");
+                }
+              }}
+              className="sr-only"
+            />
+            <div className="w-11 h-6 rounded-full relative transition-colors bg-cerulean-blue-600">
+              <div className="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform translate-x-full"></div>
+            </div>
+          </label>
+          <span className="text-sm text-gray-700">Upload build-info file</span>
+        </div>
+      )}
+
       {/* Verification Warnings */}
       {selectedMethodWarning && (
         <div className="mt-4">
@@ -109,9 +162,9 @@ export default function VerificationMethodSelector({
         </div>
       )}
 
-      {selectedFrameworkMessage && (
+      {selectedFrameworkMessage && !isBuildInfoMode && (
         <div className="mt-4">
-          <VerificationWarning type="info">{selectedFrameworkMessage}</VerificationWarning>
+          <VerificationWarning type="info">{selectedFrameworkMessage()}</VerificationWarning>
         </div>
       )}
     </div>

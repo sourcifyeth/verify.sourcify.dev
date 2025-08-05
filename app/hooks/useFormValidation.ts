@@ -42,10 +42,10 @@ export function useFormValidation({
   // JSON validation state for std-json method
   const [isJsonValid, setIsJsonValid] = useState(true);
 
-  // Validate JSON files when uploaded for std-json method
+  // Validate JSON files when uploaded for std-json, build-info, or metadata-json methods
   useEffect(() => {
     const validateJsonFile = async () => {
-      if ((selectedMethod === "std-json" || selectedMethod === "metadata-json") && uploadedFiles.length > 0) {
+      if ((selectedMethod === "std-json" || selectedMethod === "metadata-json" || selectedMethod === "build-info") && uploadedFiles.length > 0) {
         try {
           const file = uploadedFiles[0];
           const content = await file.text();
@@ -67,17 +67,18 @@ export function useFormValidation({
 
   // Check if selected method is a framework method (not a verification method)
   const isFrameworkMethod = FRAMEWORK_METHODS.includes(selectedMethod);
-
-  // Check if compiler version is required (not for metadata, hardhat, or foundry methods)
+  
+  // Check if compiler version is required (not for metadata-json or framework methods)
   const isCompilerVersionRequired =
     languageString && selectedMethod && !["metadata-json", "hardhat", "foundry"].includes(selectedMethod);
 
-  // Check if contract identifier is required (not for metadata-json, hardhat, or foundry methods)
+  // Check if contract identifier is required (not for metadata-json or framework methods)
   const isContractIdentifierRequired =
     languageString && selectedMethod && !["metadata-json", "hardhat", "foundry"].includes(selectedMethod);
 
   // Check if files are required based on the selected method
-  const areFilesRequired = languageString && selectedMethod && !["hardhat", "foundry"].includes(selectedMethod);
+  const areFilesRequired = languageString && selectedMethod && 
+    ["single-file", "multiple-files", "std-json", "metadata-json", "build-info"].includes(selectedMethod);
 
   // Check if EVM version is required (for all languages, not for metadata-json, hardhat, or foundry methods)
   const isEvmVersionRequired =
@@ -89,8 +90,8 @@ export function useFormValidation({
     if (selectedMethod === "metadata-json") {
       // metadata-json requires both metadata file and source files
       return metadataFile !== null && uploadedFiles.length > 0;
-    } else if (selectedMethod === "std-json") {
-      // std-json requires uploaded files and valid JSON
+    } else if (selectedMethod === "std-json" || selectedMethod === "build-info") {
+      // std-json and build-info require uploaded files and valid JSON
       return uploadedFiles.length > 0 && isJsonValid;
     } else if (["single-file", "multiple-files"].includes(selectedMethod)) {
       // Other methods require uploaded files
@@ -145,6 +146,12 @@ export function useFormValidation({
       } else if (selectedMethod === "std-json") {
         if (uploadedFiles.length === 0) {
           newErrors.files = "Please upload standard JSON file";
+        } else if (!isJsonValid) {
+          newErrors.files = "Uploaded file contains invalid JSON format";
+        }
+      } else if (selectedMethod === "build-info") {
+        if (uploadedFiles.length === 0) {
+          newErrors.files = "Please upload build-info file";
         } else if (!isJsonValid) {
           newErrors.files = "Uploaded file contains invalid JSON format";
         }

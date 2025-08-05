@@ -1,7 +1,7 @@
 export type Language = "solidity" | "vyper";
 
 // Verification method IDs
-export type VerificationMethod = "single-file" | "multiple-files" | "std-json" | "metadata-json";
+export type VerificationMethod = "single-file" | "multiple-files" | "std-json" | "metadata-json" | "build-info";
 
 // Framework method IDs
 export type FrameworkVerificationMethod = "hardhat" | "foundry";
@@ -27,7 +27,14 @@ export interface VerificationMethods {
 }
 
 export interface FrameworkMessages {
-  [key: string]: React.ReactNode;
+  [key: string]: () => React.ReactNode;
+}
+
+export interface BuildInfoParseResult {
+  isValid: boolean;
+  error?: string;
+  standardJson?: any;
+  compilerVersion?: string;
 }
 
 export interface VerifiedContractMinimal {

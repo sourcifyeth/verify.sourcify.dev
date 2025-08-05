@@ -57,6 +57,12 @@ const getFileRequirements = (method: VerificationMethod, language: Language | nu
         maxFiles: 1,
         description: `Solidity Metadata JSON file`,
       };
+    case "build-info":
+      return {
+        allowedExtensions: [".json"],
+        maxFiles: 1,
+        description: "Build-info JSON file from Hardhat/Foundry artifacts directory",
+      };
     default:
       return {
         allowedExtensions: [".sol"],

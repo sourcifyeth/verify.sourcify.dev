@@ -68,7 +68,7 @@ export default function ContractIdentifier({
       try {
         const contracts: ParsedContract[] = [];
 
-        if (selectedMethod === "std-json") {
+        if (selectedMethod === "std-json" || selectedMethod === "build-info") {
           // For std-json, use the first uploaded file
           const jsonFile = uploadedFiles[0];
           if (jsonFile) {

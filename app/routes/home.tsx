@@ -16,6 +16,8 @@ import { verificationMethods, frameworkMethods } from "../data/verificationMetho
 import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
 import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
+import { parseBuildInfoFile } from "../utils/buildInfoValidation";
+import { useCompilerVersions } from "../contexts/CompilerVersionsContext";
 import MetadataValidation from "../components/verification/MetadataValidation";
 import RecentVerifications from "../components/verification/RecentVerifications";
 import { saveJob } from "../utils/jobStorage";
@@ -41,11 +43,13 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
+  const { solidityVersions, vyperVersions } = useCompilerVersions();
   const [importError, setImportError] = React.useState<string | null>(null);
   const [importSuccess, setImportSuccess] = React.useState<string | null>(null);
   const [showSettings, setShowSettings] = React.useState(false);
   const [isAddressValid, setIsAddressValid] = React.useState(false);
   const [lastSubmittedValues, setLastSubmittedValues] = React.useState<string | null>(null);
+  const [buildInfoError, setBuildInfoError] = React.useState<string | null>(null);
 
   // Clear success message after 3 seconds
   React.useEffect(() => {
@@ -59,6 +63,46 @@ export default function Home() {
   const handleImportError = (error: string) => {
     setImportSuccess(null);
     setImportError(error);
+  };
+
+  // Handle build-info file change (now integrated with regular file handling)
+  const handleBuildInfoFileChange = async (files: File[]) => {
+    setBuildInfoError(null);
+    
+    if (files.length === 0) {
+      handleFilesChange([]);
+      return;
+    }
+    
+    try {
+      const file = files[0];
+      const content = await file.text();
+      const availableVersions = selectedLanguage === 'vyper' ? vyperVersions : solidityVersions;
+      const parseResult = parseBuildInfoFile(content, availableVersions);
+      
+      if (!parseResult.isValid) {
+        setBuildInfoError(parseResult.error || 'Invalid build-info file');
+        handleFilesChange([]);
+        return;
+      }
+      
+      // Auto-populate compiler version if available
+      if (parseResult.compilerVersion) {
+        handleCompilerVersionSelect(parseResult.compilerVersion);
+      }
+      
+      // Create a std-json file from the parsed build-info and store in regular uploadedFiles
+      if (parseResult.standardJson) {
+        const standardJsonContent = JSON.stringify(parseResult.standardJson, null, 2);
+        const stdJsonFile = new File([standardJsonContent], 'build-info.json', { type: 'application/json' });
+        handleFilesChange([stdJsonFile]);
+      }
+      
+    } catch (error) {
+      setBuildInfoError('Error processing build-info file');
+      handleFilesChange([]);
+      console.error('Build-info processing error:', error);
+    }
   };
 
   const {
@@ -92,7 +136,10 @@ export default function Home() {
     setSubmissionResult,
   } = useVerificationState();
 
-  const { isFormValid, errors, getSubmissionErrors, isFrameworkMethod } = useFormValidation({
+  // Check if selected method is a framework method
+  const isFrameworkMethod = frameworkMethods.some(method => method.id === selectedMethod);
+  
+  const { isFormValid, errors, getSubmissionErrors } = useFormValidation({
     isAddressValid,
     selectedChainId,
     contractAddress,
@@ -185,10 +232,11 @@ export default function Home() {
           metadata,
           creationTransactionHash || undefined
         );
-      } else if (selectedMethod === "std-json") {
-        // For std-json method, use the uploaded file directly
+      } else if (selectedMethod === "std-json" || selectedMethod === "build-info") {
+        // For std-json method or build-info method, use the uploaded file directly
         if (uploadedFiles.length === 0) {
-          throw new Error("No standard JSON file uploaded");
+          const fileType = selectedMethod === "build-info" ? "build-info" : "standard JSON";
+          throw new Error(`No ${fileType} file uploaded`);
         }
 
         result = await submitStdJsonFile(
@@ -329,12 +377,24 @@ export default function Home() {
                 />
               )}
 
+              {buildInfoError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-800">{buildInfoError}</p>
+                </div>
+              )}
+
               {!isFrameworkMethod && !!selectedMethod && (
                 <>
                   <FileUpload
                     selectedMethod={selectedMethod as VerificationMethod}
                     selectedLanguage={selectedLanguage}
-                    onFilesChange={selectedMethod === "metadata-json" ? handleMetadataFileChange : handleFilesChange}
+                    onFilesChange={
+                      selectedMethod === "metadata-json" 
+                        ? handleMetadataFileChange 
+                        : selectedMethod === "build-info"
+                        ? handleBuildInfoFileChange
+                        : handleFilesChange
+                    }
                     uploadedFiles={
                       selectedMethod === "metadata-json" ? (metadataFile ? [metadataFile] : []) : uploadedFiles
                     }
@@ -360,6 +420,7 @@ export default function Home() {
                   )}
                 </>
               )}
+
 
               <CompilerSelector
                 language={selectedLanguage}
