@@ -1,12 +1,12 @@
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { verificationMethods, frameworkMethods, frameworkMessages } from "../../data/verificationMethods";
-import type { Language } from "../../types/verification";
+import type { Language, SelectedMethod } from "../../types/verification";
 import VerificationWarning from "./VerificationWarning";
 
 interface VerificationMethodSelectorProps {
   selectedLanguage: Language | null;
-  selectedMethod: string;
-  onMethodSelect: (method: string) => void;
+  selectedMethod: SelectedMethod | "";
+  onMethodSelect: (method: SelectedMethod) => void;
 }
 
 export default function VerificationMethodSelector({

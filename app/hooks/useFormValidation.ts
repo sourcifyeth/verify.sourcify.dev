@@ -1,12 +1,12 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
-import type { Language } from "../types/verification";
+import type { Language, SelectedMethod } from "../types/verification";
 
 interface ValidationParams {
   isAddressValid: boolean;
   selectedChainId: string;
   contractAddress: string;
   selectedLanguage: Language | null;
-  selectedMethod: string;
+  selectedMethod: SelectedMethod | "";
   selectedCompilerVersion: string;
   contractIdentifier: string;
   uploadedFiles: File[];

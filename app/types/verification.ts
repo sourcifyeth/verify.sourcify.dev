@@ -6,6 +6,9 @@ export type VerificationMethod = "single-file" | "multiple-files" | "std-json" |
 // Framework method IDs
 export type FrameworkVerificationMethod = "hardhat" | "foundry";
 
+// Combined type for selectedMethod that includes both verification and framework methods
+export type SelectedMethod = VerificationMethod | FrameworkVerificationMethod;
+
 // Method objects with full details
 export interface VerificationMethodObject {
   id: VerificationMethod;

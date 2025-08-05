@@ -12,7 +12,7 @@ import FileUpload from "../components/verification/FileUpload";
 import CompilerSettings from "../components/verification/CompilerSettings";
 import ContractIdentifier from "../components/verification/ContractIdentifier";
 import OptionalFields from "../components/verification/OptionalFields";
-import { verificationMethods, frameworkMethods } from "../data/verificationMethods";
+import { frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
 import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
@@ -313,18 +313,6 @@ export default function Home() {
     return "Submit verification";
   };
 
-  // Helper function to get the method object from the selected method ID
-  const getSelectedMethodObject = () => {
-    if (!selectedMethod || !selectedLanguage) return null;
-
-    // Check verification methods first
-    const verificationMethod = verificationMethods[selectedLanguage]?.find((m) => m.id === selectedMethod);
-    if (verificationMethod) return verificationMethod;
-
-    // Check framework methods
-    const frameworkMethod = frameworkMethods.find((m) => m.id === selectedMethod);
-    return frameworkMethod || null;
-  };
 
   return (
     <div className="pb-12 bg-cerulean-blue-50 pt-1">
@@ -424,7 +412,7 @@ export default function Home() {
 
               <CompilerSelector
                 language={selectedLanguage}
-                verificationMethod={getSelectedMethodObject()}
+                selectedMethod={selectedMethod}
                 selectedVersion={selectedCompilerVersion}
                 onVersionSelect={handleCompilerVersionSelect}
               />
