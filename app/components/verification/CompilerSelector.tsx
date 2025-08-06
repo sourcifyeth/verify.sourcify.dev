@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
 import type { SolidityVersion, VyperVersion } from "../../contexts/CompilerVersionsContext";
-import type { Language, VerificationMethodObject, FrameworkMethodObject } from "../../types/verification";
+import type { Language, SelectedMethod } from "../../types/verification";
 
 interface CompilerSelectorProps {
   language: Language | null;
-  verificationMethod: VerificationMethodObject | FrameworkMethodObject | null;
+  selectedMethod: SelectedMethod | "";
   selectedVersion?: string;
   onVersionSelect: (version: string) => void;
 }
 
 export default function CompilerSelector({
   language,
-  verificationMethod,
+  selectedMethod,
   selectedVersion,
   onVersionSelect,
 }: CompilerSelectorProps) {
@@ -31,14 +31,14 @@ export default function CompilerSelector({
   const [showPrereleases, setShowPrereleases] = useState(false);
 
   // Don't show if language is null or if using metadata/framework methods
-  if (!language || !verificationMethod) {
+  if (!language || !selectedMethod) {
     return null;
   }
 
   if (
-    verificationMethod.id === "metadata-json" ||
-    verificationMethod.id === "hardhat" ||
-    verificationMethod.id === "foundry"
+    selectedMethod === "metadata-json" ||
+    selectedMethod === "hardhat" ||
+    selectedMethod === "foundry"
   ) {
     return null;
   }

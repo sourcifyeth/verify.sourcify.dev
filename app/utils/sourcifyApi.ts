@@ -7,7 +7,7 @@ import type { VyperVersion } from "../contexts/CompilerVersionsContext";
  */
 function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
-  
+
   return fetch(url, {
     ...options,
     headers: {

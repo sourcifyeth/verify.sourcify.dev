@@ -1,12 +1,14 @@
 import { Tooltip as ReactTooltip } from "react-tooltip";
+import { useState, useEffect } from "react";
+import { MdInfo } from "react-icons/md";
 import { verificationMethods, frameworkMethods, frameworkMessages } from "../../data/verificationMethods";
-import type { Language } from "../../types/verification";
+import type { Language, SelectedMethod } from "../../types/verification";
 import VerificationWarning from "./VerificationWarning";
 
 interface VerificationMethodSelectorProps {
   selectedLanguage: Language | null;
-  selectedMethod: string;
-  onMethodSelect: (method: string) => void;
+  selectedMethod: SelectedMethod | "";
+  onMethodSelect: (method: SelectedMethod) => void;
 }
 
 export default function VerificationMethodSelector({
@@ -14,9 +16,25 @@ export default function VerificationMethodSelector({
   selectedMethod,
   onMethodSelect,
 }: VerificationMethodSelectorProps) {
+  // Keep track of the last selected framework method so we can return to it
+  const [lastFrameworkMethod, setLastFrameworkMethod] = useState<"hardhat" | "foundry">("hardhat");
+  
   if (!selectedLanguage) return null;
 
   const methods = verificationMethods[selectedLanguage as keyof typeof verificationMethods];
+  
+  // Update lastFrameworkMethod when a framework method is selected
+  useEffect(() => {
+    if (frameworkMethods.some(method => method.id === selectedMethod)) {
+      setLastFrameworkMethod(selectedMethod as "hardhat" | "foundry");
+    }
+  }, [selectedMethod]);
+
+  // Check if selected method is a framework method
+  const isFrameworkMethod = frameworkMethods.some((method) => method.id === selectedMethod);
+  
+  // Check if we're in build-info mode (selected method is build-info)
+  const isBuildInfoMode = selectedMethod === "build-info";
 
   // Get the warning for the selected method
   const selectedMethodWarning =
@@ -25,8 +43,12 @@ export default function VerificationMethodSelector({
           ?.warning
       : null;
 
-  // Get the framework message for the selected framework
-  const selectedFrameworkMessage = selectedMethod && frameworkMessages[selectedMethod];
+  // Get the framework message for the selected framework (or the active framework in build-info mode)
+  const selectedFrameworkMessage = (isFrameworkMethod && frameworkMessages[selectedMethod]) || 
+                                   (isBuildInfoMode && frameworkMessages[lastFrameworkMethod]);
+  
+  // Get the currently active framework method for visual selection purposes
+  const activeFrameworkMethod = isBuildInfoMode ? lastFrameworkMethod : (isFrameworkMethod ? selectedMethod : null);
 
   return (
     <div>
@@ -85,7 +107,7 @@ export default function VerificationMethodSelector({
             type="button"
             onClick={() => onMethodSelect(method.id)}
             className={`relative flex items-center justify-center gap-2 p-3 border-2 rounded-lg text-center transition-all duration-200 w-36 ${
-              selectedMethod === method.id
+              activeFrameworkMethod === method.id
                 ? "border-cerulean-blue-500 bg-cerulean-blue-50"
                 : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"
             }`}
@@ -93,7 +115,7 @@ export default function VerificationMethodSelector({
             <img src={method.icon} alt={method.title} className="w-6 h-6" />
             <h3
               className={`text-base font-medium ${
-                selectedMethod === method.id ? "text-cerulean-blue-600" : "text-gray-700"
+                activeFrameworkMethod === method.id ? "text-cerulean-blue-600" : "text-gray-700"
               }`}
             >
               {method.title}
@@ -102,6 +124,47 @@ export default function VerificationMethodSelector({
         ))}
       </div>
 
+      {/* Framework Build-Info Toggle */}
+      {(isFrameworkMethod || isBuildInfoMode) && (
+        <div className="mt-4 mb-4 flex items-center gap-2">
+          <span className="text-sm text-gray-700">Show Commands</span>
+          <label className="relative inline-flex items-center">
+            <input
+              type="checkbox"
+              checked={isBuildInfoMode}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onMethodSelect("build-info");
+                } else {
+                  onMethodSelect(lastFrameworkMethod);
+                }
+              }}
+              className="sr-only"
+            />
+            <div className={`w-11 h-6 rounded-full relative transition-colors ${
+              isBuildInfoMode ? "bg-cerulean-blue-600" : "bg-gray-200"
+            }`}>
+              <div className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform ${
+                isBuildInfoMode ? "translate-x-full" : ""
+              }`}></div>
+            </div>
+          </label>
+          <span className="text-sm text-gray-700 flex items-center gap-1">
+            Upload build-info file
+            <button
+              type="button"
+              data-tooltip-id="build-info-tooltip"
+              data-tooltip-content="Build-info files are saved compilation outputs from Hardhat and Foundry. While it's recommended to use the framework commands directly for verification, you can also upload these files. Find them in artifacts/build-info (Hardhat) or out/build-info (Foundry)."
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              <MdInfo size={16} />
+            </button>
+            <ReactTooltip id="build-info-tooltip" place="top" style={{ maxWidth: '300px' }} />
+          </span>
+        </div>
+      )}
+
+
       {/* Verification Warnings */}
       {selectedMethodWarning && (
         <div className="mt-4">
@@ -109,9 +172,9 @@ export default function VerificationMethodSelector({
         </div>
       )}
 
-      {selectedFrameworkMessage && (
+      {selectedFrameworkMessage && !isBuildInfoMode && (
         <div className="mt-4">
-          <VerificationWarning type="info">{selectedFrameworkMessage}</VerificationWarning>
+          <VerificationWarning type="info">{selectedFrameworkMessage()}</VerificationWarning>
         </div>
       )}
     </div>

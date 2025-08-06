@@ -23,7 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <ChainsProvider>
             <CompilerVersionsProvider>
               <header className="shadow-sm">
-                <div className="mx-auto py-3 md:py-4 flex items-center justify-between w-full max-w-[100rem] px-4 md:px-12">
+                <div className="mx-auto py-3 md:py-4 flex items-center justify-between w-full max-w-[100rem] px-4 md:px-12 lg:px-12 xl:px-24">
                   <Link to="/" className="flex items-center">
                     <img
                       src="/sourcify.png"

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import type { Language, SubmissionResult } from "../types/verification";
+import type { Language, SubmissionResult, SelectedMethod } from "../types/verification";
 
 export function useVerificationState() {
   const [selectedChainId, setSelectedChainId] = useState<string>("");
   const [contractAddress, setContractAddress] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<SelectedMethod | "">("");
   const [selectedCompilerVersion, setSelectedCompilerVersion] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [metadataFile, setMetadataFile] = useState<File | null>(null);
@@ -39,7 +39,7 @@ export function useVerificationState() {
     setContractIdentifier(""); // Reset contract identifier when language changes
   };
 
-  const handleMethodSelect = (method: string) => {
+  const handleMethodSelect = (method: SelectedMethod) => {
     setSelectedMethod(method);
     setSelectedCompilerVersion(""); // Reset compiler version when method changes
     setUploadedFiles([]); // Reset files when method changes
