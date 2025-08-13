@@ -9,7 +9,6 @@ export interface SolidityVersion {
 export interface VyperVersion {
   version: string;
   longVersion: string;
-  build: string;
   isPrerelease: boolean;
 }
 
@@ -34,7 +33,7 @@ interface CompilerVersionsContextType {
 const CompilerVersionsContext = createContext<CompilerVersionsContextType | undefined>(undefined);
 
 const SOLC_VERSIONS_LIST_URL = "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.txt";
-const VYPER_VERSIONS_LIST_URL = "https://raw.githubusercontent.com/blockscout/solc-bin/refs/heads/main/vyper.list.json";
+const VYPER_VERSIONS_LIST_URL = "https://vyper-releases-mirror.hardhat.org/list.json";
 
 function formatSolidityVersionName(filename: string): SolidityVersion {
   // Remove "soljson-v" prefix and ".js" suffix
@@ -48,11 +47,17 @@ function formatSolidityVersionName(filename: string): SolidityVersion {
   };
 }
 
-interface VyperBuild {
-  version: string;
-  longVersion: string;
-  build: string;
-  prerelease?: string;
+function getVersionWithCommit(assetName: string): string {
+  // Remove vyper. prefix and platform suffix (.darwin, .linux, .windows.exe)
+  return assetName.replace(/^vyper\./, "").replace(/\.(darwin|linux|windows\.exe)$/, "");
+}
+
+interface HardhatVyperVersion {
+  tag_name: string;
+  assets: {
+    name: string;
+    browser_download_url: string;
+  }[];
 }
 
 export function CompilerVersionsProvider({ children }: { children: React.ReactNode }) {
@@ -91,13 +96,21 @@ export function CompilerVersionsProvider({ children }: { children: React.ReactNo
   useEffect(() => {
     fetch(VYPER_VERSIONS_LIST_URL)
       .then((response) => response.json())
-      .then((data: { builds: VyperBuild[] }) => {
-        const allVersionsList: VyperVersion[] = data.builds.map((build) => ({
-          version: build.version,
-          longVersion: build.longVersion,
-          build: build.build,
-          isPrerelease: !!build.prerelease,
-        }));
+      .then((data: HardhatVyperVersion[]) => {
+        const allVersionsList: VyperVersion[] = data
+          .filter((release) => release.assets.length > 0)
+          .map((release) => {
+            const versionWithCommit = getVersionWithCommit(release.assets[0].name);
+            const version = release.tag_name.replace(/^v/, ""); // Remove 'v' prefix
+            // Check if tag has suffix after version (e.g., v0.4.1b1 is prerelease, v0.4.1 is not)
+            const isPrerelease = /^v\d+\.\d+\.\d+.+/.test(release.tag_name);
+
+            return {
+              version,
+              longVersion: versionWithCommit,
+              isPrerelease,
+            };
+          });
 
         setVyperVersions(allVersionsList);
         setOfficialVyperVersions(allVersionsList.filter((version) => !version.isPrerelease));
