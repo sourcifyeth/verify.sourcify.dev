@@ -1,11 +1,13 @@
 import type { Language } from "../types/verification";
 import { fetchFromEtherscan, processEtherscanResult } from "./etherscanApi";
-import type { VyperVersion } from "../contexts/CompilerVersionsContext";
 
 /**
  * Custom fetch function for Sourcify API calls that adds client identification headers
  */
-function sourcifyFetch(url: string, options: RequestInit = {}): Promise<Response> {
+function sourcifyFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
   const gitCommit = import.meta.env.VITE_GIT_COMMIT || "dev";
 
   return fetch(url, {
@@ -121,13 +123,16 @@ async function submitStandardJsonVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${chainId}/${address}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const response = await sourcifyFetch(
+    `${serverUrl}/v2/verify/${chainId}/${address}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 
   if (!response.ok) {
     const error: VerificationError = await response.json();
@@ -210,13 +215,16 @@ export async function submitMetadataVerification(
     ...(creationTransactionHash && { creationTransactionHash }),
   };
 
-  const response = await sourcifyFetch(`${serverUrl}/v2/verify/metadata/${chainId}/${address}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const response = await sourcifyFetch(
+    `${serverUrl}/v2/verify/metadata/${chainId}/${address}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 
   if (!response.ok) {
     const error: VerificationError = await response.json();
@@ -272,12 +280,15 @@ export async function getVerificationJobStatus(
   serverUrl: string,
   verificationId: string
 ): Promise<VerificationJobStatus> {
-  const response = await sourcifyFetch(`${serverUrl}/v2/verify/${verificationId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await sourcifyFetch(
+    `${serverUrl}/v2/verify/${verificationId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -295,44 +306,18 @@ export async function submitEtherscanVerification(
   serverUrl: string,
   chainId: string,
   address: string,
-  apiKey: string,
-  vyperVersions?: VyperVersion[] // Needed because VyperVersions are stored in the context and needs to be passed in the processEtherscanResult function
+  apiKey: string
 ): Promise<VerificationResponse> {
-  // Fetch data from Etherscan
+  // Fetch data from Etherscan and process the result
   const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
+  const processedResult = await processEtherscanResult(etherscanResult);
 
-  // Process the result to get files, settings, and contract info
-  const processedResult = await processEtherscanResult(etherscanResult, { vyperVersions });
-
-  // Construct contract identifier in the format contractPath:contractName
-  const contractIdentifier = `${processedResult.contractPath}:${processedResult.contractName}`;
-
-  // Submit verification based on the determined method
-  if (processedResult.verificationMethod === "std-json") {
-    // For std-json method, use the first file which should be the JSON file
-    return await submitStdJsonFile(
-      serverUrl,
-      chainId,
-      address,
-      processedResult.files[0],
-      processedResult.compilerVersion,
-      contractIdentifier
-    );
-  } else {
-    // For single-file and multiple-files methods, use assembleAndSubmitStandardJson
-    if (!processedResult.compilerSettings) {
-      throw new Error("Compiler settings are required for single-file and multiple-files methods");
-    }
-
-    return await assembleAndSubmitStandardJson(
-      serverUrl,
-      chainId,
-      address,
-      processedResult.files,
-      processedResult.language as Language,
-      processedResult.compilerVersion,
-      contractIdentifier,
-      processedResult.compilerSettings
-    );
-  }
+  return await submitStandardJsonVerification(
+    serverUrl,
+    chainId,
+    address,
+    processedResult.jsonInput as StandardJsonInput,
+    processedResult.compilerVersion,
+    `${processedResult.contractPath}:${processedResult.contractName}`
+  );
 }
