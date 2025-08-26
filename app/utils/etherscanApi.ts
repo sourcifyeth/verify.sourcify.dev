@@ -1,253 +1,83 @@
-import type { Language, VerificationMethod } from "../types/verification";
 import type { VyperVersion } from "../contexts/CompilerVersionsContext";
-import type { SolidityCompilerSettings, VyperCompilerSettings } from "./sourcifyApi";
+import {
+  EtherscanUtils,
+  EtherscanImportError,
+  type EtherscanResult,
+  type ProcessedEtherscanResult,
+} from "@ethereum-sourcify/lib-sourcify";
 
 // Function to convert Vyper short version to long version using pre-loaded versions
-export const getVyperLongVersionFromList = (shortVersion: string, vyperVersions: VyperVersion[]): string => {
-  const foundVersion = vyperVersions.find((version) => version.version === shortVersion);
+export const getVyperLongVersionFromList = (
+  shortVersion: string,
+  vyperVersions: VyperVersion[]
+): string => {
+  const foundVersion = vyperVersions.find(
+    (version) => version.version === shortVersion
+  );
   return foundVersion ? foundVersion.longVersion : shortVersion;
-};
-
-// Helper function to generate compiler settings from Etherscan result
-const generateCompilerSettings = (
-  language: Language,
-  etherscanResult: EtherscanResult
-): SolidityCompilerSettings | VyperCompilerSettings => {
-  if (language === "solidity") {
-    const settings: SolidityCompilerSettings = {
-      optimizerEnabled: etherscanResult.OptimizationUsed === "1",
-      optimizerRuns: parseInt(etherscanResult.Runs),
-    };
-
-    // Only include evmVersion if it's not "default"
-    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
-      settings.evmVersion = etherscanResult.EVMVersion;
-    }
-
-    return settings;
-  } else {
-    // For Vyper, no optimization settings
-    const settings: VyperCompilerSettings = {};
-
-    // Only include evmVersion if it's not "default"
-    if (etherscanResult.EVMVersion.toLowerCase() !== "default") {
-      settings.evmVersion = etherscanResult.EVMVersion;
-    }
-
-    return settings;
-  }
-};
-
-export interface EtherscanResult {
-  SourceCode: string;
-  ABI: string;
-  ContractName: string;
-  CompilerVersion: string;
-  OptimizationUsed: string;
-  Runs: string;
-  ConstructorArguments: string;
-  EVMVersion: string;
-  Library: string;
-  LicenseType: string;
-  Proxy: string;
-  Implementation: string;
-  SwarmSource: string;
-  ContractFileName?: string;
-}
-
-export interface ProcessedEtherscanResult {
-  language: Language;
-  verificationMethod: VerificationMethod;
-  compilerVersion: string;
-  contractName: string;
-  contractPath: string;
-  files: File[];
-  compilerSettings?: SolidityCompilerSettings | VyperCompilerSettings;
-}
-
-export interface ProcessEtherscanOptions {
-  vyperVersions?: VyperVersion[];
-}
-
-export const isEtherscanJsonInput = (sourceCodeObject: string): boolean => {
-  return sourceCodeObject.startsWith("{{");
-};
-
-export const isEtherscanMultipleFilesObject = (sourceCodeObject: string): boolean => {
-  try {
-    return Object.keys(JSON.parse(sourceCodeObject)).length > 0;
-  } catch (e) {
-    return false;
-  }
-};
-
-export const parseEtherscanJsonInput = (sourceCodeObject: string) => {
-  // Etherscan wraps the json object: {{ ... }}
-  return JSON.parse(sourceCodeObject.slice(1, -1));
-};
-
-export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
-  return etherscanResult.CompilerVersion.startsWith("vyper");
-};
-
-export const getContractPathFromSoliditySources = (contractName: string, sources: any): string | undefined => {
-  // Look for a file that contains the contract definition
-  for (const [filePath, source] of Object.entries(sources)) {
-    const content = typeof source === "string" ? source : (source as any).content;
-    if (content && typeof content === "string") {
-      // Look for contract definition in the file
-      const contractRegex = new RegExp(`contract\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
-      const interfaceRegex = new RegExp(`interface\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
-      const libraryRegex = new RegExp(`library\\s+${contractName}\\s*[\\s\\S]*?\\{`, "g");
-
-      if (contractRegex.test(content) || interfaceRegex.test(content) || libraryRegex.test(content)) {
-        return filePath;
-      }
-    }
-  }
-  return undefined;
 };
 
 export const fetchFromEtherscan = async (
   chainId: string,
   address: string,
-  apiKey: string
+  apiKey: string = ""
 ): Promise<EtherscanResult> => {
-  const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getsourcecode&address=${address}&apikey=${apiKey}`;
-
-  let response: Response;
-
   try {
-    response = await fetch(url);
+    return await EtherscanUtils.fetchFromEtherscan(chainId, address, apiKey);
   } catch (error) {
-    throw new Error(`Network error: Failed to connect to Etherscan API`);
+    if (error instanceof EtherscanImportError) {
+      // Convert EtherscanImportError to regular Error for compatibility
+      switch (error.code) {
+        case "etherscan_network_error":
+          throw new Error("Network error: Failed to connect to Etherscan API");
+        case "etherscan_http_error":
+          throw new Error(
+            `Etherscan API responded with status ${(error as any).status}`
+          );
+        case "etherscan_rate_limit":
+          throw new Error(
+            "Etherscan API rate limit reached, please try again later"
+          );
+        case "etherscan_api_error":
+          throw new Error(
+            `Etherscan API error: ${(error as any).apiErrorMessage}`
+          );
+        case "etherscan_not_verified":
+          throw new Error("This contract is not verified on Etherscan");
+        default:
+          throw new Error(`Etherscan error: ${error.message}`);
+      }
+    }
+    throw error;
   }
-
-  if (!response.ok) {
-    throw new Error(`Etherscan API responded with status ${response.status}`);
-  }
-
-  const resultJson = await response.json();
-
-  if (resultJson.message === "NOTOK" && resultJson.result.includes("rate limit reached")) {
-    throw new Error("Etherscan API rate limit reached, please try again later");
-  }
-
-  if (resultJson.message === "NOTOK") {
-    throw new Error(`Etherscan API error: ${resultJson.result}`);
-  }
-
-  if (resultJson.result[0].SourceCode === "") {
-    throw new Error("This contract is not verified on Etherscan");
-  }
-
-  return resultJson.result[0] as EtherscanResult;
 };
 
 export const processEtherscanResult = async (
-  etherscanResult: EtherscanResult,
-  options: ProcessEtherscanOptions = {}
+  etherscanResult: EtherscanResult
 ): Promise<ProcessedEtherscanResult> => {
-  const sourceCodeObject = etherscanResult.SourceCode;
-  const contractName = etherscanResult.ContractName;
+  try {
+    let processedResult;
 
-  // Determine language
-  const language: Language = isVyperResult(etherscanResult) ? "vyper" : "solidity";
-
-  // Process compiler version
-  let compilerVersion = etherscanResult.CompilerVersion;
-
-  if (compilerVersion.startsWith("vyper:")) {
-    const shortVersion = compilerVersion.slice(6);
-    // Convert short version to long version for Vyper using pre-loaded versions
-    if (options.vyperVersions) {
-      compilerVersion = getVyperLongVersionFromList(shortVersion, options.vyperVersions);
+    if (EtherscanUtils.isVyperResult(etherscanResult)) {
+      processedResult = await EtherscanUtils.processVyperResultFromEtherscan(
+        etherscanResult
+      );
     } else {
-      // Fallback to short version if no versions provided
-      compilerVersion = shortVersion;
+      processedResult =
+        EtherscanUtils.processSolidityResultFromEtherscan(etherscanResult);
     }
-  } else if (compilerVersion.charAt(0) === "v") {
-    compilerVersion = compilerVersion.slice(1);
+
+    return {
+      compilerVersion: processedResult.compilerVersion,
+      contractName: processedResult.contractName,
+      contractPath: processedResult.contractPath,
+      jsonInput: processedResult.jsonInput,
+    };
+  } catch (error) {
+    if (error instanceof EtherscanImportError) {
+      // Convert EtherscanImportError to regular Error for compatibility
+      throw new Error(error.message);
+    }
+    throw error;
   }
-
-  let verificationMethod: VerificationMethod;
-  let files: File[] = [];
-  let contractPath: string;
-  let compilerSettings: SolidityCompilerSettings | VyperCompilerSettings | undefined;
-
-  // Determine verification method and create files
-  if (isEtherscanJsonInput(sourceCodeObject)) {
-    // std-json method - compiler settings are already in the JSON input
-    verificationMethod = "std-json";
-    const jsonInput = parseEtherscanJsonInput(sourceCodeObject);
-
-    // Use ContractFileName if available, otherwise search in sources
-    if (etherscanResult.ContractFileName) {
-      contractPath = etherscanResult.ContractFileName;
-    } else {
-      const foundPath = getContractPathFromSoliditySources(contractName, jsonInput.sources);
-      if (!foundPath) {
-        throw new Error("Could not find contract path in sources");
-      }
-      contractPath = foundPath;
-    }
-
-    // Create a single JSON file
-    const jsonContent = JSON.stringify(jsonInput, null, 2);
-    const jsonFile = new File([jsonContent], `${contractName}-input.json`, { type: "application/json" });
-    files = [jsonFile];
-
-    // For std-json, we don't generate compiler settings since they're in the JSON input
-    // compilerSettings will be undefined
-  } else if (isEtherscanMultipleFilesObject(sourceCodeObject)) {
-    // multiple-files method
-    verificationMethod = "multiple-files";
-    const sourcesObject = JSON.parse(sourceCodeObject) as { [key: string]: { content: string } };
-
-    // Use ContractFileName if available, otherwise search in sources
-    if (etherscanResult.ContractFileName) {
-      contractPath = etherscanResult.ContractFileName;
-    } else {
-      const foundPath = getContractPathFromSoliditySources(contractName, sourcesObject);
-      if (!foundPath) {
-        throw new Error("Could not find contract path in sources");
-      }
-      contractPath = foundPath;
-    }
-
-    // Create files from sources object
-    files = Object.entries(sourcesObject).map(([filename, object]) => {
-      return new File([object.content as string], filename, { type: "text/plain" });
-    });
-
-    // Generate compiler settings for multiple-files method
-    compilerSettings = generateCompilerSettings(language, etherscanResult);
-  } else {
-    // single-file method
-    verificationMethod = "single-file";
-    const extension = language === "vyper" ? "vy" : "sol";
-    
-    // Use ContractFileName if available, otherwise construct filename
-    if (etherscanResult.ContractFileName) {
-      contractPath = etherscanResult.ContractFileName;
-    } else {
-      contractPath = `${contractName}.${extension}`;
-    }
-
-    const sourceFile = new File([sourceCodeObject], contractPath, { type: "text/plain" });
-    files = [sourceFile];
-
-    // Generate compiler settings for single-file method
-    compilerSettings = generateCompilerSettings(language, etherscanResult);
-  }
-
-  return {
-    language,
-    verificationMethod,
-    compilerVersion,
-    contractName,
-    contractPath,
-    files,
-    compilerSettings,
-  };
 };
