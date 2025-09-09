@@ -17,6 +17,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {import.meta.env.VITE_UMAMI_WEBSITE_ID && (
+          <script
+            defer
+            src="https://analytics.umami.is/script.js"
+            data-website-id={import.meta.env.VITE_UMAMI_WEBSITE_ID}
+          />
+        )}
       </head>
       <body>
         <ServerConfigProvider>
