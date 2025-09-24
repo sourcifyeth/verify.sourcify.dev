@@ -2,7 +2,7 @@ import type { Route } from "./+types/widget";
 import VerificationForm from "../components/VerificationForm";
 import { Tooltip } from "react-tooltip";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     {
       title:
@@ -19,10 +19,34 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Widget() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cerulean-blue-50">
+    <div className="h-screen flex justify-center">
       <div className="w-full max-w-4xl">
-        <div className="bg-white shadow-lg rounded-lg">
-          <VerificationForm />
+        <div className="bg-white rounded-lg overflow-hidden h-full flex flex-col">
+          <div className="flex-shrink-0 px-4 pt-1">
+            <div className="flex items-center justify-center">
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src="/sourcify.png"
+                  alt="Sourcify Logo"
+                  className="h-5 w-auto mr-2"
+                  width={20}
+                  height={20}
+                />
+                <span className="text-gray-700 font-vt323 text-base">
+                  verify.sourcify.dev
+                </span>
+              </a>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <VerificationForm />
+          </div>
         </div>
       </div>
 
