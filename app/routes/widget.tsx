@@ -1,6 +1,7 @@
 import type { Route } from "./+types/widget";
 import VerificationForm from "../components/VerificationForm";
 import { Tooltip } from "react-tooltip";
+import { useSearchParams } from "react-router";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -18,6 +19,10 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 export default function Widget() {
+  const [searchParams] = useSearchParams();
+  const preselectedChainId = searchParams.get("chainId") || undefined;
+  const preselectedAddress = searchParams.get("address") || undefined;
+
   return (
     <div className="h-screen flex justify-center">
       <div className="w-full max-w-4xl">
@@ -45,7 +50,7 @@ export default function Widget() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <VerificationForm />
+            <VerificationForm preselectedChainId={preselectedChainId} preselectedAddress={preselectedAddress} />
           </div>
         </div>
       </div>

@@ -25,7 +25,12 @@ import SubmissionResultDisplay from "./verification/SubmissionResultDisplay";
 import { useServerConfig } from "../contexts/ServerConfigContext";
 import { IoSettings } from "react-icons/io5";
 
-export default function VerificationForm() {
+interface VerificationFormProps {
+  preselectedChainId?: string;
+  preselectedAddress?: string;
+}
+
+export default function VerificationForm({ preselectedChainId, preselectedAddress }: VerificationFormProps) {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
   const { solidityVersions, vyperVersions } = useCompilerVersions();
@@ -321,6 +326,8 @@ export default function VerificationForm() {
             onContractAddressChange={handleContractAddressChange}
             chains={chains}
             onValidationChange={setIsAddressValid}
+            preselectedChainId={preselectedChainId}
+            preselectedAddress={preselectedAddress}
           />
 
           <ImportSources
