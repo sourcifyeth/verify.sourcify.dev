@@ -17,6 +17,8 @@ interface ChainAndAddressProps {
   onContractAddressChange: (value: string) => void;
   chains: Chain[];
   onValidationChange?: (isValid: boolean) => void;
+  preselectedChainId?: string;
+  preselectedAddress?: string;
 }
 
 export default function ChainAndAddress({
@@ -26,6 +28,8 @@ export default function ChainAndAddress({
   onContractAddressChange,
   chains,
   onValidationChange,
+  preselectedChainId,
+  preselectedAddress,
 }: ChainAndAddressProps) {
   const { serverUrl } = useServerConfig();
   const [addressError, setAddressError] = useState("");
@@ -34,6 +38,16 @@ export default function ChainAndAddress({
   const [isLoadingAllChains, setIsLoadingAllChains] = useState(false);
   const [isLoadingCurrentChain, setIsLoadingCurrentChain] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const isPreselectedChainValid = preselectedChainId ?
+    chains.some(chain => chain.chainId === parseInt(preselectedChainId)) :
+    true;
+  const shouldShowChainSelect = !preselectedChainId || !isPreselectedChainValid;
+
+  const isPreselectedAddressValid = preselectedAddress ?
+    isAddress(preselectedAddress) :
+    true;
+  const shouldShowAddressInput = !preselectedAddress || !isPreselectedAddressValid;
 
   const handleFetchAllChains = async (address: string) => {
     setIsLoadingAllChains(true);
@@ -68,6 +82,18 @@ export default function ChainAndAddress({
     handleFetchAllChains(address);
     handleFetchCurrentChain(address, chainId);
   };
+
+  useEffect(() => {
+    if (preselectedChainId && isPreselectedChainValid) {
+      onChainIdChange(preselectedChainId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (preselectedAddress) {
+      onContractAddressChange(preselectedAddress);
+    }
+  }, []);
 
   useEffect(() => {
     if (!contractAddress) {
@@ -106,29 +132,50 @@ export default function ChainAndAddress({
 
   return (
     <>
+      {preselectedChainId && !isPreselectedChainValid && (
+        <div className="my-3 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-800">Chain ID {preselectedChainId} is not supported. Please select a valid chain.</p>
+        </div>
+      )}
+
       <div>
-        <label htmlFor="chain" className="block text-base font-semibold text-gray-900 mb-2">
-          Chain
-        </label>
-        <ChainSelect value={selectedChainId} handleChainIdChange={onChainIdChange} chains={chains} className="w-full" />
+        {shouldShowChainSelect ? (
+          <>
+            <label htmlFor="chain" className="block text-base font-semibold text-gray-900 mb-2">
+              Chain
+            </label>
+            <ChainSelect value={selectedChainId} handleChainIdChange={onChainIdChange} chains={chains} className="w-full" />
+          </>
+        ) : (
+          <div className="text-base text-gray-900">
+            <span className="font-semibold">Chain:</span> {getChainName(chains, parseInt(selectedChainId))} ({selectedChainId})
+          </div>
+        )}
       </div>
 
       <div>
-        <label htmlFor="contractAddress" className="block text-base font-semibold text-gray-900 mb-2">
-          Contract Address
-        </label>
-        <input
-          type="text"
-          id="contractAddress"
-          name="contractAddress"
-          value={contractAddress}
-          onChange={handleAddressChange}
-          placeholder="0x..."
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
-            addressError ? "border-red-500" : "border-gray-300"
-          }`}
-        />
-        {addressError && <p className="mt-1 text-sm text-red-600">{addressError}</p>}
+        {shouldShowAddressInput ? (
+          <>
+            <label htmlFor="contractAddress" className="block text-base font-semibold text-gray-900 mb-2">
+              Contract Address
+            </label>
+            <input
+              type="text"
+              id="contractAddress"
+              name="contractAddress"
+              value={contractAddress}
+              onChange={handleAddressChange}
+              placeholder="0x..."
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${addressError ? "border-red-500" : "border-gray-300"
+                }`}
+            />
+            {addressError && <p className="mt-1 text-sm text-red-600">{addressError}</p>}
+          </>
+        ) : (
+          <div className="text-base text-gray-900">
+            <span className="font-semibold">Contract Address:</span> {contractAddress}
+          </div>
+        )}
 
         {/* Show loading state for current chain */}
         {isLoadingCurrentChain && (
