@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev --host 0.0.0.0",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "serve -s build/client",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
@@ -22,7 +22,8 @@
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-router": "^7.5.3",
-    "react-tooltip": "^5.29.1"
+    "react-tooltip": "^5.29.1",
+    "serve": "^14.2.5"
   },
   "devDependencies": {
     "@ethereum-sourcify/compilers-types": "^1.0.7",
