@@ -3,6 +3,8 @@ import { useChains } from "../contexts/ChainsContext";
 import { Tooltip } from "react-tooltip";
 import { useServerConfig } from "~/contexts/ServerConfigContext";
 import { removeCurrentServerUrl } from "../utils/serverStorage";
+import { Link } from "react-router";
+import { FaGithub } from "react-icons/fa";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -100,12 +102,37 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
 
   return (
     <>
-      <div className={`${maxWidth} mx-auto px-4 md:px-8 mt-6 md:mt-12`}>
-        <div className="relative mt-4">
-          <div className="absolute w-full h-full bg-cerulean-blue-500 rounded-lg -top-1" />
-          <div className="relative bg-white shadow-lg rounded-lg">
-            {renderHeader()}
-            {renderContent()}
+      <header className="shadow-sm">
+        <div className="mx-auto py-3 md:py-4 flex items-center justify-between w-full max-w-[100rem] px-4 md:px-12 lg:px-12 xl:px-24">
+          <Link to="/" className="flex items-center">
+            <img
+              src="/sourcify.png"
+              alt="Sourcify Logo"
+              className="h-8 md:h-10 w-auto mr-2 md:mr-3"
+              width={32}
+              height={32}
+            />
+            <span className="text-gray-700 font-vt323 text-xl md:text-2xl">verify.sourcify.eth</span>
+          </Link>
+          <a
+            href="https://github.com/sourcifyeth/verify.sourcify.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:text-gray-900 transition-colors p-2"
+            aria-label="View source code on GitHub"
+          >
+            <FaGithub className="w-6 h-6" />
+          </a>
+        </div>
+      </header>
+      <div className="pb-12 bg-cerulean-blue-50 pt-1">
+        <div className={`${maxWidth} mx-auto px-4 md:px-8 mt-6 md:mt-12`}>
+          <div className="relative mt-4">
+            <div className="absolute w-full h-full bg-cerulean-blue-500 rounded-lg -top-1" />
+            <div className="relative bg-white shadow-lg rounded-lg">
+              {renderHeader()}
+              {renderContent()}
+            </div>
           </div>
         </div>
       </div>

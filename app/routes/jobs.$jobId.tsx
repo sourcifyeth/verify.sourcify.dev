@@ -13,7 +13,7 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useServerConfig } from "../contexts/ServerConfigContext";
 import { generateGitHubIssueUrl } from "../utils/githubIssue";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   const { jobId } = useParams<{ jobId: string }>();
   return [
     {
@@ -161,54 +161,48 @@ export default function JobDetails() {
 
   if (loading && !jobData) {
     return (
-      <div className="pb-12 bg-cerulean-blue-50 pt-1">
-        <PageLayout title="Verification Job">
-          <div className="p-8">
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin h-8 w-8 border-4 border-cerulean-blue-600 border-t-transparent rounded-full"></div>
-            </div>
+      <PageLayout title="Verification Job">
+        <div className="p-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin h-8 w-8 border-4 border-cerulean-blue-600 border-t-transparent rounded-full"></div>
           </div>
-        </PageLayout>
-      </div>
+        </div>
+      </PageLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="pb-12 bg-cerulean-blue-50 pt-1">
-        <PageLayout title="Verification Job">
-          <>
-            <div className="mb-6 px-4 md:px-8 pt-4 md:pt-6">
-              <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
-                ← Back to Verification
-              </a>
-            </div>
-            <div className="p-4 md:p-8">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h2 className="text-base md:text-lg font-medium text-red-800 mb-2">Error Loading Job</h2>
-                  <p className="text-sm md:text-base text-red-600">{error}</p>
-                  <p className="text-sm md:text-base text-red-600">Server URL: {serverUrl}</p>
-                </div>
+      <PageLayout title="Verification Job">
+        <>
+          <div className="mb-6 px-4 md:px-8 pt-4 md:pt-6">
+            <a href="/" className="text-cerulean-blue-600 hover:text-cerulean-blue-800 flex items-center">
+              ← Back to Verification
+            </a>
+          </div>
+          <div className="p-4 md:p-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h2 className="text-base md:text-lg font-medium text-red-800 mb-2">Error Loading Job</h2>
+                <p className="text-sm md:text-base text-red-600">{error}</p>
+                <p className="text-sm md:text-base text-red-600">Server URL: {serverUrl}</p>
               </div>
             </div>
-          </>
-        </PageLayout>
-      </div>
+          </div>
+        </>
+      </PageLayout>
     );
   }
 
   if (!jobData) {
     return (
-      <div className="pb-12 bg-cerulean-blue-50 pt-1">
-        <PageLayout title="Verification Job">
-          <div className="p-4 md:p-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-              <p className="text-sm md:text-base text-gray-600">Job not found</p>
-            </div>
+      <PageLayout title="Verification Job">
+        <div className="p-4 md:p-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <p className="text-sm md:text-base text-gray-600">Job not found</p>
           </div>
-        </PageLayout>
-      </div>
+        </div>
+      </PageLayout>
     );
   }
 
@@ -451,8 +445,8 @@ export default function JobDetails() {
 
                 {/* Bytecode Information */}
                 {jobData.error.recompiledCreationCode ||
-                jobData.error.recompiledRuntimeCode ||
-                jobData.error.onchainRuntimeCode ? (
+                  jobData.error.recompiledRuntimeCode ||
+                  jobData.error.onchainRuntimeCode ? (
                   <div>
                     <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3">Bytecode Data</h3>
 

@@ -3,7 +3,7 @@ import PageLayout from "../components/PageLayout";
 import VerificationForm from "../components/VerificationForm";
 import RecentVerifications from "../components/verification/RecentVerifications";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     {
       title:
@@ -17,15 +17,13 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   return (
-    <div className="pb-12 bg-cerulean-blue-50 pt-1">
-      <PageLayout title="Verify Smart Contracts">
-        <>
-          <VerificationForm />
-          <div className="p-4 md:p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-            <RecentVerifications />
-          </div>
-        </>
-      </PageLayout>
-    </div>
+    <PageLayout title="Verify Smart Contracts">
+      <>
+        <VerificationForm />
+        <div className="p-4 md:p-8 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+          <RecentVerifications />
+        </div>
+      </>
+    </PageLayout>
   );
 }
