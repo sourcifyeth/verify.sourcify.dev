@@ -1,6 +1,5 @@
 import type { Route } from "./+types/widget";
 import VerificationForm from "../components/VerificationForm";
-import { Tooltip } from "react-tooltip";
 import { useSearchParams } from "react-router";
 
 export function meta({ }: Route.MetaArgs) {
@@ -54,13 +53,6 @@ export default function Widget() {
           </div>
         </div>
       </div>
-
-      {/* Global Tooltip */}
-      <Tooltip
-        id="global-tooltip"
-        style={{ maxWidth: "300px", fontSize: "14px", zIndex: 1000 }}
-        className="!bg-gray-900 !text-white !rounded-lg !shadow-lg"
-      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration, Link, useLocation } from "react-router";
 import { FaGithub } from "react-icons/fa";
+import { Tooltip } from "react-tooltip";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -61,6 +62,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </CompilerVersionsProvider>
           </ChainsProvider>
         </ServerConfigProvider>
+        <Tooltip
+          id="global-tooltip"
+          style={{ maxWidth: "300px", fontSize: "14px", zIndex: 1000 }}
+          className="!bg-gray-900 !text-white !rounded-lg !shadow-lg"
+        />
         <ScrollRestoration />
         <Scripts />
       </body>

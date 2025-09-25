@@ -109,13 +109,6 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
           </div>
         </div>
       </div>
-
-      {/* Global Tooltip */}
-      <Tooltip
-        id="global-tooltip"
-        style={{ maxWidth: "300px", fontSize: "14px", zIndex: 1000 }}
-        className="!bg-gray-900 !text-white !rounded-lg !shadow-lg"
-      />
     </>
   );
 }
