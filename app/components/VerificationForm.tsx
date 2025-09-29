@@ -28,9 +28,10 @@ import { IoSettings } from "react-icons/io5";
 interface VerificationFormProps {
   preselectedChainId?: string;
   preselectedAddress?: string;
+  hideImport?: boolean;
 }
 
-export default function VerificationForm({ preselectedChainId, preselectedAddress }: VerificationFormProps) {
+export default function VerificationForm({ preselectedChainId, preselectedAddress, hideImport }: VerificationFormProps) {
   const { serverUrl } = useServerConfig();
   const { chains } = useChains();
   const { solidityVersions, vyperVersions } = useCompilerVersions();
@@ -330,17 +331,18 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
             preselectedAddress={preselectedAddress}
           />
 
-          <ImportSources
-            selectedChainId={selectedChainId}
-            contractAddress={contractAddress}
-            setIsSubmitting={setIsSubmitting}
-            setSubmissionResult={setSubmissionResult}
-            submissionResult={submissionResult}
-            importError={importError}
-            importSuccess={importSuccess}
-            onImportError={handleImportError}
-            onImportSuccess={setImportSuccess}
-          />
+          {!hideImport && (
+            <ImportSources
+              selectedChainId={selectedChainId}
+              contractAddress={contractAddress}
+              setIsSubmitting={setIsSubmitting}
+              setSubmissionResult={setSubmissionResult}
+              submissionResult={submissionResult}
+              importError={importError}
+              importSuccess={importSuccess}
+              onImportError={handleImportError}
+              onImportSuccess={setImportSuccess}
+            />)}
 
           <LicenseInfo />
 
@@ -369,8 +371,8 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
                   selectedMethod === "metadata-json"
                     ? handleMetadataFileChange
                     : selectedMethod === "build-info"
-                    ? handleBuildInfoFileChange
-                    : handleFilesChange
+                      ? handleBuildInfoFileChange
+                      : handleFilesChange
                 }
                 uploadedFiles={
                   selectedMethod === "metadata-json" ? (metadataFile ? [metadataFile] : []) : uploadedFiles
@@ -383,7 +385,7 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
                   <MetadataValidation
                     metadataFile={metadataFile}
                     uploadedFiles={uploadedFiles}
-                    onValidationChange={() => {}}
+                    onValidationChange={() => { }}
                   />
 
                   {/* Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case. */}
@@ -446,11 +448,10 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
                 <button
                   type="submit"
                   disabled={!canSubmit}
-                  className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${
-                    canSubmit
-                      ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
-                      : "bg-gray-300 text-gray-500 !cursor-not-allowed"
-                  }`}
+                  className={`w-full md:w-auto px-8 md:px-12 py-3 text-base md:text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 min-h-[44px] ${canSubmit
+                    ? "bg-cerulean-blue-500 text-white hover:bg-cerulean-blue-600"
+                    : "bg-gray-300 text-gray-500 !cursor-not-allowed"
+                    }`}
                   title={getSubmitButtonTooltip()}
                 >
                   {isSubmitting && (
@@ -482,7 +483,7 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
       </div>
 
       {/* Settings Modal */}
-      <Settings isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
+      <Settings isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} hideImportSettings={hideImport} />
     </>
   );
 }

@@ -49,7 +49,7 @@ export default function Widget() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <VerificationForm preselectedChainId={preselectedChainId} preselectedAddress={preselectedAddress} />
+            <VerificationForm preselectedChainId={preselectedChainId} preselectedAddress={preselectedAddress} hideImport={true} />
           </div>
         </div>
       </div>
