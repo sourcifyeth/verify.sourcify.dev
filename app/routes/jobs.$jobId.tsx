@@ -99,9 +99,15 @@ export default function JobDetails() {
     }
   };
 
-  // Initial fetch
+  const initialFetchJobIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    fetchJobStatus();
+    if (!jobId) return;
+    const alreadyFetched = initialFetchJobIdRef.current === jobId;
+    initialFetchJobIdRef.current = jobId;
+    if (!alreadyFetched) {
+      fetchJobStatus();
+    }
   }, [jobId]);
 
   // Auto-refresh for pending jobs with countdown

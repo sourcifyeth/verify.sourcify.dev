@@ -35,9 +35,14 @@ const interpretExternalVerifierStatus = (
   }
 
   if (payload.status === "0") {
-    return isAlreadyVerified
-      ? buildStatus("success", message)
-      : buildStatus("error", message);
+    const lowerMessage = message.toLowerCase();
+    if (isAlreadyVerified) {
+      return buildStatus("success", message);
+    }
+    if (lowerMessage.includes("pending")) {
+      return buildStatus("pending", message);
+    }
+    return buildStatus("error", message);
   }
 
   return buildStatus("unknown", message);
