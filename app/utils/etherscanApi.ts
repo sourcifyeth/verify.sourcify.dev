@@ -81,3 +81,46 @@ export const processEtherscanResult = async (
     throw error;
   }
 };
+
+export interface EtherscanVerificationStatusResponse {
+  status: string;
+  message: string;
+  result: string;
+}
+
+export const fetchEtherscanVerificationStatus = async (
+  statusUrl: string,
+  apiKey: string
+): Promise<EtherscanVerificationStatusResponse> => {
+  if (!statusUrl) {
+    throw new Error("Missing Etherscan status URL");
+  }
+
+  if (!apiKey) {
+    throw new Error("Missing Etherscan API key");
+  }
+
+  const url = new URL(statusUrl);
+  url.searchParams.set("apikey", apiKey);
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      errorText || `Etherscan status request failed (${response.status})`
+    );
+  }
+
+  const data = (await response.json()) as Partial<EtherscanVerificationStatusResponse>;
+
+  if (
+    !data ||
+    typeof data.status === "undefined" ||
+    typeof data.message === "undefined"
+  ) {
+    throw new Error("Unexpected response from Etherscan status API");
+  }
+
+  return data as EtherscanVerificationStatusResponse;
+};
