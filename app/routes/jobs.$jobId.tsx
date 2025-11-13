@@ -62,6 +62,11 @@ const STATUS_LABELS: Record<ExternalVerifierState, string> = {
 };
 
 const EXTERNAL_VERIFICATION_STATUS_REFRESH_RATE_SECONDS = 3;
+const REQUIRED_EXTERNAL_VERIFIER_KEYS: ExternalVerifierKey[] = ["etherscan", "blockscout", "routescan"];
+
+const hasAllRequiredExternalVerifications = (verifications?: ExternalVerifications) => {
+  return REQUIRED_EXTERNAL_VERIFIER_KEYS.every((key) => verifications?.[key] != null);
+};
 
 export default function JobDetails() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -83,6 +88,8 @@ export default function JobDetails() {
   const [externalVerifierStatuses, setExternalVerifierStatuses] = useState<ExternalVerifierStatusMap>({});
   const externalVerifierStatusesRef = useRef<ExternalVerifierStatusMap>({});
   const { serverUrl } = useServerConfig();
+  const hasExternalVerificationData = hasAllRequiredExternalVerifications(jobData?.externalVerifications);
+  const isJobFullyCompleted = Boolean(jobData?.isJobCompleted) && hasExternalVerificationData;
 
   const fetchJobStatus = async () => {
     if (!jobId) return;
@@ -112,7 +119,7 @@ export default function JobDetails() {
 
   // Auto-refresh for pending jobs with countdown
   useEffect(() => {
-    if (!jobData || jobData.isJobCompleted) return;
+    if (!jobData || isJobFullyCompleted) return;
 
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -125,7 +132,7 @@ export default function JobDetails() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [jobData]);
+  }, [jobData, isJobFullyCompleted]);
 
   // Poll external verifiers every 3 seconds
   useEffect(() => {
@@ -158,7 +165,13 @@ export default function JobDetails() {
 
     const shouldFetchKey = (key: ExternalVerifierKey) => {
       const status = externalVerifierStatusesRef.current[key];
-      return !status || status.state === "pending" || status.state === "unknown";
+      if (!status) {
+        return true;
+      }
+      const messageIndicatesPending =
+        typeof status.message === "string" &&
+        status.message.toLowerCase().includes("pending");
+      return status.state === "pending" || status.state === "unknown" || messageIndicatesPending;
     };
 
     const updateStatuses = async (): Promise<boolean> => {

@@ -27,25 +27,38 @@ const interpretExternalVerifierStatus = (
   payload: EtherscanVerificationStatusResponse
 ): ExternalVerifierStatus => {
   const result = payload.result?.trim();
-  const message = result || payload.message?.trim() || "Status received";
-  const isAlreadyVerified = result?.toLowerCase() === "already verified";
+  const lowerResult = result?.toLowerCase();
 
-  if (payload.status === "1") {
-    return buildStatus("success", message);
+  if (lowerResult) {
+    if (lowerResult.startsWith("fail - unable to verify")) {
+      return buildStatus("error", result);
+    }
+
+    if (lowerResult === "pending in queue") {
+      return buildStatus("pending", result);
+    }
+
+    if (
+      lowerResult === "pass - verified" ||
+      lowerResult === "already verified"
+    ) {
+      return buildStatus("success", result);
+    }
+
+    if (lowerResult === "unknown uid") {
+      return buildStatus("error", result);
+    }
+  }
+
+  if (payload.status === "1" || payload.message.startsWith("ok")) {
+    return buildStatus("success", result);
   }
 
   if (payload.status === "0") {
-    const lowerMessage = message.toLowerCase();
-    if (isAlreadyVerified) {
-      return buildStatus("success", message);
-    }
-    if (lowerMessage.includes("pending")) {
-      return buildStatus("pending", message);
-    }
-    return buildStatus("error", message);
+    return buildStatus("error", result);
   }
 
-  return buildStatus("unknown", message);
+  return buildStatus("unknown", result);
 };
 
 export const requestExternalVerifierStatus = async (
@@ -58,6 +71,10 @@ export const requestExternalVerifierStatus = async (
 
   if (verificationData.error) {
     return buildStatus("error", verificationData.error);
+  }
+
+  if (verificationData.verificationId === "BLOCKSCOUT_ALREADY_VERIFIED") {
+    return buildStatus("success", "Already verified");
   }
 
   if (!verificationData.statusUrl) {
