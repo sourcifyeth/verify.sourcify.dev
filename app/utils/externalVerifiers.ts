@@ -90,6 +90,8 @@ export const requestExternalVerifierStatus = async (
   try {
     let payload: EtherscanVerificationStatusResponse;
 
+    // Special case for etherscan in which we need
+    // to pass the EtherscanKey to check the verification result
     if (verifierKey === "etherscan") {
       const apiKey = getEtherscanApiKey();
       if (!apiKey) {
