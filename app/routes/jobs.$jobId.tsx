@@ -33,6 +33,7 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 const DEFAULT_COUNTDOWN = 5;
+const MAX_EXTERNAL_VERIFICATION_RETRIES = 3;
 
 const REQUIRED_EXTERNAL_VERIFIER_KEYS: ExternalVerifierKey[] = ["etherscan", "blockscout", "routescan"];
 
@@ -60,6 +61,10 @@ export default function JobDetails() {
   const { serverUrl } = useServerConfig();
   const hasExternalVerificationData = hasAllRequiredExternalVerifications(jobData?.externalVerifications);
   const isJobFullyCompleted = Boolean(jobData?.isJobCompleted) && hasExternalVerificationData;
+  const missingExternalVerificationData = Boolean(jobData?.isJobCompleted && !hasExternalVerificationData);
+  const externalVerificationRetryCountRef = useRef(0);
+  const hasReachedExternalVerificationRetryLimit =
+    missingExternalVerificationData && externalVerificationRetryCountRef.current >= MAX_EXTERNAL_VERIFICATION_RETRIES;
 
   const fetchJobStatus = async () => {
     if (!jobId) return;
@@ -79,6 +84,16 @@ export default function JobDetails() {
   const initialFetchJobIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!missingExternalVerificationData) {
+      externalVerificationRetryCountRef.current = 0;
+    }
+  }, [missingExternalVerificationData]);
+
+  useEffect(() => {
+    externalVerificationRetryCountRef.current = 0;
+  }, [jobId]);
+
+  useEffect(() => {
     if (!jobId) return;
     const alreadyFetched = initialFetchJobIdRef.current === jobId;
     initialFetchJobIdRef.current = jobId;
@@ -89,11 +104,19 @@ export default function JobDetails() {
 
   // Auto-refresh for pending jobs with countdown
   useEffect(() => {
-    if (!jobData || isJobFullyCompleted) return;
+    // Old jobs don't have external verifications, so we need a mechanism to stop retrying if the value is not set
+    if (!jobData || isJobFullyCompleted || hasReachedExternalVerificationRetryLimit) return;
 
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
+          if (missingExternalVerificationData) {
+            if (externalVerificationRetryCountRef.current >= MAX_EXTERNAL_VERIFICATION_RETRIES) {
+              clearInterval(interval);
+              return DEFAULT_COUNTDOWN;
+            }
+            externalVerificationRetryCountRef.current += 1;
+          }
           fetchJobStatus();
           return DEFAULT_COUNTDOWN; // Reset countdown
         }
@@ -102,7 +125,7 @@ export default function JobDetails() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [jobData, isJobFullyCompleted]);
+  }, [jobData, isJobFullyCompleted, missingExternalVerificationData, hasReachedExternalVerificationRetryLimit]);
 
   const handleRefresh = () => {
     fetchJobStatus();
