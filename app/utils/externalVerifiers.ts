@@ -73,7 +73,7 @@ export const requestExternalVerifierStatus = async (
     return buildStatus("error", verificationData.error);
   }
 
-  if (verificationData.verificationId === "BLOCKSCOUT_ALREADY_VERIFIED") {
+  if (verificationData.verificationId === "VERIFIER_ALREADY_VERIFIED") {
     return buildStatus("success", "Already verified");
   }
 
