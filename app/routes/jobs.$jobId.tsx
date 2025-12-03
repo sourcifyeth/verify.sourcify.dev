@@ -60,7 +60,8 @@ export default function JobDetails() {
   const [expandedModalErrors, setExpandedModalErrors] = useState<Set<number>>(new Set());
   const { serverUrl } = useServerConfig();
   const hasExternalVerificationData = hasAllRequiredExternalVerifications(jobData?.externalVerifications);
-  const isJobFullyCompleted = Boolean(jobData?.isJobCompleted) && hasExternalVerificationData;
+  const isJobCompletedWithExternalVerifications =
+    Boolean(jobData?.isJobCompleted) && hasExternalVerificationData;
   const missingExternalVerificationData = Boolean(jobData?.isJobCompleted && !hasExternalVerificationData);
   const externalVerificationRetryCountRef = useRef(0);
   const hasReachedExternalVerificationRetryLimit =
@@ -105,7 +106,7 @@ export default function JobDetails() {
   // Auto-refresh for pending jobs with countdown
   useEffect(() => {
     // Old jobs don't have external verifications, so we need a mechanism to stop retrying if the value is not set
-    if (!jobData || isJobFullyCompleted || hasReachedExternalVerificationRetryLimit) return;
+    if (!jobData || isJobCompletedWithExternalVerifications || hasReachedExternalVerificationRetryLimit) return;
 
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -125,7 +126,12 @@ export default function JobDetails() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [jobData, isJobFullyCompleted, missingExternalVerificationData, hasReachedExternalVerificationRetryLimit]);
+  }, [
+    jobData,
+    isJobCompletedWithExternalVerifications,
+    missingExternalVerificationData,
+    hasReachedExternalVerificationRetryLimit,
+  ]);
 
   const handleRefresh = () => {
     fetchJobStatus();
