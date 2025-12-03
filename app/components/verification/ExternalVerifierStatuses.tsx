@@ -224,12 +224,12 @@ const ExternalVerifierStatuses = ({
                   )}
                   {verifierData?.explorerUrl && (
                     <a
-                      href={verifierData.explorerUrl}
+                      href={`${verifierData.explorerUrl}#code`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm text-cerulean-blue-600 hover:text-cerulean-blue-800 mt-2"
                     >
-                      View on explorer
+                      View contract
                       <IoOpenOutline className="w-4 h-4" />
                     </a>
                   )}
