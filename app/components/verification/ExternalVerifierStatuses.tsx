@@ -201,6 +201,11 @@ const ExternalVerifierStatuses = ({
       <div className="space-y-4">
         {Object.entries(verifications)
           .filter(([, value]) => !!value)
+          .sort(([aKey], [bKey]) =>
+            (EXTERNAL_VERIFIER_LABELS[aKey as ExternalVerifierKey] ?? aKey).localeCompare(
+              EXTERNAL_VERIFIER_LABELS[bKey as ExternalVerifierKey] ?? bKey
+            )
+          )
           .map(([key, verifierData]) => {
             const typedKey = key as ExternalVerifierKey;
             const label = EXTERNAL_VERIFIER_LABELS[typedKey] ?? key;
