@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IoOpenOutline } from "react-icons/io5";
 import type { ExternalVerifications } from "~/utils/sourcifyApi";
 import {
@@ -43,12 +43,28 @@ const ExternalVerifierStatuses = ({
   refreshRateSeconds = DEFAULT_REFRESH_SECONDS,
 }: ExternalVerifierStatusesProps) => {
   const [externalVerifierStatuses, setExternalVerifierStatuses] = useState<ExternalVerifierStatusMap>({});
+  const [countdown, setCountdown] = useState<number | null>(null);
   const externalVerifierStatusesRef = useRef<ExternalVerifierStatusMap>({});
+  const refreshTimeoutIdRef = useRef<number | null>(null);
+  const countdownIntervalIdRef = useRef<number | null>(null);
+
+  const clearCountdownTimers = useCallback(() => {
+    if (refreshTimeoutIdRef.current) {
+      window.clearTimeout(refreshTimeoutIdRef.current);
+      refreshTimeoutIdRef.current = null;
+    }
+    if (countdownIntervalIdRef.current) {
+      window.clearInterval(countdownIntervalIdRef.current);
+      countdownIntervalIdRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (!verifications) {
       externalVerifierStatusesRef.current = {};
       setExternalVerifierStatuses({});
+      clearCountdownTimers();
+      setCountdown(null);
       return;
     }
 
@@ -59,6 +75,8 @@ const ExternalVerifierStatuses = ({
     if (verifierEntries.length === 0) {
       externalVerifierStatusesRef.current = {};
       setExternalVerifierStatuses({});
+      clearCountdownTimers();
+      setCountdown(null);
       return;
     }
 
@@ -71,7 +89,7 @@ const ExternalVerifierStatuses = ({
     setExternalVerifierStatuses(preservedStatuses);
 
     let isCancelled = false;
-    let timeoutId: number | null = null;
+    clearCountdownTimers();
 
     const shouldFetchKey = (key: ExternalVerifierKey) => {
       const status = externalVerifierStatusesRef.current[key];
@@ -112,11 +130,46 @@ const ExternalVerifierStatuses = ({
       return Object.values(next).some((status) => status.state === "pending" || status.state === "unknown");
     };
 
+    const startCountdown = () => {
+      setCountdown(refreshRateSeconds);
+      if (countdownIntervalIdRef.current) {
+        window.clearInterval(countdownIntervalIdRef.current);
+      }
+      countdownIntervalIdRef.current = window.setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            if (countdownIntervalIdRef.current) {
+              window.clearInterval(countdownIntervalIdRef.current);
+              countdownIntervalIdRef.current = null;
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    };
+
+    const scheduleNextPoll = () => {
+      if (isCancelled) return;
+      if (refreshTimeoutIdRef.current) {
+        window.clearTimeout(refreshTimeoutIdRef.current);
+      }
+      startCountdown();
+      refreshTimeoutIdRef.current = window.setTimeout(() => {
+        setCountdown(null);
+        pollStatuses();
+      }, refreshRateSeconds * 1000);
+    };
+
     const pollStatuses = async () => {
       const hasPending = await updateStatuses();
       if (isCancelled) return;
       if (hasPending) {
-        timeoutId = window.setTimeout(pollStatuses, refreshRateSeconds * 1000);
+        scheduleNextPoll();
+      } else {
+        clearCountdownTimers();
+        setCountdown(null);
       }
     };
 
@@ -124,11 +177,9 @@ const ExternalVerifierStatuses = ({
 
     return () => {
       isCancelled = true;
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
+      clearCountdownTimers();
     };
-  }, [verifications, refreshRateSeconds]);
+  }, [verifications, refreshRateSeconds, clearCountdownTimers]);
 
   if (!verifications || !Object.values(verifications).some((value) => !!value)) {
     return null;
@@ -136,9 +187,16 @@ const ExternalVerifierStatuses = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 my-6 md:my-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4 mb-4">
-        <h2 className="text-lg md:text-xl font-bold text-gray-900">Verification on other verifiers</h2>
-        <p className="text-sm text-gray-500">Statuses refresh every {refreshRateSeconds} seconds.</p>
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 md:gap-4 mb-4">
+        <div className="space-y-1">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">Other Verifiers</h2>
+          <p className="text-sm text-gray-600">Sourcify automatically shares contracts with other known verifiers</p>
+        </div>
+        {countdown !== null && (
+          <p className="text-sm text-gray-500 text-right">
+            Next refresh in: <span className="font-mono font-medium">{countdown}</span> seconds
+          </p>
+        )}
       </div>
       <div className="space-y-4">
         {Object.entries(verifications)
