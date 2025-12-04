@@ -13,7 +13,8 @@ import OptionalFields from "./verification/OptionalFields";
 import { frameworkMethods } from "../data/verificationMethods";
 import type { VerificationMethod } from "../types/verification";
 import { assembleAndSubmitStandardJson, submitStdJsonFile, submitMetadataVerification } from "../utils/sourcifyApi";
-import { buildMetadataSubmissionSources } from "../utils/metadataValidation";
+import { buildMetadataSubmissionSources, validateMetadataSources } from "../utils/metadataValidation";
+import type { ValidationSummary } from "../utils/metadataValidation";
 import { parseBuildInfoFile } from "../utils/buildInfoValidation";
 import { useCompilerVersions } from "../contexts/CompilerVersionsContext";
 import MetadataValidation from "./verification/MetadataValidation";
@@ -41,6 +42,9 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
   const [isAddressValid, setIsAddressValid] = React.useState(false);
   const [lastSubmittedValues, setLastSubmittedValues] = React.useState<string | null>(null);
   const [buildInfoError, setBuildInfoError] = React.useState<string | null>(null);
+  const [metadataValidationResult, setMetadataValidationResult] = React.useState<ValidationSummary | null>(null);
+  const [metadataValidationError, setMetadataValidationError] = React.useState<string | null>(null);
+  const [isMetadataValidating, setIsMetadataValidating] = React.useState(false);
 
   // Clear success message after 3 seconds
   React.useEffect(() => {
@@ -130,6 +134,47 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
   // Check if selected method is a framework method
   const isFrameworkMethod = frameworkMethods.some(method => method.id === selectedMethod);
 
+  React.useEffect(() => {
+    if (selectedMethod !== "metadata-json") {
+      setMetadataValidationResult(null);
+      setMetadataValidationError(null);
+      setIsMetadataValidating(false);
+      return;
+    }
+
+    if (!metadataFile) {
+      setMetadataValidationResult(null);
+      setMetadataValidationError(null);
+      setIsMetadataValidating(false);
+      return;
+    }
+
+    let cancelled = false;
+    const runValidation = async () => {
+      setIsMetadataValidating(true);
+      setMetadataValidationError(null);
+
+      try {
+        const result = await validateMetadataSources(metadataFile, uploadedFiles);
+        if (cancelled) return;
+        setMetadataValidationResult(result);
+      } catch (error) {
+        if (cancelled) return;
+        setMetadataValidationResult(null);
+        setMetadataValidationError(error instanceof Error ? error.message : "Validation failed");
+      } finally {
+        if (cancelled) return;
+        setIsMetadataValidating(false);
+      }
+    };
+
+    runValidation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedMethod, metadataFile, uploadedFiles]);
+
   const { isFormValid, errors, getSubmissionErrors } = useFormValidation({
     isAddressValid,
     selectedChainId,
@@ -141,6 +186,9 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
     uploadedFiles,
     metadataFile,
     evmVersion,
+    metadataValidationResult,
+    metadataValidationError,
+    isMetadataValidationPending: isMetadataValidating,
   });
 
   // Create a hash of current form values to detect changes
@@ -384,8 +432,9 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
                   {/* Metadata Validation - Show between metadata and source file uploads */}
                   <MetadataValidation
                     metadataFile={metadataFile}
-                    uploadedFiles={uploadedFiles}
-                    onValidationChange={() => { }}
+                    validationResult={metadataValidationResult}
+                    validationError={metadataValidationError}
+                    isValidating={isMetadataValidating}
                   />
 
                   {/* Render an additional file upload for the sources when the method is metadata-json. We can treat the sources' file upload as a multiple-files case. */}

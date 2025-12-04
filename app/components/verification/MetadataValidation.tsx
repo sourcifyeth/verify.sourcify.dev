@@ -1,73 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { validateMetadataSources } from "../../utils/metadataValidation";
+import { useState } from "react";
+import type { ValidationSummary } from "../../utils/metadataValidation";
 import MetadataValidationModal from "./MetadataValidationModal";
-
-interface ValidationResult {
-  allRequiredFound: boolean;
-  missingCount: number;
-  unnecessaryCount: number;
-  sources: Array<{
-    expectedFileName: string;
-    matchedFileName?: string;
-    status: "found" | "missing" | "embedded";
-    expectedHash: string;
-    actualHash?: string;
-    isValid: boolean;
-    fileSize?: number;
-    content?: string;
-  }>;
-  unnecessaryFiles: Array<{
-    fileName: string;
-    actualHash: string;
-    fileSize: number;
-  }>;
-  message: string;
-}
 
 interface MetadataValidationProps {
   metadataFile: File | null;
-  uploadedFiles: File[];
-  onValidationChange?: (isValid: boolean) => void;
+  validationResult: ValidationSummary | null;
+  validationError: string | null;
+  isValidating: boolean;
 }
 
 export default function MetadataValidation({
   metadataFile,
-  uploadedFiles,
-  onValidationChange,
+  validationResult,
+  validationError,
+  isValidating,
 }: MetadataValidationProps) {
-  const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    const validateMetadata = async () => {
-      if (!metadataFile) {
-        setValidationResult(null);
-        setValidationError(null);
-        onValidationChange?.(false);
-        return;
-      }
-
-      setIsValidating(true);
-      setValidationError(null);
-
-      try {
-        const result = await validateMetadataSources(metadataFile, uploadedFiles);
-        setValidationResult(result);
-        onValidationChange?.(result.allRequiredFound);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Validation failed";
-        setValidationError(errorMessage);
-        setValidationResult(null);
-        onValidationChange?.(false);
-      } finally {
-        setIsValidating(false);
-      }
-    };
-
-    validateMetadata();
-  }, [metadataFile, uploadedFiles, onValidationChange]);
 
   if (!metadataFile) {
     return null;
