@@ -25,6 +25,7 @@ const STATUS_BADGE_STYLES: Record<ExternalVerifierState, string> = {
   error: "bg-red-100 text-red-800",
   unknown: "bg-gray-100 text-gray-800",
   no_api_key: "bg-gray-100 text-grey-800",
+  already_verified: "bg-green-50 text-grey-600",
 };
 
 const STATUS_LABELS: Record<ExternalVerifierState, string> = {
@@ -33,6 +34,7 @@ const STATUS_LABELS: Record<ExternalVerifierState, string> = {
   error: "Error",
   unknown: "Status unknown",
   no_api_key: "Missing API key",
+  already_verified: "Already verified",
 };
 
 const CONTRACT_STATUS_BADGE_STYLES: Record<ExternalVerifierContractState, string> = {

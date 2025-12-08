@@ -11,6 +11,7 @@ export type ExternalVerifierState =
   | "success"
   | "error"
   | "no_api_key"
+  | "already_verified"
   | "unknown";
 export type ExternalVerifierContractState =
   | "verified"
@@ -64,11 +65,12 @@ const interpretExternalVerifierStatus = (
       return buildStatus("pending", result);
     }
 
-    if (
-      lowerResult === "pass - verified" ||
-      lowerResult === "already verified"
-    ) {
+    if (lowerResult === "pass - verified") {
       return buildStatus("success", result);
+    }
+
+    if (lowerResult === "already verified") {
+      return buildStatus("already_verified", result);
     }
 
     if (lowerResult === "unknown uid") {
@@ -122,7 +124,7 @@ export const requestExternalVerifierStatus = async (
   }
 
   if (verificationData.verificationId === "VERIFIER_ALREADY_VERIFIED") {
-    return buildStatus("success", "Already verified");
+    return buildStatus("already_verified", "Already verified");
   }
 
   if (!verificationData.statusUrl) {
