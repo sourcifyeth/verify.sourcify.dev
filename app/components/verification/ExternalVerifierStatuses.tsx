@@ -3,7 +3,11 @@ import { IoOpenOutline } from "react-icons/io5";
 import type { ExternalVerifications } from "~/utils/sourcifyApi";
 import {
   buildStatus,
+  buildContractStatus,
+  requestExternalVerifierContract,
   requestExternalVerifierStatus,
+  type ExternalVerifierContractState,
+  type ExternalVerifierContractStatus,
   type ExternalVerifierKey,
   type ExternalVerifierState,
   type ExternalVerifierStatus,
@@ -20,6 +24,7 @@ const STATUS_BADGE_STYLES: Record<ExternalVerifierState, string> = {
   pending: "bg-yellow-100 text-yellow-800",
   error: "bg-red-100 text-red-800",
   unknown: "bg-gray-100 text-gray-800",
+  no_api_key: "bg-gray-100 text-grey-800",
 };
 
 const STATUS_LABELS: Record<ExternalVerifierState, string> = {
@@ -27,11 +32,29 @@ const STATUS_LABELS: Record<ExternalVerifierState, string> = {
   pending: "Verification pending",
   error: "Verification error",
   unknown: "Status unknown",
+  no_api_key: "Missing API key",
+};
+
+const CONTRACT_STATUS_BADGE_STYLES: Record<ExternalVerifierContractState, string> = {
+  verified: "bg-green-100 text-green-800",
+  not_verified: "bg-red-100 text-red-800",
+  error: "bg-red-100 text-red-800",
+  unknown: "bg-gray-100 text-gray-800",
+  no_api_key: "bg-gray-100 text-grey-800",
+};
+
+const CONTRACT_STATUS_LABELS: Record<ExternalVerifierContractState, string> = {
+  verified: "Verified",
+  not_verified: "Not verified",
+  error: "Contract status error",
+  unknown: "Status unknown",
+  no_api_key: "Missing API key",
 };
 
 const DEFAULT_REFRESH_SECONDS = 3;
 
 type ExternalVerifierStatusMap = Partial<Record<ExternalVerifierKey, ExternalVerifierStatus>>;
+type ExternalVerifierContractStatusMap = Partial<Record<ExternalVerifierKey, ExternalVerifierContractStatus>>;
 
 interface ExternalVerifierStatusesProps {
   verifications?: ExternalVerifications;
@@ -43,8 +66,11 @@ const ExternalVerifierStatuses = ({
   refreshRateSeconds = DEFAULT_REFRESH_SECONDS,
 }: ExternalVerifierStatusesProps) => {
   const [externalVerifierStatuses, setExternalVerifierStatuses] = useState<ExternalVerifierStatusMap>({});
+  const [externalVerifierContractStatuses, setExternalVerifierContractStatuses] =
+    useState<ExternalVerifierContractStatusMap>({});
   const [countdown, setCountdown] = useState<number | null>(null);
   const externalVerifierStatusesRef = useRef<ExternalVerifierStatusMap>({});
+  const externalVerifierContractStatusesRef = useRef<ExternalVerifierContractStatusMap>({});
   const refreshTimeoutIdRef = useRef<number | null>(null);
   const countdownIntervalIdRef = useRef<number | null>(null);
 
@@ -62,7 +88,9 @@ const ExternalVerifierStatuses = ({
   useEffect(() => {
     if (!verifications) {
       externalVerifierStatusesRef.current = {};
+      externalVerifierContractStatusesRef.current = {};
       setExternalVerifierStatuses({});
+      setExternalVerifierContractStatuses({});
       clearCountdownTimers();
       setCountdown(null);
       return;
@@ -74,7 +102,9 @@ const ExternalVerifierStatuses = ({
 
     if (verifierEntries.length === 0) {
       externalVerifierStatusesRef.current = {};
+      externalVerifierContractStatusesRef.current = {};
       setExternalVerifierStatuses({});
+      setExternalVerifierContractStatuses({});
       clearCountdownTimers();
       setCountdown(null);
       return;
@@ -87,31 +117,46 @@ const ExternalVerifierStatuses = ({
     const preservedStatuses = Object.fromEntries(preservedStatusesEntries);
     externalVerifierStatusesRef.current = preservedStatuses;
     setExternalVerifierStatuses(preservedStatuses);
+    const preservedContractStatusesEntries = Object.entries(externalVerifierContractStatusesRef.current).filter(
+      ([key]) => activeKeys.has(key as ExternalVerifierKey)
+    );
+    const preservedContractStatuses = Object.fromEntries(preservedContractStatusesEntries);
+    externalVerifierContractStatusesRef.current = preservedContractStatuses;
+    setExternalVerifierContractStatuses(preservedContractStatuses);
 
     let isCancelled = false;
     clearCountdownTimers();
 
-    const shouldFetchKey = (key: ExternalVerifierKey) => {
+    const shouldFetchKey = (
+      key: ExternalVerifierKey,
+      data: ExternalVerifications[ExternalVerifierKey]
+    ) => {
       const status = externalVerifierStatusesRef.current[key];
-      if (!status) {
-        return true;
-      }
+      const contractStatus = externalVerifierContractStatusesRef.current[key];
       const messageIndicatesPending =
-        typeof status.message === "string" && status.message.toLowerCase().includes("pending");
-      return status.state === "pending" || status.state === "unknown" || messageIndicatesPending;
+        typeof status?.message === "string" && status.message.toLowerCase().includes("pending");
+      const needsVerificationStatus =
+        !status || status.state === "pending" || status.state === "unknown" || messageIndicatesPending;
+      const hasContractApiUrl = Boolean(data?.contractApiUrl);
+      const needsContractStatus =
+        hasContractApiUrl && (!contractStatus || contractStatus.state === "unknown");
+      return needsVerificationStatus || needsContractStatus;
     };
 
     const updateStatuses = async (): Promise<boolean> => {
-      const keysToFetch = verifierEntries.filter(([key]) => shouldFetchKey(key));
+      const keysToFetch = verifierEntries.filter(([key, data]) => shouldFetchKey(key, data));
 
       if (keysToFetch.length === 0) {
-        return verifierEntries.some(([key]) => shouldFetchKey(key));
+        return verifierEntries.some(([key, data]) => shouldFetchKey(key, data));
       }
 
       const results = await Promise.all(
         keysToFetch.map(async ([key, data]) => {
-          const status = await requestExternalVerifierStatus(key, data);
-          return [key, status] as const;
+          const [status, contractStatus] = await Promise.all([
+            requestExternalVerifierStatus(key, data),
+            requestExternalVerifierContract(key, data),
+          ]);
+          return [key, status, contractStatus] as const;
         })
       );
 
@@ -120,14 +165,18 @@ const ExternalVerifierStatuses = ({
       }
 
       const next = { ...externalVerifierStatusesRef.current };
-      results.forEach(([key, status]) => {
+      const nextContractStatuses = { ...externalVerifierContractStatusesRef.current };
+      results.forEach(([key, status, contractStatus]) => {
         next[key] = status;
+        nextContractStatuses[key] = contractStatus;
       });
 
       externalVerifierStatusesRef.current = next;
+      externalVerifierContractStatusesRef.current = nextContractStatuses;
       setExternalVerifierStatuses(next);
+      setExternalVerifierContractStatuses(nextContractStatuses);
 
-      return Object.values(next).some((status) => status.state === "pending" || status.state === "unknown");
+      return verifierEntries.some(([key, data]) => shouldFetchKey(key, data));
     };
 
     const startCountdown = () => {
@@ -209,12 +258,22 @@ const ExternalVerifierStatuses = ({
           .map(([key, verifierData]) => {
             const typedKey = key as ExternalVerifierKey;
             const label = EXTERNAL_VERIFIER_LABELS[typedKey] ?? key;
+            const isAlreadyVerified = verifierData?.verificationId === "VERIFIER_ALREADY_VERIFIED";
             const fallbackStatus = verifierData?.error
               ? buildStatus("error", verifierData.error)
               : verifierData?.verificationId
               ? buildStatus("pending", `Awaiting verifier response (${verifierData.verificationId})`)
               : buildStatus("unknown", "Waiting for verifier response");
             const status = externalVerifierStatuses[typedKey] ?? fallbackStatus;
+            const fallbackContractStatus = verifierData?.error
+              ? buildContractStatus("not_verified", verifierData.error)
+              : isAlreadyVerified
+              ? buildContractStatus("verified", "Already verified")
+              : verifierData?.contractApiUrl
+              ? buildContractStatus("unknown", "Checking contract verification status")
+              : buildContractStatus("unknown", "No contract verification status available");
+            const contractStatus =
+              externalVerifierContractStatuses[typedKey] ?? fallbackContractStatus;
 
             return (
               <div
@@ -224,6 +283,9 @@ const ExternalVerifierStatuses = ({
                 <div>
                   <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
                   <p className="text-sm text-gray-600 break-words">{status.message}</p>
+                  <p className="text-xs text-gray-500 mt-1 break-words">
+                    Contract status: {contractStatus.message}
+                  </p>
                   {verifierData?.verificationId && (
                     <p className="text-xs text-gray-500 mt-1 break-all">Verification ID: {verifierData.verificationId}</p>
                   )}
@@ -239,13 +301,28 @@ const ExternalVerifierStatuses = ({
                     </a>
                   )}
                 </div>
-                <span
-                  className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
-                    STATUS_BADGE_STYLES[status.state]
-                  }`}
-                >
-                  {STATUS_LABELS[status.state]}
-                </span>
+                <div className="flex flex-col items-start md:items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Verification</span>
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                        STATUS_BADGE_STYLES[status.state]
+                      }`}
+                    >
+                      {STATUS_LABELS[status.state]}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Contract</span>
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                        CONTRACT_STATUS_BADGE_STYLES[contractStatus.state]
+                      }`}
+                    >
+                      {CONTRACT_STATUS_LABELS[contractStatus.state]}
+                    </span>
+                  </div>
+                </div>
               </div>
             );
           })}

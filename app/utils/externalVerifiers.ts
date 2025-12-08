@@ -6,10 +6,27 @@ import { getEtherscanApiKey } from "./etherscanStorage";
 import type { ExternalVerifications } from "./sourcifyApi";
 
 export type ExternalVerifierKey = keyof ExternalVerifications;
-export type ExternalVerifierState = "pending" | "success" | "error" | "unknown";
+export type ExternalVerifierState =
+  | "pending"
+  | "success"
+  | "error"
+  | "no_api_key"
+  | "unknown";
+export type ExternalVerifierContractState =
+  | "verified"
+  | "not_verified"
+  | "error"
+  | "no_api_key"
+  | "unknown";
 
 export interface ExternalVerifierStatus {
   state: ExternalVerifierState;
+  message: string;
+  lastUpdated: number;
+}
+
+export interface ExternalVerifierContractStatus {
+  state: ExternalVerifierContractState;
   message: string;
   lastUpdated: number;
 }
@@ -18,6 +35,15 @@ export const buildStatus = (
   state: ExternalVerifierState,
   message: string
 ): ExternalVerifierStatus => ({
+  state,
+  message,
+  lastUpdated: Date.now(),
+});
+
+export const buildContractStatus = (
+  state: ExternalVerifierContractState,
+  message: string
+): ExternalVerifierContractStatus => ({
   state,
   message,
   lastUpdated: Date.now(),
@@ -61,6 +87,28 @@ const interpretExternalVerifierStatus = (
   return buildStatus("unknown", result);
 };
 
+interface ExternalVerifierContractStatusResponse {
+  status?: string;
+  result?: unknown;
+}
+
+const interpretExternalVerifierContractStatus = (
+  payload: ExternalVerifierContractStatusResponse
+): ExternalVerifierContractStatus => {
+  if (payload.status === "1") {
+    return buildContractStatus("verified", "Contract verified");
+  }
+
+  if (payload.status === "0") {
+    return buildContractStatus("not_verified", "Contract not verified");
+  }
+
+  return buildContractStatus(
+    "unknown",
+    "Contract verification status unavailable"
+  );
+};
+
 export const requestExternalVerifierStatus = async (
   verifierKey: ExternalVerifierKey,
   verificationData?: ExternalVerifications[ExternalVerifierKey]
@@ -96,7 +144,7 @@ export const requestExternalVerifierStatus = async (
       const apiKey = getEtherscanApiKey();
       if (!apiKey) {
         return buildStatus(
-          "error",
+          "no_api_key",
           "Add your Etherscan API key in Settings to fetch the status."
         );
       }
@@ -126,6 +174,81 @@ export const requestExternalVerifierStatus = async (
     return buildStatus(
       "error",
       err instanceof Error ? err.message : "Failed to fetch status"
+    );
+  }
+};
+
+export const requestExternalVerifierContract = async (
+  verifierKey: ExternalVerifierKey,
+  verificationData?: ExternalVerifications[ExternalVerifierKey]
+): Promise<ExternalVerifierContractStatus> => {
+  if (!verificationData) {
+    return buildContractStatus("unknown", "No verification data available");
+  }
+
+  if (verificationData.error) {
+    return buildContractStatus("not_verified", verificationData.error);
+  }
+
+  if (verificationData.verificationId === "VERIFIER_ALREADY_VERIFIED") {
+    return buildContractStatus("verified", "Already verified");
+  }
+
+  if (!verificationData.contractApiUrl) {
+    return buildContractStatus("unknown", "No contract status URL provided");
+  }
+
+  try {
+    let payload: ExternalVerifierContractStatusResponse;
+
+    if (verifierKey === "etherscan") {
+      const apiKey = getEtherscanApiKey();
+      if (!apiKey) {
+        return buildContractStatus(
+          "no_api_key",
+          "Add your Etherscan API key in Settings to fetch the contract status."
+        );
+      }
+      const url = new URL(verificationData.contractApiUrl);
+      url.searchParams.set("apikey", apiKey);
+      const response = await fetch(url.toString());
+      const rawBody = await response.text();
+
+      if (!response.ok) {
+        throw new Error(
+          rawBody || `Contract status request failed (${response.status})`
+        );
+      }
+
+      try {
+        payload = JSON.parse(rawBody) as ExternalVerifierContractStatusResponse;
+      } catch {
+        throw new Error("Unexpected contract status response format");
+      }
+    } else {
+      const response = await fetch(verificationData.contractApiUrl);
+      const rawBody = await response.text();
+
+      if (!response.ok) {
+        throw new Error(
+          rawBody || `Contract status request failed (${response.status})`
+        );
+      }
+
+      try {
+        payload = JSON.parse(rawBody) as ExternalVerifierContractStatusResponse;
+      } catch {
+        throw new Error("Unexpected contract status response format");
+      }
+    }
+
+    return interpretExternalVerifierContractStatus(payload);
+  } catch (err) {
+    return buildContractStatus(
+      "error",
+      err instanceof Error
+        ? err.message
+        : "Failed to fetch contract verification status"
     );
   }
 };

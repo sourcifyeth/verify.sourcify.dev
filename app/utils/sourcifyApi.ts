@@ -236,6 +236,7 @@ export async function submitMetadataVerification(
 
 export interface ExternalVerification {
   statusUrl?: string;
+  contractApiUrl?: string;
   explorerUrl?: string;
   verificationId?: string;
   error?: string;
