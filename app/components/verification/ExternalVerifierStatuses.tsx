@@ -28,9 +28,9 @@ const STATUS_BADGE_STYLES: Record<ExternalVerifierState, string> = {
 };
 
 const STATUS_LABELS: Record<ExternalVerifierState, string> = {
-  success: "Verification successful",
-  pending: "Verification pending",
-  error: "Verification error",
+  success: "Successful",
+  pending: "Pending",
+  error: "Error",
   unknown: "Status unknown",
   no_api_key: "Missing API key",
 };
@@ -275,52 +275,56 @@ const ExternalVerifierStatuses = ({
             const contractStatus =
               externalVerifierContractStatuses[typedKey] ?? fallbackContractStatus;
 
-            return (
+                        return (
               <div
                 key={key}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-gray-200 rounded-lg p-4"
+                className="border border-gray-200 rounded-lg p-4"
               >
-                <div>
-                  <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
-                  <p className="text-sm text-gray-600 break-words">{status.message}</p>
-                  <p className="text-xs text-gray-500 mt-1 break-words">
-                    Contract status: {contractStatus.message}
-                  </p>
-                  {verifierData?.verificationId && (
-                    <p className="text-xs text-gray-500 mt-1 break-all">Verification ID: {verifierData.verificationId}</p>
-                  )}
-                  {verifierData?.explorerUrl && (
-                    <a
-                      href={`${verifierData.explorerUrl}#code`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-cerulean-blue-600 hover:text-cerulean-blue-800 mt-2"
-                    >
-                      View contract
-                      <IoOpenOutline className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-                <div className="flex flex-col items-start md:items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Verification</span>
-                    <span
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
-                        STATUS_BADGE_STYLES[status.state]
-                      }`}
-                    >
-                      {STATUS_LABELS[status.state]}
-                    </span>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-6">
+                  <div className="space-y-1">
+                    <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
+                    {verifierData?.verificationId && (
+                      <p className="text-xs text-gray-500 break-all">
+                        Verification ID: {verifierData.verificationId}
+                      </p>
+                    )}
+                    {verifierData?.explorerUrl && (
+                      <a
+                        href={`${verifierData.explorerUrl}#code`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-cerulean-blue-600 hover:text-cerulean-blue-800 mt-2"
+                      >
+                        View contract
+                        <IoOpenOutline className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Contract</span>
-                    <span
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
-                        CONTRACT_STATUS_BADGE_STYLES[contractStatus.state]
-                      }`}
-                    >
-                      {CONTRACT_STATUS_LABELS[contractStatus.state]}
-                    </span>
+                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto" style={{"minWidth": "280px"}}>
+                    <div className=" rounded-lg p-3 md:p-4">
+                      <div className="grid grid-cols-2 gap-3 text-xs font-semibold uppercase text-gray-700 tracking-wide">
+                        <div className="text-center">Verification</div>
+                        <div className="text-center">Contract</div>
+                        <div className="flex justify-center">
+                          <span
+                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              STATUS_BADGE_STYLES[status.state]
+                            }`}
+                          >
+                            {STATUS_LABELS[status.state]}
+                          </span>
+                        </div>
+                        <div className="flex justify-center">
+                          <span
+                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              CONTRACT_STATUS_BADGE_STYLES[contractStatus.state]
+                            }`}
+                          >
+                            {CONTRACT_STATUS_LABELS[contractStatus.state]}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
