@@ -11,6 +11,7 @@ export type ExternalVerifierState =
   | "success"
   | "error"
   | "no_api_key"
+  | "expired"
   | "already_verified"
   | "unknown";
 export type ExternalVerifierContractState =
@@ -31,6 +32,12 @@ export interface ExternalVerifierContractStatus {
   message: string;
   lastUpdated: number;
 }
+
+const EXTERNAL_VERIFIER_EXPIRATION_MINUTES: Partial<
+  Record<ExternalVerifierKey, number>
+> = {
+  routescan: 24,
+};
 
 export const buildStatus = (
   state: ExternalVerifierState,
@@ -111,9 +118,26 @@ const interpretExternalVerifierContractStatus = (
   );
 };
 
+const isExternalVerifierExpired = (
+  verifierKey: ExternalVerifierKey,
+  jobFinishTime?: string
+): boolean => {
+  const expirationMinutes = EXTERNAL_VERIFIER_EXPIRATION_MINUTES[verifierKey];
+  if (!expirationMinutes) return false;
+
+  if (!jobFinishTime) return false;
+
+  const finishedAtMs = Date.parse(jobFinishTime);
+  if (Number.isNaN(finishedAtMs)) return false;
+
+  const elapsedMinutes = (Date.now() - finishedAtMs) / (60 * 1000);
+  return elapsedMinutes >= expirationMinutes;
+};
+
 export const requestExternalVerifierStatus = async (
   verifierKey: ExternalVerifierKey,
-  verificationData?: ExternalVerifications[ExternalVerifierKey]
+  verificationData?: ExternalVerifications[ExternalVerifierKey],
+  jobFinishTime?: string
 ): Promise<ExternalVerifierStatus> => {
   if (!verificationData) {
     return buildStatus("unknown", "No verification data available");
@@ -125,6 +149,13 @@ export const requestExternalVerifierStatus = async (
 
   if (verificationData.verificationId === "VERIFIER_ALREADY_VERIFIED") {
     return buildStatus("already_verified", "Already verified");
+  }
+
+  if (isExternalVerifierExpired(verifierKey, jobFinishTime)) {
+    return buildStatus(
+      "expired",
+      `Status expired after ${EXTERNAL_VERIFIER_EXPIRATION_MINUTES[verifierKey]} minutes`
+    );
   }
 
   if (!verificationData.statusUrl) {

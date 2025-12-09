@@ -377,7 +377,10 @@ export default function JobDetails() {
             </div>
           )}
 
-          <ExternalVerifierStatuses verifications={jobData.externalVerifications} />
+          <ExternalVerifierStatuses
+            verifications={jobData.externalVerifications}
+            jobFinishTime={jobData.jobFinishTime}
+          />
 
           {/* Error Details */}
           {jobData.error && (

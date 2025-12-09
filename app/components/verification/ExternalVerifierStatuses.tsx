@@ -23,6 +23,7 @@ const STATUS_BADGE_STYLES: Record<ExternalVerifierState, string> = {
   success: "bg-green-100 text-green-800",
   pending: "bg-yellow-100 text-yellow-800",
   error: "bg-red-100 text-red-800",
+  expired: "bg-gray-100 text-gray-800",
   unknown: "bg-gray-100 text-gray-800",
   no_api_key: "bg-gray-100 text-grey-800",
   already_verified: "bg-green-50 text-grey-600",
@@ -32,6 +33,7 @@ const STATUS_LABELS: Record<ExternalVerifierState, string> = {
   success: "Successful",
   pending: "Pending",
   error: "Error",
+  expired: "Expired",
   unknown: "Status unknown",
   no_api_key: "Missing API key",
   already_verified: "Already verified",
@@ -61,11 +63,13 @@ type ExternalVerifierContractStatusMap = Partial<Record<ExternalVerifierKey, Ext
 interface ExternalVerifierStatusesProps {
   verifications?: ExternalVerifications;
   refreshRateSeconds?: number;
+  jobFinishTime?: string;
 }
 
 const ExternalVerifierStatuses = ({
   verifications,
   refreshRateSeconds = DEFAULT_REFRESH_SECONDS,
+  jobFinishTime,
 }: ExternalVerifierStatusesProps) => {
   const [externalVerifierStatuses, setExternalVerifierStatuses] = useState<ExternalVerifierStatusMap>({});
   const [externalVerifierContractStatuses, setExternalVerifierContractStatuses] =
@@ -155,7 +159,7 @@ const ExternalVerifierStatuses = ({
       const results = await Promise.all(
         keysToFetch.map(async ([key, data]) => {
           const [status, contractStatus] = await Promise.all([
-            requestExternalVerifierStatus(key, data),
+            requestExternalVerifierStatus(key, data, jobFinishTime),
             requestExternalVerifierContract(key, data),
           ]);
           return [key, status, contractStatus] as const;
@@ -230,7 +234,7 @@ const ExternalVerifierStatuses = ({
       isCancelled = true;
       clearCountdownTimers();
     };
-  }, [verifications, refreshRateSeconds, clearCountdownTimers]);
+  }, [verifications, refreshRateSeconds, jobFinishTime, clearCountdownTimers]);
 
   if (!verifications || !Object.values(verifications).some((value) => !!value)) {
     return null;
@@ -287,7 +291,7 @@ const ExternalVerifierStatuses = ({
                     <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
                     {verifierData?.verificationId && (
                       <p className="text-xs text-gray-500 break-all">
-                        Verification ID: {verifierData.verificationId}
+                        ID: {verifierData.verificationId}
                       </p>
                     )}
                     {verifierData?.explorerUrl && (
@@ -302,8 +306,8 @@ const ExternalVerifierStatuses = ({
                       </a>
                     )}
                   </div>
-                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto" style={{"minWidth": "280px"}}>
-                    <div className=" rounded-lg p-3 md:p-4">
+                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto" style={{"minWidth": "350px"}}>
+                    <div className="rounded-lg p-3 md:p-4">
                       <div className="grid grid-cols-2 gap-3 text-xs font-semibold uppercase text-gray-700 tracking-wide">
                         <div className="text-center">Verification</div>
                         <div className="text-center">Contract</div>
