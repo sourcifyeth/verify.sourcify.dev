@@ -6,18 +6,13 @@ import {
   buildContractStatus,
   requestExternalVerifierContract,
   requestExternalVerifierStatus,
+  EXTERNAL_VERIFIER_METADATA,
   type ExternalVerifierContractState,
   type ExternalVerifierContractStatus,
   type ExternalVerifierKey,
   type ExternalVerifierState,
   type ExternalVerifierStatus,
 } from "~/utils/externalVerifiers";
-
-const EXTERNAL_VERIFIER_LABELS: Record<ExternalVerifierKey, string> = {
-  etherscan: "Etherscan",
-  blockscout: "Blockscout",
-  routescan: "Routescan",
-};
 
 const STATUS_BADGE_STYLES: Record<ExternalVerifierState, string> = {
   success: "bg-green-100 text-green-800",
@@ -257,13 +252,15 @@ const ExternalVerifierStatuses = ({
         {Object.entries(verifications)
           .filter(([, value]) => !!value)
           .sort(([aKey], [bKey]) =>
-            (EXTERNAL_VERIFIER_LABELS[aKey as ExternalVerifierKey] ?? aKey).localeCompare(
-              EXTERNAL_VERIFIER_LABELS[bKey as ExternalVerifierKey] ?? bKey
+            (EXTERNAL_VERIFIER_METADATA[aKey as ExternalVerifierKey]?.label ?? aKey).localeCompare(
+              EXTERNAL_VERIFIER_METADATA[bKey as ExternalVerifierKey]?.label ?? bKey
             )
           )
           .map(([key, verifierData]) => {
             const typedKey = key as ExternalVerifierKey;
-            const label = EXTERNAL_VERIFIER_LABELS[typedKey] ?? key;
+            const metadata = EXTERNAL_VERIFIER_METADATA[typedKey];
+            const label = metadata?.label ?? key;
+            const icon = metadata?.icon;
             const isAlreadyVerified = verifierData?.verificationId === "VERIFIER_ALREADY_VERIFIED";
             const fallbackStatus = verifierData?.error
               ? buildStatus("error", verifierData.error)
@@ -288,7 +285,10 @@ const ExternalVerifierStatuses = ({
               >
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-6">
                   <div className="space-y-1">
-                    <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
+                    <div className="flex items-center gap-2">
+                      {icon ? <img src={icon.src} alt={icon.alt} className={icon.className} /> : null}
+                      <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
+                    </div>
                     {verifierData?.verificationId && (
                       <p className="text-xs text-gray-500 break-all">
                         ID: {verifierData.verificationId}

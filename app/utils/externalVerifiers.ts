@@ -33,6 +33,47 @@ export interface ExternalVerifierContractStatus {
   lastUpdated: number;
 }
 
+interface ExternalVerifierIcon {
+  src: string;
+  alt: string;
+  className?: string;
+}
+
+interface ExternalVerifierMetadata {
+  label: string;
+  icon?: ExternalVerifierIcon;
+}
+
+export const EXTERNAL_VERIFIER_METADATA: Record<
+  ExternalVerifierKey,
+  ExternalVerifierMetadata
+> = {
+  etherscan: {
+    label: "Etherscan",
+    icon: {
+      src: "/etherscan.webp",
+      alt: "Etherscan",
+      className: "w-5 h-5 bg-white p-[1px] rounded-full",
+    },
+  },
+  blockscout: {
+    label: "Blockscout",
+    icon: {
+      src: "/blockscout.png",
+      alt: "Blockscout",
+      className: "w-5 h-5 bg-white p-[1px] rounded-full",
+    },
+  },
+  routescan: {
+    label: "Routescan",
+    icon: {
+      src: "/routescan.png",
+      alt: "Routescan",
+      className: "w-5 h-5 bg-white p-[1px] rounded-full",
+    },
+  },
+};
+
 const EXTERNAL_VERIFIER_EXPIRATION_MINUTES: Partial<
   Record<ExternalVerifierKey, number>
 > = {
