@@ -61,7 +61,7 @@ export const EXTERNAL_VERIFIER_METADATA: Record<
     icon: {
       src: "/blockscout.png",
       alt: "Blockscout",
-      className: "w-5 h-5 bg-white p-[1px] rounded-full",
+      className: "w-5 h-5 bg-white p-[1px]",
     },
   },
   routescan: {

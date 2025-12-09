@@ -308,12 +308,12 @@ const ExternalVerifierStatuses = ({
                   </div>
                   <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto" style={{"minWidth": "350px"}}>
                     <div className="rounded-lg p-3 md:p-4">
-                      <div className="grid grid-cols-2 gap-3 text-xs font-semibold uppercase text-gray-700 tracking-wide">
-                        <div className="text-center">Verification</div>
-                        <div className="text-center">Contract</div>
+                      <div className="grid grid-cols-2 gap-3 text-xs text-gray-700 tracking-wide">
+                        <div className="text-center font-semibold">Verification</div>
+                        <div className="text-center font-semibold">Contract</div>
                         <div className="flex justify-center">
                           <span
-                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs ${
                               STATUS_BADGE_STYLES[status.state]
                             }`}
                           >
@@ -322,7 +322,7 @@ const ExternalVerifierStatuses = ({
                         </div>
                         <div className="flex justify-center">
                           <span
-                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs ${
                               CONTRACT_STATUS_BADGE_STYLES[contractStatus.state]
                             }`}
                           >
