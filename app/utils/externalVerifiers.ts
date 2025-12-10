@@ -126,11 +126,11 @@ const interpretExternalVerifierStatus = (
     }
   }
 
-  if (payload.status === "1" || payload.message.startsWith("ok")) {
+  if (payload.message.startsWith("OK")) {
     return buildStatus("success", result);
   }
 
-  if (payload.status === "0") {
+  if (payload.message.startsWith("NOTOK")) {
     return buildStatus("error", result);
   }
 
