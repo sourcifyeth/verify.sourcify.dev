@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
+import type { ValidationSummary } from "../utils/metadataValidation";
 import type { Language, SelectedMethod } from "../types/verification";
 
 interface ValidationParams {
@@ -12,6 +13,9 @@ interface ValidationParams {
   uploadedFiles: File[];
   metadataFile: File | null;
   evmVersion: string;
+  metadataValidationResult: ValidationSummary | null;
+  metadataValidationError: string | null;
+  isMetadataValidationPending: boolean;
 }
 
 interface ValidationErrors {
@@ -38,14 +42,17 @@ export function useFormValidation({
   uploadedFiles,
   metadataFile,
   evmVersion,
+  metadataValidationResult,
+  metadataValidationError,
+  isMetadataValidationPending,
 }: ValidationParams) {
   // JSON validation state for std-json method
   const [isJsonValid, setIsJsonValid] = useState(true);
 
-  // Validate JSON files when uploaded for std-json, build-info, or metadata-json methods
+  // Validate JSON files when uploaded for std-json, build-info methods
   useEffect(() => {
     const validateJsonFile = async () => {
-      if ((selectedMethod === "std-json" || selectedMethod === "metadata-json" || selectedMethod === "build-info") && uploadedFiles.length > 0) {
+      if ((selectedMethod === "std-json" || selectedMethod === "build-info") && uploadedFiles.length > 0) {
         try {
           const file = uploadedFiles[0];
           const content = await file.text();
@@ -88,8 +95,13 @@ export function useFormValidation({
     if (!areFilesRequired) return true;
 
     if (selectedMethod === "metadata-json") {
-      // metadata-json requires both metadata file and source files
-      return metadataFile !== null && uploadedFiles.length > 0;
+      // metadata-json requires a metadata file and valid sources (sources can be embedded)
+      return (
+        metadataFile !== null &&
+        !isMetadataValidationPending &&
+        !metadataValidationError &&
+        !!metadataValidationResult?.allRequiredFound
+      );
     } else if (selectedMethod === "std-json" || selectedMethod === "build-info") {
       // std-json and build-info require uploaded files and valid JSON
       return uploadedFiles.length > 0 && isJsonValid;
@@ -136,12 +148,16 @@ export function useFormValidation({
     // File validation
     if (areFilesRequired && !validateFiles()) {
       if (selectedMethod === "metadata-json") {
-        if (!metadataFile && uploadedFiles.length === 0) {
-          newErrors.files = "Please upload metadata.json and source files";
-        } else if (!metadataFile) {
+        if (!metadataFile) {
           newErrors.files = "Please upload metadata.json file";
-        } else if (uploadedFiles.length === 0) {
-          newErrors.files = "Please upload source files";
+        } else if (isMetadataValidationPending) {
+          newErrors.files = "Validating metadata sources...";
+        } else if (metadataValidationError) {
+          newErrors.files = metadataValidationError;
+        } else if (metadataValidationResult && !metadataValidationResult.allRequiredFound) {
+          newErrors.files = metadataValidationResult.message;
+        } else {
+          newErrors.files = "Metadata sources validation failed";
         }
       } else if (selectedMethod === "std-json") {
         if (uploadedFiles.length === 0) {
@@ -184,6 +200,9 @@ export function useFormValidation({
     isEvmVersionRequired,
     evmVersion,
     isJsonValid,
+    metadataValidationResult,
+    metadataValidationError,
+    isMetadataValidationPending,
   ]);
 
   // Calculate overall form validity
@@ -223,7 +242,21 @@ export function useFormValidation({
       submissionErrors.push("Contract identifier is required");
     }
     if (areFilesRequired && !validateFiles()) {
-      submissionErrors.push("Required files are missing");
+      if (selectedMethod === "metadata-json") {
+        if (!metadataFile) {
+          submissionErrors.push("Metadata file is required");
+        } else if (isMetadataValidationPending) {
+          submissionErrors.push("Waiting for metadata sources validation");
+        } else if (metadataValidationError) {
+          submissionErrors.push(metadataValidationError);
+        } else if (metadataValidationResult && !metadataValidationResult.allRequiredFound) {
+          submissionErrors.push(metadataValidationResult.message);
+        } else {
+          submissionErrors.push("Metadata sources validation failed");
+        }
+      } else {
+        submissionErrors.push("Required files are missing");
+      }
     }
     if (isEvmVersionRequired && !evmVersion) {
       submissionErrors.push("EVM version selection is required");
@@ -246,6 +279,9 @@ export function useFormValidation({
     isEvmVersionRequired,
     evmVersion,
     isJsonValid,
+    metadataValidationResult,
+    metadataValidationError,
+    isMetadataValidationPending,
   ]);
 
   return {
