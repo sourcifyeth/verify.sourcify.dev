@@ -97,9 +97,9 @@ const ExternalVerifierStatuses = ({
       return;
     }
 
-    const verifierEntries = Object.entries(verifications).filter(
-      ([, data]) => !!data
-    ) as Array<[ExternalVerifierKey, ExternalVerifications[ExternalVerifierKey]]>;
+    const verifierEntries = Object.entries(verifications).filter(([, data]) => !!data) as Array<
+      [ExternalVerifierKey, ExternalVerifications[ExternalVerifierKey]]
+    >;
 
     if (verifierEntries.length === 0) {
       externalVerifierStatusesRef.current = {};
@@ -128,10 +128,7 @@ const ExternalVerifierStatuses = ({
     let isCancelled = false;
     clearCountdownTimers();
 
-    const shouldFetchKey = (
-      key: ExternalVerifierKey,
-      data: ExternalVerifications[ExternalVerifierKey]
-    ) => {
+    const shouldFetchKey = (key: ExternalVerifierKey, data: ExternalVerifications[ExternalVerifierKey]) => {
       const status = externalVerifierStatusesRef.current[key];
       const contractStatus = externalVerifierContractStatusesRef.current[key];
       const messageIndicatesPending =
@@ -139,8 +136,7 @@ const ExternalVerifierStatuses = ({
       const needsVerificationStatus =
         !status || status.state === "pending" || status.state === "unknown" || messageIndicatesPending;
       const hasContractApiUrl = Boolean(data?.contractApiUrl);
-      const needsContractStatus =
-        hasContractApiUrl && (!contractStatus || contractStatus.state === "unknown");
+      const needsContractStatus = hasContractApiUrl && (!contractStatus || contractStatus.state === "unknown");
       return needsVerificationStatus || needsContractStatus;
     };
 
@@ -275,24 +271,18 @@ const ExternalVerifierStatuses = ({
               : verifierData?.contractApiUrl
               ? buildContractStatus("unknown", "Checking contract verification status")
               : buildContractStatus("unknown", "No contract verification status available");
-            const contractStatus =
-              externalVerifierContractStatuses[typedKey] ?? fallbackContractStatus;
+            const contractStatus = externalVerifierContractStatuses[typedKey] ?? fallbackContractStatus;
 
-                        return (
-              <div
-                key={key}
-                className="border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-6">
-                  <div className="space-y-1">
+            return (
+              <div key={key} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex flex-col items-center text-center md:text-left md:flex-row md:justify-between md:items-start gap-4 md:gap-6">
+                  <div className="flex flex-col items-center md:items-start space-y-1">
                     <div className="flex items-center gap-2">
                       {icon ? <img src={icon.src} alt={icon.alt} className={icon.className} /> : null}
-                      <p className="text-base md:text-lg font-semibold text-gray-900">{label}</p>
+                      <p className="text-lg font-semibold text-gray-900">{label}</p>
                     </div>
                     {verifierData?.verificationId && (
-                      <p className="text-xs text-gray-500 break-all">
-                        ID: {verifierData.verificationId}
-                      </p>
+                      <p className="text-xs text-gray-400 break-all">ID: {verifierData.verificationId}</p>
                     )}
                     {verifierData?.explorerUrl && (
                       <a
@@ -306,12 +296,12 @@ const ExternalVerifierStatuses = ({
                       </a>
                     )}
                   </div>
-                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto" style={{"minWidth": "350px"}}>
-                    <div className="rounded-lg p-3 md:p-4">
-                      <div className="grid grid-cols-2 gap-3 text-xs text-gray-700 tracking-wide">
-                        <div className="text-center font-semibold">Verification</div>
+                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto">
+                    <div className="rounded-lg p-1 md:p-4">
+                      <div className="grid grid-cols-2 md:gap-3 text-xs text-gray-700 tracking-wide ">
+                        <div className="text-center font-semibold">Job Status</div>
                         <div className="text-center font-semibold">Contract</div>
-                        <div className="flex justify-center">
+                        <div className="flex justify-center text-center">
                           <span
                             className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs ${
                               STATUS_BADGE_STYLES[status.state]
@@ -320,7 +310,7 @@ const ExternalVerifierStatuses = ({
                             {STATUS_LABELS[status.state]}
                           </span>
                         </div>
-                        <div className="flex justify-center">
+                        <div className="flex justify-center text-center">
                           <span
                             className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs ${
                               CONTRACT_STATUS_BADGE_STYLES[contractStatus.state]
