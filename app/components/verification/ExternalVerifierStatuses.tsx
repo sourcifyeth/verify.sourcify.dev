@@ -282,25 +282,42 @@ const ExternalVerifierStatuses = ({
                       <p className="text-lg font-semibold text-gray-900">{label}</p>
                     </div>
                     {verifierData?.verificationId && (
-                      <p className="text-xs text-gray-400 break-all">ID: {verifierData.verificationId}</p>
-                    )}
-                    {verifierData?.explorerUrl && (
-                      <a
-                        href={`${verifierData.explorerUrl}#code`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-cerulean-blue-600 hover:text-cerulean-blue-800 mt-2"
-                      >
-                        View contract
-                        <IoOpenOutline className="w-4 h-4" />
-                      </a>
+                      <p className="text-xs text-gray-400 break-all">Job ID: {verifierData.verificationId}</p>
                     )}
                   </div>
-                  <div className="md:pl-4 md:min-w-[260px] w-full md:w-auto">
-                    <div className="rounded-lg p-1 md:p-4">
+                  <div className="md:min-w-[260px] w-full md:w-auto">
+                    <div className="rounded-lg p-1">
                       <div className="grid grid-cols-2 md:gap-3 text-xs text-gray-700 tracking-wide ">
-                        <div className="text-center font-semibold">Job Status</div>
-                        <div className="text-center font-semibold">Contract</div>
+                        <div className="text-center font-semibold">
+                          {verifierData?.statusUrl ? (
+                            <a
+                              href={verifierData.statusUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-cerulean-blue-600 hover:text-cerulean-blue-800"
+                            >
+                              Job Status
+                              <IoOpenOutline className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            "Job Status"
+                          )}
+                        </div>
+                        <div className="text-center font-semibold">
+                          {verifierData?.explorerUrl ? (
+                            <a
+                              href={`${verifierData.explorerUrl}#code`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-cerulean-blue-600 hover:text-cerulean-blue-800"
+                            >
+                              Contract
+                              <IoOpenOutline className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            "Contract"
+                          )}
+                        </div>
                         <div className="flex justify-center text-center">
                           <span
                             className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs ${
