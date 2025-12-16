@@ -1,17 +1,23 @@
 import type { Route } from "./+types/jobs.$jobId";
 import { useParams } from "react-router";
-import { useEffect, useState } from "react";
-import { IoCheckmarkDoneCircle, IoCheckmarkCircle, IoOpenOutline, IoClose, IoBugOutline } from "react-icons/io5";
+import { useEffect, useRef, useState } from "react";
+import { IoOpenOutline, IoClose, IoBugOutline } from "react-icons/io5";
 import { TbArrowsDiff } from "react-icons/tb";
 import { useChains } from "../contexts/ChainsContext";
 import { getChainName } from "../utils/chains";
-import { getVerificationJobStatus, type VerificationJobStatus } from "../utils/sourcifyApi";
+import {
+  getVerificationJobStatus,
+  type VerificationJobStatus,
+  type ExternalVerifications,
+} from "../utils/sourcifyApi";
 import PageLayout from "../components/PageLayout";
 import BytecodeDiffModal from "../components/verification/BytecodeDiffModal";
 import MatchBadge from "../components/verification/MatchBadge";
+import ExternalVerifierStatuses from "../components/verification/ExternalVerifierStatuses";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useServerConfig } from "../contexts/ServerConfigContext";
 import { generateGitHubIssueUrl } from "../utils/githubIssue";
+import { type ExternalVerifierKey } from "~/utils/externalVerifiers";
 
 export function meta({ }: Route.MetaArgs) {
   const { jobId } = useParams<{ jobId: string }>();
@@ -27,6 +33,13 @@ export function meta({ }: Route.MetaArgs) {
 }
 
 const DEFAULT_COUNTDOWN = 5;
+const MAX_EXTERNAL_VERIFICATION_RETRIES = 3;
+
+const REQUIRED_EXTERNAL_VERIFIER_KEYS: ExternalVerifierKey[] = ["etherscan", "blockscout", "routescan"];
+
+const hasAllRequiredExternalVerifications = (verifications?: ExternalVerifications) => {
+  return REQUIRED_EXTERNAL_VERIFIER_KEYS.every((key) => verifications?.[key] != null);
+};
 
 export default function JobDetails() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -46,6 +59,13 @@ export default function JobDetails() {
   const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set());
   const [expandedModalErrors, setExpandedModalErrors] = useState<Set<number>>(new Set());
   const { serverUrl } = useServerConfig();
+  const hasExternalVerificationData = hasAllRequiredExternalVerifications(jobData?.externalVerifications);
+  const isJobCompletedWithExternalVerifications =
+    Boolean(jobData?.isJobCompleted) && hasExternalVerificationData;
+  const missingExternalVerificationData = Boolean(jobData?.isJobCompleted && !hasExternalVerificationData);
+  const externalVerificationRetryCountRef = useRef(0);
+  const hasReachedExternalVerificationRetryLimit =
+    missingExternalVerificationData && externalVerificationRetryCountRef.current >= MAX_EXTERNAL_VERIFICATION_RETRIES;
 
   const fetchJobStatus = async () => {
     if (!jobId) return;
@@ -62,18 +82,42 @@ export default function JobDetails() {
     }
   };
 
-  // Initial fetch
+  const initialFetchJobIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    fetchJobStatus();
+    if (!missingExternalVerificationData) {
+      externalVerificationRetryCountRef.current = 0;
+    }
+  }, [missingExternalVerificationData]);
+
+  useEffect(() => {
+    externalVerificationRetryCountRef.current = 0;
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!jobId) return;
+    const alreadyFetched = initialFetchJobIdRef.current === jobId;
+    initialFetchJobIdRef.current = jobId;
+    if (!alreadyFetched) {
+      fetchJobStatus();
+    }
   }, [jobId]);
 
   // Auto-refresh for pending jobs with countdown
   useEffect(() => {
-    if (!jobData || jobData.isJobCompleted) return;
+    // Old jobs don't have external verifications, so we need a mechanism to stop retrying if the value is not set
+    if (!jobData || isJobCompletedWithExternalVerifications || hasReachedExternalVerificationRetryLimit) return;
 
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
+          if (missingExternalVerificationData) {
+            if (externalVerificationRetryCountRef.current >= MAX_EXTERNAL_VERIFICATION_RETRIES) {
+              clearInterval(interval);
+              return DEFAULT_COUNTDOWN;
+            }
+            externalVerificationRetryCountRef.current += 1;
+          }
           fetchJobStatus();
           return DEFAULT_COUNTDOWN; // Reset countdown
         }
@@ -82,7 +126,12 @@ export default function JobDetails() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [jobData]);
+  }, [
+    jobData,
+    isJobCompletedWithExternalVerifications,
+    missingExternalVerificationData,
+    hasReachedExternalVerificationRetryLimit,
+  ]);
 
   const handleRefresh = () => {
     fetchJobStatus();
@@ -327,6 +376,11 @@ export default function JobDetails() {
               </div>
             </div>
           )}
+
+          <ExternalVerifierStatuses
+            verifications={jobData.externalVerifications}
+            jobFinishTime={jobData.jobFinishTime}
+          />
 
           {/* Error Details */}
           {jobData.error && (
