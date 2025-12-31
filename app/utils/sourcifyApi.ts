@@ -279,7 +279,7 @@ export interface VerificationJobStatus {
   jobStartTime: string;
   jobFinishTime?: string;
   compilationTime?: string;
-  contract?: {
+  contract: {
     match: "match" | "exact_match" | null;
     creationMatch: "match" | "exact_match" | null;
     runtimeMatch: "match" | "exact_match" | null;

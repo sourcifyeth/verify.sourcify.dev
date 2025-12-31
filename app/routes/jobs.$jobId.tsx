@@ -208,6 +208,20 @@ export default function JobDetails() {
     );
   };
 
+  const ViewInRepositoryButton = ({ chainId, address }: { chainId: string; address: string }) => (
+    <div className="mt-4">
+      <a
+        href={getRepoUrl(chainId, address)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-cerulean-blue-500 hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
+      >
+        View in Repository
+        <IoOpenOutline className="w-4 h-4" />
+      </a>
+    </div>
+  );
+
   if (loading && !jobData) {
     return (
       <PageLayout title="Verification Job">
@@ -360,17 +374,7 @@ export default function JobDetails() {
                   />
                 </div>
                 {(jobData.contract.runtimeMatch || jobData.contract.creationMatch) && (
-                  <div className="mt-4">
-                    <a
-                      href={getRepoUrl(jobData.contract.chainId, jobData.contract.address)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-cerulean-blue-500 hover:bg-cerulean-blue-600 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
-                    >
-                      View in Repository
-                      <IoOpenOutline className="w-4 h-4" />
-                    </a>
-                  </div>
+                  <ViewInRepositoryButton chainId={jobData.contract.chainId} address={jobData.contract.address} />
                 )}
                 {jobData.contract.matchId && <DetailRow label="Match ID" value={jobData.contract.matchId} />}
               </div>
@@ -398,6 +402,9 @@ export default function JobDetails() {
                       </span>
                     }
                   />
+                  {jobData.error.customCode === 'already_verified' && jobData.contract && (
+                    <ViewInRepositoryButton chainId={jobData.contract.chainId} address={jobData.contract.address} />
+                  )}
                   {/* Compiler Errors */}
                   {jobData.error.errorData?.compilerErrors && (
                     <div>
