@@ -234,6 +234,20 @@ export async function submitMetadataVerification(
   return response.json();
 }
 
+export interface ExternalVerification {
+  statusUrl?: string;
+  contractApiUrl?: string;
+  explorerUrl?: string;
+  verificationId?: string;
+  error?: string;
+}
+
+export interface ExternalVerifications {
+  etherscan?: ExternalVerification;
+  blockscout?: ExternalVerification;
+  routescan?: ExternalVerification;
+}
+
 // Verification Job Status Types
 export interface VerificationJobStatus {
   isJobCompleted: boolean;
@@ -265,7 +279,7 @@ export interface VerificationJobStatus {
   jobStartTime: string;
   jobFinishTime?: string;
   compilationTime?: string;
-  contract?: {
+  contract: {
     match: "match" | "exact_match" | null;
     creationMatch: "match" | "exact_match" | null;
     runtimeMatch: "match" | "exact_match" | null;
@@ -274,6 +288,7 @@ export interface VerificationJobStatus {
     verifiedAt?: string;
     matchId?: string;
   };
+  externalVerifications?: ExternalVerifications;
 }
 
 export async function getVerificationJobStatus(

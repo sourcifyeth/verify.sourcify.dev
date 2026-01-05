@@ -95,19 +95,24 @@ export default function FileUpload({
     setShowPasteMode(false);
   }, [selectedMethod]);
 
+  const getExpectedExtension = () => {
+    if (["std-json", "metadata-json", "build-info"].includes(selectedMethod)) {
+      return ".json";
+    }
+    return selectedLanguage === "vyper" ? ".vy" : ".sol";
+  };
+
   const validateFileName = (fileName: string): string | null => {
-    // For std-json, filename is optional
-    if (selectedMethod === "std-json") {
+    // For std-json and metadata-json, filename is optional
+    if (["std-json", "metadata-json"].includes(selectedMethod)) {
       if (!fileName.trim()) {
         return null; // No error for empty filename in std-json
       }
-    } else {
-      if (!fileName.trim()) {
-        return "File name is required";
-      }
+    } else if (!fileName.trim()) {
+      return "File name is required";
     }
 
-    const expectedExtension = selectedMethod === "std-json" ? ".json" : selectedLanguage === "vyper" ? ".vy" : ".sol";
+    const expectedExtension = getExpectedExtension();
     if (!fileName.endsWith(expectedExtension)) {
       return `File name must end with ${expectedExtension}`;
     }
@@ -395,7 +400,7 @@ export default function FileUpload({
 
       {requirements.maxFiles === 1 && showPasteMode && (
         <div className="mb-4 space-y-4">
-          {selectedMethod !== "std-json" && (
+          {selectedMethod !== "std-json" && selectedMethod !== "metadata-json" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 File name <span className="text-red-500">*</span>
@@ -437,8 +442,8 @@ export default function FileUpload({
                 setPastedContent(e.target.value);
 
                 if (e.target.value.trim()) {
-                  if (selectedMethod === "std-json") {
-                    // For std-json, always use "input.json" as filename
+                  if (selectedMethod === "std-json" || selectedMethod === "metadata-json") {
+                    // For std-json and metadata-json, always use "input.json" as filename
                     const blob = new Blob([e.target.value], { type: "text/plain" });
                     const file = new File([blob], "input.json", { type: "text/plain" });
                     onFilesChange([file]);

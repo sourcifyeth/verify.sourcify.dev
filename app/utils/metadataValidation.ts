@@ -1,13 +1,13 @@
 import { id as keccak256str } from "ethers";
 
-interface MetadataSource {
+export interface MetadataSource {
   keccak256: string;
   content?: string;
   license?: string;
   urls?: string[];
 }
 
-interface SourceValidationResult {
+export interface SourceValidationResult {
   expectedFileName: string;
   matchedFileName?: string; // Actual uploaded file name that matched the hash
   status: "found" | "missing" | "embedded";
@@ -18,7 +18,7 @@ interface SourceValidationResult {
   content?: string; // For embedded sources
 }
 
-interface ValidationSummary {
+export interface ValidationSummary {
   allRequiredFound: boolean;
   missingCount: number;
   unnecessaryCount: number;
