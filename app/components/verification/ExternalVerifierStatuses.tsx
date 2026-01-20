@@ -258,6 +258,7 @@ const ExternalVerifierStatuses = ({
             const label = metadata?.label ?? key;
             const icon = metadata?.icon;
             const isAlreadyVerified = verifierData?.verificationId === "VERIFIER_ALREADY_VERIFIED";
+            const verifierError = verifierData?.error ?? null;
             const fallbackStatus = verifierData?.error
               ? buildStatus("error", verifierData.error)
               : verifierData?.verificationId
@@ -284,6 +285,7 @@ const ExternalVerifierStatuses = ({
                     {verifierData?.verificationId && (
                       <p className="text-xs text-gray-400 break-all">Job ID: {verifierData.verificationId}</p>
                     )}
+                    {verifierError && <p className="text-xs text-rose-400 break-words">Error: {verifierError}</p>}
                   </div>
                   <div className="md:min-w-[260px] w-full md:w-auto">
                     <div className="rounded-lg p-1">
