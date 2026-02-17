@@ -493,7 +493,7 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
 
           {!isFrameworkMethod && (
             <>
-              <div className="flex justify-center">
+              <div className="flex flex-col items-center gap-3">
                 <button
                   type="submit"
                   disabled={!canSubmit}
@@ -508,6 +508,9 @@ export default function VerificationForm({ preselectedChainId, preselectedAddres
                   )}
                   <span>{isSubmitting ? "Submitting..." : "Verify Contract"}</span>
                 </button>
+                <p className="text-xs text-gray-500 text-center max-w-xl">
+                  By submitting source code for verification, you grant Sourcify (and the Argot Collective) a non-exclusive, worldwide, irrevocable, royalty-free licence to reproduce, store, and publicly display the submitted source code for the purposes of verification, archival, and public inspection.
+                </p>
               </div>
 
               {/* Validation Errors List */}
