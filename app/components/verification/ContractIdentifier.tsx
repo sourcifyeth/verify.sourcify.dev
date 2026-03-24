@@ -92,15 +92,8 @@ export default function ContractIdentifier({
                     });
                   }
                 } else if (selectedLanguage === "fe" && filePath.endsWith(".fe")) {
-                  // For Fe, generate contract identifier from file path
-                  const contractName = filePath.split("/").pop()?.replace(".fe", "") || "";
-                  if (contractName) {
-                    contracts.push({
-                      fileName: filePath,
-                      contractName,
-                      fullIdentifier: `${filePath}:${contractName}`,
-                    });
-                  }
+                  const feContracts = parseFeFileContent(filePath, sourceContent);
+                  contracts.push(...feContracts);
                 }
               }
             }
@@ -121,13 +114,9 @@ export default function ContractIdentifier({
                 fullIdentifier: `${file.name}:${contractName}`,
               });
             } else if (selectedLanguage === "fe" && file.name.endsWith(".fe")) {
-              // For Fe, generate contract identifier from file name
-              const contractName = file.name.replace(".fe", "");
-              contracts.push({
-                fileName: file.name,
-                contractName,
-                fullIdentifier: `${file.name}:${contractName}`,
-              });
+              const content = await file.text();
+              const feContracts = parseFeFileContent(file.name, content);
+              contracts.push(...feContracts);
             }
           }
         }
@@ -175,6 +164,19 @@ export default function ContractIdentifier({
       searchInputRef.current.focus();
     }
   }, [isDropdownOpen]);
+
+  const parseFeFileContent = (fileName: string, content: string): ParsedContract[] => {
+    const contracts: ParsedContract[] = [];
+    const matches = content.matchAll(/pub\s+contract\s+(\w+)/g);
+    for (const match of matches) {
+      contracts.push({
+        fileName,
+        contractName: match[1],
+        fullIdentifier: `${fileName}:${match[1]}`,
+      });
+    }
+    return contracts;
+  };
 
   const parseFileContent = async (fileName: string | null, content: string): Promise<ParsedContract[]> => {
     try {
