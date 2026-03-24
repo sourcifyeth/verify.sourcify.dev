@@ -12,6 +12,11 @@ export interface VyperVersion {
   isPrerelease: boolean;
 }
 
+export interface FeVersion {
+  version: string;
+  isPrerelease: boolean;
+}
+
 interface CompilerVersionsContextType {
   // Solidity versions
   solidityVersions: SolidityVersion[];
@@ -21,19 +26,26 @@ interface CompilerVersionsContextType {
   vyperVersions: VyperVersion[];
   officialVyperVersions: VyperVersion[];
 
+  // Fe versions
+  feVersions: FeVersion[];
+  officialFeVersions: FeVersion[];
+
   // Loading states
   isSolidityLoading: boolean;
   isVyperLoading: boolean;
+  isFeLoading: boolean;
 
   // Error states
   solidityError: string | null;
   vyperError: string | null;
+  feError: string | null;
 }
 
 const CompilerVersionsContext = createContext<CompilerVersionsContextType | undefined>(undefined);
 
 const SOLC_VERSIONS_LIST_URL = "https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/bin/list.txt";
 const VYPER_VERSIONS_LIST_URL = "https://vyper-releases-mirror.hardhat.org/list.json";
+const FE_VERSIONS_LIST_URL = "https://api.github.com/repos/argotorg/fe/releases";
 
 function formatSolidityVersionName(filename: string): SolidityVersion {
   // Remove "soljson-v" prefix and ".js" suffix
@@ -66,10 +78,15 @@ export function CompilerVersionsProvider({ children }: { children: React.ReactNo
   const [vyperVersions, setVyperVersions] = useState<VyperVersion[]>([]);
   const [officialVyperVersions, setOfficialVyperVersions] = useState<VyperVersion[]>([]);
 
+  const [feVersions, setFeVersions] = useState<FeVersion[]>([]);
+  const [officialFeVersions, setOfficialFeVersions] = useState<FeVersion[]>([]);
+
   const [isSolidityLoading, setIsSolidityLoading] = useState(true);
   const [isVyperLoading, setIsVyperLoading] = useState(true);
+  const [isFeLoading, setIsFeLoading] = useState(true);
   const [solidityError, setSolidityError] = useState<string | null>(null);
   const [vyperError, setVyperError] = useState<string | null>(null);
+  const [feError, setFeError] = useState<string | null>(null);
 
   // Fetch Solidity versions
   useEffect(() => {
@@ -123,6 +140,30 @@ export function CompilerVersionsProvider({ children }: { children: React.ReactNo
       });
   }, []);
 
+  // Fetch Fe versions
+  useEffect(() => {
+    fetch(FE_VERSIONS_LIST_URL)
+      .then((response) => response.json())
+      .then((data: { tag_name: string; published_at: string; assets: { name: string }[] }[]) => {
+        const allVersionsList: FeVersion[] = data
+          .filter((release) => release.assets.length > 0 && new Date(release.published_at).getFullYear() >= 2025)
+          .map((release) => {
+            const version = release.tag_name.replace(/^v/, "");
+            const isPrerelease = /alpha|beta|rc/i.test(version);
+            return { version, isPrerelease };
+          });
+
+        setFeVersions(allVersionsList);
+        setOfficialFeVersions(allVersionsList.filter((v) => !v.isPrerelease));
+        setIsFeLoading(false);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch Fe versions:", error);
+        setIsFeLoading(false);
+        setFeError("Failed to fetch Fe compiler versions");
+      });
+  }, []);
+
   return (
     <CompilerVersionsContext.Provider
       value={{
@@ -130,10 +171,14 @@ export function CompilerVersionsProvider({ children }: { children: React.ReactNo
         officialSolidityVersions,
         vyperVersions,
         officialVyperVersions,
+        feVersions,
+        officialFeVersions,
         isSolidityLoading,
         isVyperLoading,
+        isFeLoading,
         solidityError,
         vyperError,
+        feError,
       }}
     >
       {children}

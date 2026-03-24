@@ -91,6 +91,16 @@ export default function ContractIdentifier({
                       fullIdentifier: `${filePath}:${contractName}`,
                     });
                   }
+                } else if (selectedLanguage === "fe" && filePath.endsWith(".fe")) {
+                  // For Fe, generate contract identifier from file path
+                  const contractName = filePath.split("/").pop()?.replace(".fe", "") || "";
+                  if (contractName) {
+                    contracts.push({
+                      fileName: filePath,
+                      contractName,
+                      fullIdentifier: `${filePath}:${contractName}`,
+                    });
+                  }
                 }
               }
             }
@@ -105,6 +115,14 @@ export default function ContractIdentifier({
             } else if (selectedLanguage === "vyper" && file.name.endsWith(".vy")) {
               // For Vyper, generate contract identifier from file name
               const contractName = file.name.replace(".vy", "");
+              contracts.push({
+                fileName: file.name,
+                contractName,
+                fullIdentifier: `${file.name}:${contractName}`,
+              });
+            } else if (selectedLanguage === "fe" && file.name.endsWith(".fe")) {
+              // For Fe, generate contract identifier from file name
+              const contractName = file.name.replace(".fe", "");
               contracts.push({
                 fileName: file.name,
                 contractName,
@@ -172,7 +190,7 @@ export default function ContractIdentifier({
         for (const child of ast.children) {
           if (child.type === "ContractDefinition" && child.name) {
             if (!fileName) {
-              const extension = selectedLanguage === "solidity" ? ".sol" : ".vy";
+              const extension = selectedLanguage === "solidity" ? ".sol" : selectedLanguage === "vyper" ? ".vy" : ".fe";
               fileName = `${child.name}${extension}`;
             }
 
@@ -206,6 +224,9 @@ export default function ContractIdentifier({
     }
     if (selectedLanguage === "vyper") {
       return "contracts/MyContract.vy:MyContract";
+    }
+    if (selectedLanguage === "fe") {
+      return "src/counter.fe:Counter";
     }
     return "contracts/Storage.sol:Storage";
   };
@@ -267,12 +288,12 @@ export default function ContractIdentifier({
         {uploadedFiles.length > 0 &&
           parsedContracts.length === 0 &&
           !isParsingFiles &&
-          selectedLanguage === "vyper" && (
+          (selectedLanguage === "vyper" || selectedLanguage === "fe") && (
             <div className="mt-2">
-              <p className="text-xs text-gray-500">Available Vyper files:</p>
+              <p className="text-xs text-gray-500">Available {selectedLanguage === "vyper" ? "Vyper" : "Fe"} files:</p>
               <ul className="text-xs text-gray-500 ml-2">
                 {uploadedFiles
-                  .filter((file) => file.name.endsWith(".vy"))
+                  .filter((file) => file.name.endsWith(selectedLanguage === "vyper" ? ".vy" : ".fe"))
                   .map((file, index) => (
                     <li key={index}>• {file.name}</li>
                   ))}

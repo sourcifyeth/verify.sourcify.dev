@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
-import type { SolidityVersion, VyperVersion } from "../../contexts/CompilerVersionsContext";
+import type { SolidityVersion, VyperVersion, FeVersion } from "../../contexts/CompilerVersionsContext";
 import type { Language, SelectedMethod } from "../../types/verification";
 
 interface CompilerSelectorProps {
@@ -21,14 +21,18 @@ export default function CompilerSelector({
     officialSolidityVersions,
     vyperVersions,
     officialVyperVersions,
+    feVersions,
+    officialFeVersions,
     isSolidityLoading,
     isVyperLoading,
+    isFeLoading,
     solidityError,
     vyperError,
+    feError,
   } = useCompilerVersions();
 
   const [showNightlyBuilds, setShowNightlyBuilds] = useState(false);
-  const [showPrereleases, setShowPrereleases] = useState(false);
+  const [showPrereleases, setShowPrereleases] = useState(language === "fe");
 
   // Don't show if language is null or if using metadata/framework methods
   if (!language || !selectedMethod) {
@@ -43,8 +47,8 @@ export default function CompilerSelector({
     return null;
   }
 
-  const isLoading = language === "solidity" ? isSolidityLoading : isVyperLoading;
-  const compilerError = language === "solidity" ? solidityError : vyperError;
+  const isLoading = language === "solidity" ? isSolidityLoading : language === "vyper" ? isVyperLoading : isFeLoading;
+  const compilerError = language === "solidity" ? solidityError : language === "vyper" ? vyperError : feError;
 
   if (isLoading) {
     return (
@@ -72,27 +76,32 @@ export default function CompilerSelector({
   const getVersionsToShow = () => {
     if (language === "solidity") {
       return showNightlyBuilds ? solidityVersions : officialSolidityVersions;
-    } else {
+    } else if (language === "vyper") {
       return showPrereleases ? vyperVersions : officialVyperVersions;
+    } else {
+      return showPrereleases ? feVersions : officialFeVersions;
     }
   };
 
   const versionsToShow = getVersionsToShow();
 
-  const formatVersionForDisplay = (version: SolidityVersion | VyperVersion) => {
+  const formatVersionForDisplay = (version: SolidityVersion | VyperVersion | FeVersion) => {
     if (language === "solidity") {
       return (version as SolidityVersion).version;
+    } else if (language === "vyper") {
+      return (version as VyperVersion).longVersion;
     } else {
-      const vyperVersion = version as VyperVersion;
-      return vyperVersion.longVersion;
+      return (version as FeVersion).version;
     }
   };
 
-  const getVersionValue = (version: SolidityVersion | VyperVersion) => {
+  const getVersionValue = (version: SolidityVersion | VyperVersion | FeVersion) => {
     if (language === "solidity") {
       return (version as SolidityVersion).version;
-    } else {
+    } else if (language === "vyper") {
       return (version as VyperVersion).longVersion;
+    } else {
+      return (version as FeVersion).version;
     }
   };
 
@@ -147,7 +156,7 @@ export default function CompilerSelector({
             htmlFor={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
             className="ml-2 block text-sm text-gray-700"
           >
-            {language === "solidity" ? "Show nightly builds" : "Show prereleases"}
+            {language === "solidity" ? "Show nightly builds" : "Show alpha/prereleases"}
           </label>
         </div>
       </div>
