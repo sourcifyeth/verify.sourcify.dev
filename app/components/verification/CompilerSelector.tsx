@@ -79,7 +79,7 @@ export default function CompilerSelector({
     } else if (language === "vyper") {
       return showPrereleases ? vyperVersions : officialVyperVersions;
     } else {
-      return showPrereleases ? feVersions : officialFeVersions;
+      return feVersions;
     }
   };
 
@@ -138,27 +138,29 @@ export default function CompilerSelector({
           </div>
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
-            checked={language === "solidity" ? showNightlyBuilds : showPrereleases}
-            onChange={(e) => {
-              if (language === "solidity") {
-                setShowNightlyBuilds(e.target.checked);
-              } else {
-                setShowPrereleases(e.target.checked);
-              }
-            }}
-            className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded"
-          />
-          <label
-            htmlFor={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
-            className="ml-2 block text-sm text-gray-700"
-          >
-            {language === "solidity" ? "Show nightly builds" : "Show alpha/prereleases"}
-          </label>
-        </div>
+        {language !== "fe" && (
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
+              checked={language === "solidity" ? showNightlyBuilds : showPrereleases}
+              onChange={(e) => {
+                if (language === "solidity") {
+                  setShowNightlyBuilds(e.target.checked);
+                } else {
+                  setShowPrereleases(e.target.checked);
+                }
+              }}
+              className="h-4 w-4 text-cerulean-blue-600 focus:ring-cerulean-blue-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor={`show${language === "solidity" ? "Nightly" : "Prerelease"}`}
+              className="ml-2 block text-sm text-gray-700"
+            >
+              {language === "solidity" ? "Show nightly builds" : "Show alpha/prereleases"}
+            </label>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -146,7 +146,7 @@ export function CompilerVersionsProvider({ children }: { children: React.ReactNo
       .then((response) => response.json())
       .then((data: { tag_name: string; published_at: string; assets: { name: string }[] }[]) => {
         const allVersionsList: FeVersion[] = data
-          .filter((release) => release.assets.length > 0 && new Date(release.published_at).getFullYear() >= 2025)
+          .filter((release) => release.assets.length > 0 && new Date(release.published_at) >= new Date("2026-03-20"))
           .map((release) => {
             const version = release.tag_name.replace(/^v/, "");
             const isPrerelease = /alpha|beta|rc/i.test(version);
