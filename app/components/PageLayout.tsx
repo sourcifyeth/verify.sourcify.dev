@@ -39,7 +39,7 @@ export default function PageLayout({ children, maxWidth = "max-w-4xl", title, su
 
     const envPrefix =
       import.meta.env.VITE_ENV && import.meta.env.VITE_ENV !== "production"
-        ? `(${import.meta.env.VITE_ENV} environment) `
+        ? `(${import.meta.env.VITE_ENV} environment - ${serverUrl}) `
         : "";
 
     return (

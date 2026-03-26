@@ -95,13 +95,13 @@ async function buildStandardJsonInput(
   }
   // For Vyper, no optimization settings are added
 
-  // Only include evmVersion if it's not "default"
-  if (settings.evmVersion?.toLowerCase() !== "default") {
+  // Only include evmVersion if it's set and not "default"
+  if (settings.evmVersion && settings.evmVersion.toLowerCase() !== "default") {
     standardJsonSettings.evmVersion = settings.evmVersion;
   }
 
   return {
-    language: language === "vyper" ? "Vyper" : "Solidity",
+    language: language === "vyper" ? "Vyper" : language === "fe" ? "Fe" : "Solidity",
     sources,
     settings: standardJsonSettings,
   };

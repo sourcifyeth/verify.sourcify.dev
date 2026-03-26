@@ -23,14 +23,16 @@ const getLanguageExtensions = (language: Language | null): string[] => {
       return [".sol"];
     case "vyper":
       return [".vy"];
+    case "fe":
+      return [".fe"];
     default:
-      return [".sol", ".vy"];
+      return [".sol", ".vy", ".fe"];
   }
 };
 
 const getFileRequirements = (method: VerificationMethod, language: Language | null): FileRequirement => {
   const sourceExtensions = getLanguageExtensions(language);
-  const languageName = language === "vyper" ? "Vyper" : "Solidity";
+  const languageName = language === "vyper" ? "Vyper" : language === "fe" ? "Fe" : "Solidity";
 
   switch (method) {
     case "std-json":
@@ -99,7 +101,7 @@ export default function FileUpload({
     if (["std-json", "metadata-json", "build-info"].includes(selectedMethod)) {
       return ".json";
     }
-    return selectedLanguage === "vyper" ? ".vy" : ".sol";
+    return selectedLanguage === "vyper" ? ".vy" : selectedLanguage === "fe" ? ".fe" : ".sol";
   };
 
   const validateFileName = (fileName: string): string | null => {
@@ -238,6 +240,8 @@ export default function FileUpload({
         return <img src="/solidity.svg" alt="Solidity" className="w-5 h-5" />;
       case "vy":
         return <img src="/vyper.svg" alt="Vyper" className="w-5 h-5" />;
+      case "fe":
+        return <img src="/fe.svg" alt="Fe" className="w-5 h-5" />;
       default:
         return <span className="text-lg">❓</span>;
     }
@@ -423,7 +427,7 @@ export default function FileUpload({
                     onFilesChange([]);
                   }
                 }}
-                placeholder={selectedLanguage === "vyper" ? "MyContract.vy" : "MyContract.sol"}
+                placeholder={selectedLanguage === "vyper" ? "MyContract.vy" : selectedLanguage === "fe" ? "MyContract.fe" : "MyContract.sol"}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:border-cerulean-blue-500 ${
                   fileNameError ? "border-red-300" : "border-gray-300"
                 }`}

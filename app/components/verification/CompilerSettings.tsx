@@ -25,8 +25,11 @@ export default function CompilerSettings({
   onOptimizerEnabledChange,
   onOptimizerRunsChange,
 }: CompilerSettingsProps) {
-  // Only show for single-file and multiple-files methods
-  const shouldShow = !isFrameworkMethod && (selectedMethod === "single-file" || selectedMethod === "multiple-files");
+  // Only show for single-file and multiple-files methods, and not for Fe (no compiler settings)
+  const shouldShow =
+    !isFrameworkMethod &&
+    selectedLanguage !== "fe" &&
+    (selectedMethod === "single-file" || selectedMethod === "multiple-files");
 
   if (!shouldShow) return null;
 
