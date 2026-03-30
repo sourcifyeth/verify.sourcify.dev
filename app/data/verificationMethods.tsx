@@ -53,6 +53,7 @@ export const solidityMetadataMethod: VerificationMethodObject = {
 export const verificationMethods: VerificationMethods = {
   solidity: [...baseVerificationMethods, solidityMetadataMethod],
   vyper: baseVerificationMethods,
+  fe: baseVerificationMethods,
 };
 
 export const frameworkMethods: FrameworkMethodObject[] = [

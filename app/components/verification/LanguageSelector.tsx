@@ -47,6 +47,25 @@ export default function LanguageSelector({ selectedLanguage, onLanguageSelect }:
             Vyper
           </h3>
         </button>
+
+        <button
+          type="button"
+          onClick={() => onLanguageSelect("fe")}
+          className={`w-32 p-4 border-2 rounded-lg text-center transition-all duration-200 ${
+            selectedLanguage === "fe"
+              ? "border-cerulean-blue-500 bg-cerulean-blue-50"
+              : "border-gray-300 hover:border-cerulean-blue-300 hover:bg-gray-50"
+          }`}
+        >
+          <img src="/fe.svg" alt="Fe" className="mx-auto w-8 h-8 mb-2" />
+          <h3
+            className={`text-sm font-medium ${
+              selectedLanguage === "fe" ? "text-cerulean-blue-600" : "text-gray-700"
+            }`}
+          >
+            Fe
+          </h3>
+        </button>
       </div>
     </div>
   );

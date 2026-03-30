@@ -87,9 +87,12 @@ export function useFormValidation({
   const areFilesRequired = languageString && selectedMethod && 
     ["single-file", "multiple-files", "std-json", "metadata-json", "build-info"].includes(selectedMethod);
 
-  // Check if EVM version is required (for all languages, not for metadata-json, hardhat, or foundry methods)
+  // Check if EVM version is required (not for Fe which has no EVM version setting, or metadata-json/framework methods)
   const isEvmVersionRequired =
-    languageString && selectedMethod && ["single-file", "multiple-files"].includes(selectedMethod);
+    languageString &&
+    selectedLanguage !== "fe" &&
+    selectedMethod &&
+    ["single-file", "multiple-files"].includes(selectedMethod);
 
   const validateFiles = () => {
     if (!areFilesRequired) return true;

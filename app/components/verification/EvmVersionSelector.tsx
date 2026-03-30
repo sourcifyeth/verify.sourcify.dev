@@ -40,7 +40,7 @@ export default function EvmVersionSelector({
   selectedEvmVersion,
   onEvmVersionSelect,
 }: EvmVersionSelectorProps) {
-  if (!selectedLanguage) return null;
+  if (!selectedLanguage || selectedLanguage === "fe") return null;
 
   const evmVersions = selectedLanguage === "vyper" ? VYPER_EVM_VERSIONS : SOLIDITY_EVM_VERSIONS;
 

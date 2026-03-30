@@ -1,4 +1,4 @@
-export type Language = "solidity" | "vyper";
+export type Language = "solidity" | "vyper" | "fe";
 
 // Verification method IDs
 export type VerificationMethod = "single-file" | "multiple-files" | "std-json" | "metadata-json" | "build-info";
@@ -27,6 +27,7 @@ export interface FrameworkMethodObject {
 export interface VerificationMethods {
   solidity: VerificationMethodObject[];
   vyper: VerificationMethodObject[];
+  fe: VerificationMethodObject[];
 }
 
 export interface FrameworkMessages {
