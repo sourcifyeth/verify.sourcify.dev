@@ -14,7 +14,7 @@
     "@react-router/node": "7.14.2",
     "@react-router/serve": "7.14.2",
     "@solidity-parser/parser": "0.20.2",
-    "diff": "8.0.3",
+    "diff": "8.0.4",
     "ethers": "6.16.0",
     "fuse.js": "7.3.0",
     "isbot": "5.1.39",
