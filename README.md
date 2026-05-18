@@ -87,7 +87,7 @@ npm start
 
 ### Type Checking
 
-Run TypeScript type checking:
+Run TypeScript type checking
 
 ```bash
 npm run typecheck
