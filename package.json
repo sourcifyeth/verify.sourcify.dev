@@ -28,11 +28,11 @@
   "devDependencies": {
     "@ethereum-sourcify/compilers-types": "1.2.0",
     "@react-router/dev": "7.15.0",
-    "@tailwindcss/vite": "4.2.4",
-    "@types/node": "20.19.39",
+    "@tailwindcss/vite": "4.3.0",
+    "@types/node": "20.19.41",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "tailwindcss": "4.2.4",
+    "tailwindcss": "4.3.0",
     "typescript": "5.9.3",
     "vite": "6.4.2",
     "vite-tsconfig-paths": "5.1.4"
