@@ -6,6 +6,7 @@ import "./app.css";
 import { ServerConfigProvider } from "./contexts/ServerConfigContext";
 import { ChainsProvider } from "./contexts/ChainsContext";
 import { CompilerVersionsProvider } from "./contexts/CompilerVersionsContext";
+import StagingBanner from "./components/StagingBanner";
 
 export const links: Route.LinksFunction = () => [];
 
@@ -27,6 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       </head>
       <body>
+        <StagingBanner />
         <ServerConfigProvider>
           <ChainsProvider>
             <CompilerVersionsProvider>
