@@ -4,7 +4,7 @@ import { submitEtherscanVerification } from "../../utils/sourcifyApi";
 import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
 import { saveJob } from "../../utils/jobStorage";
 import { useServerConfig } from "../../contexts/ServerConfigContext";
-import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
+import { useChains } from "../../contexts/ChainsContext";
 import type { SubmissionResult } from "../../types/verification";
 
 interface ImportFromEtherscanProps {
@@ -26,7 +26,7 @@ export default function ImportFromEtherscan({
 }: ImportFromEtherscanProps) {
   const [isImporting, setIsImporting] = useState(false);
   const { serverUrl } = useServerConfig();
-  const { vyperVersions } = useCompilerVersions();
+  const { chains } = useChains();
 
   // Use the custom hook to reactively track API key changes
   const hasApiKey = useEtherscanApiKey();
@@ -49,8 +49,21 @@ export default function ImportFromEtherscan({
         throw new Error("No Etherscan API key found");
       }
 
+      // Use the chain's custom Etherscan-compatible explorer URL if it has one,
+      // so contracts on non-canonical explorers (e.g. chain 627) are imported
+      // from the right API instead of api.etherscan.io.
+      const etherscanApiUrl = chains.find(
+        (chain) => chain.chainId.toString() === chainId
+      )?.etherscanApiUrl;
+
       // Submit verification directly
-      const result = await submitEtherscanVerification(serverUrl, chainId, address, apiKey, vyperVersions);
+      const result = await submitEtherscanVerification(
+        serverUrl,
+        chainId,
+        address,
+        apiKey,
+        etherscanApiUrl
+      );
 
       // Set successful submission result
       setSubmissionResult({

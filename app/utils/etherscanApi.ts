@@ -20,10 +20,16 @@ export const getVyperLongVersionFromList = (
 export const fetchFromEtherscan = async (
   chainId: string,
   address: string,
-  apiKey: string = ""
+  apiKey: string = "",
+  customBaseUrl?: string
 ): Promise<EtherscanResult> => {
   try {
-    return await EtherscanUtils.fetchFromEtherscan(chainId, address, apiKey);
+    return await EtherscanUtils.fetchFromEtherscan(
+      chainId,
+      address,
+      apiKey,
+      customBaseUrl
+    );
   } catch (error) {
     if (error instanceof EtherscanImportError) {
       // Convert EtherscanImportError to regular Error for compatibility
