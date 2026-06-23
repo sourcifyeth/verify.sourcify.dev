@@ -4,7 +4,7 @@ import { submitEtherscanVerification } from "../../utils/sourcifyApi";
 import { useEtherscanApiKey, getEtherscanApiKey } from "../../utils/etherscanStorage";
 import { saveJob } from "../../utils/jobStorage";
 import { useServerConfig } from "../../contexts/ServerConfigContext";
-import { useCompilerVersions } from "../../contexts/CompilerVersionsContext";
+import { useChains } from "../../contexts/ChainsContext";
 import type { SubmissionResult } from "../../types/verification";
 
 interface ImportFromEtherscanProps {
@@ -26,15 +26,27 @@ export default function ImportFromEtherscan({
 }: ImportFromEtherscanProps) {
   const [isImporting, setIsImporting] = useState(false);
   const { serverUrl } = useServerConfig();
-  const { vyperVersions } = useCompilerVersions();
+  const { chains } = useChains();
 
   // Use the custom hook to reactively track API key changes
   const hasApiKey = useEtherscanApiKey();
 
+  // The chain's custom Etherscan-compatible explorer URL, if it has one, so
+  // contracts on non-canonical explorers (e.g. chain 627) are imported from the
+  // right API instead of api.etherscan.io.
+  const etherscanApiUrl = chains.find(
+    (chain) => chain.chainId.toString() === chainId
+  )?.etherscanApiUrl;
+
+  // Custom Etherscan-compatible instances don't require an API key; only the
+  // canonical api.etherscan.io does.
+  const requiresApiKey = !etherscanApiUrl;
+
   // Validate address using ethers isAddress function
   const isAddressValid = address ? isAddress(address) : false;
 
-  const canImport = hasApiKey && chainId && address && isAddressValid;
+  const canImport =
+    (hasApiKey || !requiresApiKey) && chainId && address && isAddressValid;
 
   const handleImport = async () => {
     if (!canImport) return;
@@ -45,12 +57,18 @@ export default function ImportFromEtherscan({
 
     try {
       const apiKey = getEtherscanApiKey();
-      if (!apiKey) {
+      if (requiresApiKey && !apiKey) {
         throw new Error("No Etherscan API key found");
       }
 
       // Submit verification directly
-      const result = await submitEtherscanVerification(serverUrl, chainId, address, apiKey, vyperVersions);
+      const result = await submitEtherscanVerification(
+        serverUrl,
+        chainId,
+        address,
+        apiKey ?? "",
+        etherscanApiUrl
+      );
 
       // Set successful submission result
       setSubmissionResult({
@@ -80,7 +98,7 @@ export default function ImportFromEtherscan({
   };
 
   const getValidationMessage = () => {
-    if (!hasApiKey) return "Add an API key in settings";
+    if (requiresApiKey && !hasApiKey) return "Add an API key in settings";
     if (!chainId) return "Select a chain to enable import";
     if (!address) return "Enter a contract address to enable import";
     if (!isAddressValid) return "Enter a valid contract address to enable import";
