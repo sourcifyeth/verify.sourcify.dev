@@ -321,10 +321,18 @@ export async function submitEtherscanVerification(
   serverUrl: string,
   chainId: string,
   address: string,
-  apiKey: string
+  apiKey: string,
+  etherscanApiUrl?: string
 ): Promise<VerificationResponse> {
-  // Fetch data from Etherscan and process the result
-  const etherscanResult = await fetchFromEtherscan(chainId, address, apiKey);
+  // Fetch data from Etherscan and process the result. Use the chain's custom
+  // Etherscan-compatible explorer URL when provided, otherwise lib-sourcify
+  // defaults to the canonical api.etherscan.io.
+  const etherscanResult = await fetchFromEtherscan(
+    chainId,
+    address,
+    apiKey,
+    etherscanApiUrl
+  );
   const processedResult = await processEtherscanResult(etherscanResult);
 
   return await submitStandardJsonVerification(

@@ -15,24 +15,24 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.1
 
       - name: "auth staging"
         if: github.ref == 'refs/heads/staging'
-        uses: "google-github-actions/auth@v2"
+        uses: "google-github-actions/auth@v2.1.13"
         with:
           workload_identity_provider: "projects/1019539084286/locations/global/workloadIdentityPools/github/providers/sourcify"
           service_account: "verify-ui-staging-deployer@sourcify-project.iam.gserviceaccount.com"
 
       - name: "auth main"
         if: github.ref == 'refs/heads/main'
-        uses: "google-github-actions/auth@v2"
+        uses: "google-github-actions/auth@v2.1.13"
         with:
           workload_identity_provider: "projects/1019539084286/locations/global/workloadIdentityPools/github/providers/sourcify"
           service_account: "verify-ui-prod-deployer@sourcify-project.iam.gserviceaccount.com"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3.9.1
         with:
           node-version: "22.4.0"
 
@@ -55,7 +55,7 @@ jobs:
 
       - name: Upload files to Staging bucket
         if: github.ref == 'refs/heads/staging'
-        uses: google-github-actions/upload-cloud-storage@v2
+        uses: google-github-actions/upload-cloud-storage@v2.2.4
         with:
           path: "build/client"
           destination: "verify-sourcify-ui-staging-bucket"
@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload files to Main bucket
         if: github.ref == 'refs/heads/main'
-        uses: google-github-actions/upload-cloud-storage@v2
+        uses: google-github-actions/upload-cloud-storage@v2.2.4
         with:
           path: "build/client"
           destination: "verify-sourcify-ui-production-bucket"
