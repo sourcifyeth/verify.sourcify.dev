@@ -2,6 +2,17 @@ import type { VerificationJobStatus } from "./sourcifyApi";
 import type { Chain } from "../types/chains";
 import { getChainName } from "./chains";
 
+export const DISCORD_URL = "https://discord.com/invite/6aqd9cfZ9s";
+export const MATRIX_URL = "https://matrix.to/#/#ethereum_source-verify:gitter.im";
+
+// These codes come from the user's input, not from a Sourcify bug
+const NOT_A_BUG_CODES = ["already_verified", "contract_not_deployed"];
+
+export function canReportBug(jobData: VerificationJobStatus): boolean {
+  return !!jobData.error && !!jobData.contract && !NOT_A_BUG_CODES.includes(jobData.error.customCode);
+}
+
+// Opens the bug report form; its required fields block empty reports
 export function generateGitHubIssueUrl(jobData: VerificationJobStatus, chains: Chain[], serverUrl: string): string {
   if (!jobData.error || !jobData.contract) return "";
 
@@ -12,80 +23,38 @@ export function generateGitHubIssueUrl(jobData: VerificationJobStatus, chains: C
     jobData.contract.chainId
   }) ${shortAddress}`;
 
-  const body = `<!--- Please fill the section in the end of this issue and explain why you expect this job to not fail. If possible, please provide the JSON input you used. --->
+  const compilerErrors = jobData.error.errorData?.compilerErrors ?? [];
 
-## Verification Job Failed
-
-**Job ID:** \`${jobData.verificationId}\`
-**Chain:** ${getChainName(chains, parseInt(jobData.contract.chainId))} (${jobData.contract.chainId})
-**Contract Address:** \`${jobData.contract.address}\`
-**Error Code:** \`${jobData.error.customCode || "N/A"}\`
-**Server URL:** \`${serverUrl}\`
-
-### Error Details
+  const reproduce = `- **Job ID:** \`${jobData.verificationId}\`
+- **Chain:** ${chainName} (${jobData.contract.chainId})
+- **Contract Address:** \`${jobData.contract.address}\`
+- **Error Code:** \`${jobData.error.customCode || "N/A"}\`
+- **Server URL:** \`${serverUrl}\`
+- **Job Started:** ${new Date(jobData.jobStartTime).toISOString()}
+${jobData.jobFinishTime ? `- **Job Finished:** ${new Date(jobData.jobFinishTime).toISOString()}\n` : ""}
+**Error Details:**
 \`\`\`
 ${jobData.error.message}
 \`\`\`
-
 ${
-  jobData.error.errorData?.compilerErrors?.length
+  compilerErrors.length
     ? `
-### Compiler Errors (${jobData.error.errorData.compilerErrors.length})
+**Compiler Errors (${compilerErrors.length}):**
 \`\`\`
-${jobData.error.errorData.compilerErrors
+${compilerErrors
   .slice(0, 3)
   .map((err) => err.formattedMessage || err.message)
   .join("\n\n")}
 \`\`\`
-${
-  jobData.error.errorData.compilerErrors.length > 3
-    ? `\n... and ${jobData.error.errorData.compilerErrors.length - 3} more errors`
+${compilerErrors.length > 3 ? `\n... and ${compilerErrors.length - 3} more errors\n` : ""}`
     : ""
 }
-`
-    : ""
-}
+*Prefilled by the Sourcify verification UI.*`;
 
-### Additional Information
-- **Job Started:** ${new Date(jobData.jobStartTime).toISOString()}
-${jobData.jobFinishTime ? `- **Job Finished:** ${new Date(jobData.jobFinishTime).toISOString()}` : ""}
-${jobData.compilationTime ? `- **Compilation Time:** ${jobData.compilationTime}ms` : ""}
-
-### User Input and Expectation
-**Why do you expect this verification to succeed?**
-<!-- Please explain why you believe this verification should work -->
-
-**Language:**
-<!-- Solidity or Vyper -->
-
-**Compiler Version:**
-<!-- e.g., 0.8.19, 0.7.6+commit.7338295f -->
-
-**EVM Version:**
-<!-- e.g., london, paris, shanghai, cancun -->
-
-**Optimizer Settings:**
-<!-- e.g., enabled: true, runs: 200 -->
-
-**Contract Identifier:**
-<!-- e.g., contracts/MyContract.sol:MyContract -->
-
-**Files Used:**
-<!-- Please upload the files you submitted for verification (source code, metadata, etc.) by dragging and dropping them here or sharing them via a link -->
-\`\`\`
-<!-- Upload files directly to this issue -->
-\`\`\`
-
-**Additional Context:**
-<!-- Any other relevant information -->
-
----
-*This issue was automatically generated from the Sourcify verification UI.*`;
-
-  const issueUrl = new URL("https://github.com/ethereum/sourcify/issues/new");
+  const issueUrl = new URL("https://github.com/argotorg/sourcify/issues/new");
+  issueUrl.searchParams.set("template", "bug_report.yml");
   issueUrl.searchParams.set("title", title);
-  issueUrl.searchParams.set("body", body);
-  issueUrl.searchParams.set("labels", "bug,verification-failure");
+  issueUrl.searchParams.set("reproduce", reproduce);
 
   return issueUrl.toString();
 }

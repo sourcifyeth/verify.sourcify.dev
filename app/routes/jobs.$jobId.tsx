@@ -16,7 +16,9 @@ import MatchBadge from "../components/verification/MatchBadge";
 import ExternalVerifierStatuses from "../components/verification/ExternalVerifierStatuses";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useServerConfig } from "../contexts/ServerConfigContext";
-import { generateGitHubIssueUrl } from "../utils/githubIssue";
+import { FaDiscord } from "react-icons/fa";
+import { SiMatrix } from "react-icons/si";
+import { canReportBug, DISCORD_URL, generateGitHubIssueUrl, MATRIX_URL } from "../utils/githubIssue";
 import { type ExternalVerifierKey } from "~/utils/externalVerifiers";
 
 export function meta({ }: Route.MetaArgs) {
@@ -628,17 +630,42 @@ export default function JobDetails() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col items-center mt-4">
-                <p className="text-gray-500 text-xs italic mb-1">Something is wrong? Report an issue on GitHub</p>
-                <a
-                  href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                >
-                  <IoBugOutline className="w-4 h-4" />
-                  Report Issue
-                </a>
+              <div className="flex flex-col items-center mt-6 text-center">
+                <p className="text-gray-600 text-sm mb-2">Need help with this verification?</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <a
+                    href={DISCORD_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-cerulean-blue-600 bg-white border border-cerulean-blue-300 hover:bg-cerulean-blue-100 hover:border-cerulean-blue-400 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
+                  >
+                    <FaDiscord className="w-4 h-4" />
+                    Ask on Discord
+                  </a>
+                  <a
+                    href={MATRIX_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-cerulean-blue-600 bg-white border border-cerulean-blue-300 hover:bg-cerulean-blue-100 hover:border-cerulean-blue-400 focus:outline-none focus:ring-2 focus:ring-cerulean-blue-500 focus:ring-offset-2 transition-colors"
+                  >
+                    <SiMatrix className="w-4 h-4" />
+                    Ask on Matrix
+                  </a>
+                </div>
+                {canReportBug(jobData) && (
+                  <p className="text-gray-500 text-xs mt-3">
+                    You think that this is a bug in Sourcify?{" "}
+                    <a
+                      href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 underline hover:text-gray-700"
+                    >
+                      <IoBugOutline className="w-3 h-3" />
+                      Open a bug report on GitHub
+                    </a>
+                  </p>
+                )}
               </div>
             </div>
           )}
