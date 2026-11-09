@@ -1,7 +1,7 @@
 import type { Route } from "./+types/jobs.$jobId";
 import { useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { IoOpenOutline, IoClose, IoBugOutline } from "react-icons/io5";
+import { IoOpenOutline, IoClose } from "react-icons/io5";
 import { TbArrowsDiff } from "react-icons/tb";
 import { useChains } from "../contexts/ChainsContext";
 import { getChainName } from "../utils/chains";
@@ -16,7 +16,9 @@ import MatchBadge from "../components/verification/MatchBadge";
 import ExternalVerifierStatuses from "../components/verification/ExternalVerifierStatuses";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useServerConfig } from "../contexts/ServerConfigContext";
-import { generateGitHubIssueUrl } from "../utils/githubIssue";
+import { canReportBug, generateGitHubIssueUrl } from "../utils/githubIssue";
+import { generateDebugPrompt } from "../utils/debugPrompt";
+import DebugPrompt from "../components/verification/DebugPrompt";
 import { type ExternalVerifierKey } from "~/utils/externalVerifiers";
 
 export function meta({ }: Route.MetaArgs) {
@@ -628,18 +630,12 @@ export default function JobDetails() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-col items-center mt-4">
-                <p className="text-gray-500 text-xs italic mb-1">Something is wrong? Report an issue on GitHub</p>
-                <a
-                  href={generateGitHubIssueUrl(jobData, chains, serverUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 bg-white border border-red-300 hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                >
-                  <IoBugOutline className="w-4 h-4" />
-                  Report Issue
-                </a>
-              </div>
+              {jobData.contract && (
+                <DebugPrompt
+                  prompt={generateDebugPrompt(jobData, chains, serverUrl)}
+                  bugReportUrl={canReportBug(jobData) ? generateGitHubIssueUrl(jobData, chains, serverUrl) : undefined}
+                />
+              )}
             </div>
           )}
         </div>
