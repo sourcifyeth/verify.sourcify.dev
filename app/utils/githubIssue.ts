@@ -2,9 +2,6 @@ import type { VerificationJobStatus } from "./sourcifyApi";
 import type { Chain } from "../types/chains";
 import { getChainName } from "./chains";
 
-export const DISCORD_URL = "https://discord.com/invite/6aqd9cfZ9s";
-export const MATRIX_URL = "https://matrix.to/#/#ethereum_source-verify:gitter.im";
-
 // These codes come from the user's input, not from a Sourcify bug
 const NOT_A_BUG_CODES = ["already_verified", "contract_not_deployed"];
 
